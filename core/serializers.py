@@ -123,6 +123,28 @@ class PlanPaiementCreateSerializer(serializers.ModelSerializer):
 # RAPPELS
 # ---------------------------------------------------------------------------
 
+class RappelCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Rappel
+        fields = ["tranche", "document", "canal", "date_envoi_prevue"]
+
+    def validate(self, attrs):
+        if bool(attrs.get("tranche")) == bool(attrs.get("document")):
+            raise ValidationError(
+                {"cible": "Choisissez une tranche ou un document (pas les deux)."}
+            )
+        agence = self.context.get("agence")
+        if agence is not None:
+            tranche = attrs.get("tranche")
+            document = attrs.get("document")
+            pelerin = tranche.plan_paiement.pelerin if tranche else (document.pelerin if document else None)
+            if pelerin and pelerin.groupe.agence_id != agence.id:
+                raise ValidationError(
+                    {"cible": "Cette cible n'appartient pas à votre agence."}
+                )
+        return attrs
+
+
 class RappelSerializer(serializers.ModelSerializer):
     canal_label = serializers.CharField(source="get_canal_display", read_only=True)
     statut_envoi_label = serializers.CharField(source="get_statut_envoi_display", read_only=True)

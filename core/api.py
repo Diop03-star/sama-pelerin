@@ -34,6 +34,7 @@ from .serializers import (
     PelerinWriteSerializer,
     PlanPaiementCreateSerializer,
     PlanPaiementSerializer,
+    RappelCreateSerializer,
     RappelSerializer,
     TrancheSerializer,
 )
@@ -284,6 +285,24 @@ class RappelViewSet(AgenceScopedViewSet):
         "tranche", "document", "tranche__plan_paiement__pelerin"
     ).all()
     serializer_class = RappelSerializer
+
+    def get_serializer_class(self):
+        if self.action == "create":
+            return RappelCreateSerializer
+        return RappelSerializer
+
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context["agence"] = get_agence(self.request)
+        return context
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        rappel = serializer.save(statut_envoi="en_attente")
+        return Response(
+            RappelSerializer(rappel).data, status=status.HTTP_201_CREATED
+        )
 
     def get_queryset(self):
         qs = self.queryset

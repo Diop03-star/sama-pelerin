@@ -381,3 +381,72 @@ class TestRappels(BaseApiTest):
             format="json",
         )
         self.assertEqual(reponse.status_code, status.HTTP_400_BAD_REQUEST)
+
+
+class TestCreationRappel(BaseApiTest):
+    def test_creation_rappel_pour_tranche(self):
+        self.client.force_login(self.staff)
+        plan = PlanPaiement.objects.create(
+            pelerin=self.pelerin_a, montant_total=1000000, nombre_tranches=4
+        )
+        tranche = Tranche.objects.create(
+            plan_paiement=plan,
+            numero_tranche=1,
+            montant_prevu=250000,
+            date_echeance=date.today() + timedelta(days=30),
+        )
+        reponse = self.client.post(
+            "/api/v1/rappels/",
+            {
+                "tranche": tranche.id,
+                "canal": "whatsapp",
+                "date_envoi_prevue": "2026-09-01T10:00:00Z",
+            },
+            format="json",
+        )
+        self.assertEqual(reponse.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(reponse.json()["statut_envoi"], "en_attente")
+
+    def test_creer_rappel_pour_document(self):
+        self.client.force_login(self.staff)
+        document = self.pelerin_a.documents.first()
+        reponse = self.client.post(
+            "/api/v1/rappels/",
+            {
+                "document": document.id,
+                "canal": "sms",
+                "date_envoi_prevue": "2026-09-01T10:00:00Z",
+            },
+            format="json",
+        )
+        self.assertEqual(reponse.status_code, status.HTTP_201_CREATED)
+
+    def test_rappel_sans_cible_refuse(self):
+        self.client.force_login(self.staff)
+        reponse = self.client.post(
+            "/api/v1/rappels/",
+            {"canal": "whatsapp", "date_envoi_prevue": "2026-09-01T10:00:00Z"},
+            format="json",
+        )
+        self.assertEqual(reponse.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_rappel_cible_agence_etrangere_refusee(self):
+        self.client.force_login(self.user_a)
+        tranche = Tranche.objects.create(
+            plan_paiement=PlanPaiement.objects.create(
+                pelerin=self.pelerin_b, montant_total=1000000, nombre_tranches=4
+            ),
+            numero_tranche=1,
+            montant_prevu=250000,
+            date_echeance=date.today() + timedelta(days=30),
+        )
+        reponse = self.client.post(
+            "/api/v1/rappels/",
+            {
+                "tranche": tranche.id,
+                "canal": "whatsapp",
+                "date_envoi_prevue": "2026-09-01T10:00:00Z",
+            },
+            format="json",
+        )
+        self.assertEqual(reponse.status_code, status.HTTP_400_BAD_REQUEST)

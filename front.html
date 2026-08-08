@@ -659,28 +659,93 @@ routeur.ajouter(/^\/rappels$/, async function () {
   try {
     const rappels = await API.get("rappels/");
     contenu.innerHTML = `
-      <h4 class="mb-3">Rappels</h4>
-      ${rappels.length === 0 ? chargerEtatVide("Aucun rappel programmé.") : `
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h4 class="mb-0">Rappels</h4>
+        <button class="btn btn-vert" onclick="aller('/rappels/nouveau')">+ Programmer un rappel</button>
+      </div>
+      ${rappels.length === 0 ? chargerEtatVide("Aucun rappel programmé.", "aller('/rappels/nouveau')") : `
       <div class="table-responsive"><table class="table table-hover bg-white shadow-sm rounded">
         <thead><tr><th>Pèlerin</th><th>Motif</th><th>Canal</th><th>Prévu le</th><th>Statut</th><th></th></tr></thead>
         <tbody>${rappels.map((r) => `
           <tr>
-            <td class="page-lien" onclick="aller('/pelerins/${r.cible?.id}')">${r.cible ? r.cible.nom : "—"}</td>
+            <td class="page-lien" onclick="aller('/pelerins/${r.cible?.id}')">${r.cible ? r.cible.nom + " — " + r.cible.telephone : "—"}</td>
             <td>${r.motif}</td>
             <td>${r.canal_label}</td>
             <td>${fmtDate(r.date_envoi_prevue)}</td>
             <td>${badgeStatut(r.statut_envoi)}</td>
-            <td>${r.statut_envoi !== "envoye" ? `<button class="btn btn-sm btn-vert" onclick="marquerRappel(${r.id})">Marquer envoyé</button>` : ""}</td>
+            <td class="text-nowrap">${r.statut_envoi !== "envoye" ? `<button class="btn btn-sm btn-vert me-1" onclick="constaterRappel(${r.id}, 'envoye')">Envoyé</button>` : ""}${r.statut_envoi !== "echec" ? `<button class="btn btn-sm btn-outline-danger" onclick="constaterRappel(${r.id}, 'echec')">Échec</button>` : ""}</td>
           </tr>`).join("")}</tbody></table></div>`}`;
   } catch (err) { contenu.innerHTML = `<div class="alert alert-danger">${err.message}</div>`; }
 });
-window.marquerRappel = async function (id) {
+window.constaterRappel = async function (id, statut) {
   try {
-    await API.patch("rappels/" + id + "/marquer/", { statut_envoi: "envoye" });
-    afficherToast("Rappel marqué comme envoyé.");
+    await API.patch("rappels/" + id + "/marquer/", { statut_envoi: statut });
+    afficherToast("Rappel " + (statut === "envoye" ? "marqué comme envoyé." : "marqué comme échoué."));
     routeur.naviguer();
   } catch (err) { afficherToast(err.message, "danger"); }
 };
+
+// --- Programmer un rappel ---
+routeur.ajouter(/^\/rappels\/nouveau$/, async function () {
+  const contenu = document.getElementById("contenu");
+  contenu.innerHTML = `<div class="text-center py-5"><div class="spinner-border text-success" role="status"></div></div>`;
+  try {
+    const pelerins = await API.get("pelerins/");
+    contenu.innerHTML = `
+      <nav aria-label="breadcrumb"><ol class="breadcrumb">
+        <li class="breadcrumb-item page-lien" onclick="aller('/rappels')">Rappels</li>
+        <li class="breadcrumb-item active">Programmer un rappel</li></ol></nav>
+      <div class="card shadow-sm p-4 col-lg-8">
+        <form id="formRappel">
+          ${pelerins.length === 0 ? `<div class="alert alert-warning">Aucun pèlerin. Inscrivez d'abord un pèlerin.</div>` : champ("r_pelerin", "select", "Pèlerin", { requis: true, choix: pelerins.map((p) => [p.id, `${p.prenom} ${p.nom} (${p.groupe_nom})`]) })}
+          ${champ("r_type", "select", "À propos de", { requis: true, choix: [["tranche", "Un paiement (tranche)"], ["document", "Un document"]] })}
+          <div id="zoneCibles"></div>
+          ${champ("r_canal", "select", "Canal", { requis: true, choix: [["whatsapp", "WhatsApp"], ["sms", "SMS"]] })}
+          <div class="mb-3"><label class="form-label">Prévu le *</label><input type="datetime-local" class="form-control" id="r_date"></div>
+          <div class="d-flex gap-2">
+            <button class="btn btn-vert">Programmer</button>
+            <button type="button" class="btn btn-outline-secondary" onclick="aller('/rappels')">Annuler</button>
+          </div>
+        </form>
+      </div>`;
+    const zoneCibles = document.getElementById("zoneCibles");
+    const pel = document.getElementById("r_pelerin");
+    const typ = document.getElementById("r_type");
+    async function chargerCibles() {
+      if (!pel.value) return;
+      const rens = await API.get("pelerins/" + pel.value + "/");
+      if (typ.value === "tranche") {
+        const tranches = (rens.plan_paiement?.tranches || []).filter((t) => t.statut !== "payee");
+        zoneCibles.innerHTML = tranches.length === 0
+          ? `<div class="alert alert-warning py-2">Aucune tranche en attente de paiement.</div>`
+          : champ("r_cible", "select", "Tranche concernée", { requis: true, choix: tranches.map((t) => [t.id, `Tranche n°${t.numero_tranche} — ${fmtMontant(t.montant_prevu)} (échéance ${fmtDate(t.date_echeance)})`]) });
+      } else {
+        const docs = rens.documents.filter((d) => ["manquant", "soumis", "rejete"].includes(d.statut));
+        zoneCibles.innerHTML = docs.length === 0
+          ? `<div class="alert alert-success py-2">Tous les documents sont validés.</div>`
+          : champ("r_cible", "select", "Document concerné", { requis: true, choix: docs.map((d) => [d.id, `${d.type_document_label} — ${d.statut_label}`]) });
+      }
+    }
+pel.addEventListener("change", chargerCibles);
+    typ.addEventListener("change", chargerCibles);
+    const d = new Date(Date.now() + 24 * 3600 * 1000);
+    const p = (n) => String(n).padStart(2, "0");
+    document.getElementById("r_date").value = d.getFullYear() + "-" + p(d.getMonth() + 1) + "-" + p(d.getDate()) + "T" + p(9) + ":00";
+    document.getElementById("formRappel").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const cible = document.getElementById("r_cible");
+      if (!cible) { afficherToast("Choisissez la tranche ou le document concerné.", "warning"); return; }
+      try {
+        const corps = typ.value === "tranche"
+          ? { tranche: Number(cible.value), canal: document.getElementById("r_canal").value, date_envoi_prevue: new Date(document.getElementById("r_date").value).toISOString() }
+          : { document: Number(cible.value), canal: document.getElementById("r_canal").value, date_envoi_prevue: new Date(document.getElementById("r_date").value).toISOString() };
+        await API.post("rappels/", corps);
+        afficherToast("Rappel programmé.");
+        aller("/rappels");
+      } catch (err) { afficherToast(err.message, "danger"); }
+    });
+  } catch (err) { contenu.innerHTML = `<div class="alert alert-danger">${err.message}</div>`; }
+});
 
 // ----------------------------------------------------------------
 // Actions depuis le détail pèlerin
