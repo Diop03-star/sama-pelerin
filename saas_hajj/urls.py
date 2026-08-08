@@ -1,22 +1,37 @@
-"""
-URL configuration for saas_hajj project.
-
-The `urlpatterns` list routes URLs to views. For more information please see:
-    https://docs.djangoproject.com/en/6.0/topics/http/urls/
-Examples:
-Function views
-    1. Add an import:  from my_app import views
-    2. Add a URL to urlpatterns:  path('', views.home, name='home')
-Class-based views
-    1. Add an import:  from other_app.views import Home
-    2. Add a URL to urlpatterns:  path('', Home.as_view(), name='home')
-Including another URLconf
-    1. Import the include() function: from django.urls import include, path
-    2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
-"""
+from django.conf import settings
+from django.conf.urls.static import static
 from django.contrib import admin
-from django.urls import path
+from django.urls import include, path
+from rest_framework.routers import DefaultRouter
+
+from core import api
+from core.views import front
+
+router = DefaultRouter()
+router.register("agences", api.AgenceViewSet, basename="agence")
+router.register("groupes", api.GroupeViewSet, basename="groupe")
+router.register("pelerins", api.PelerinViewSet, basename="pelerin")
+router.register("documents", api.DocumentViewSet, basename="document")
+router.register("tranches", api.TrancheViewSet, basename="tranche")
+router.register("rappels", api.RappelViewSet, basename="rappel")
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
+    path("admin/", admin.site.urls),
+    path("", front, name="front"),
+    path(
+        "api/v1/",
+        include(
+            [
+                path("", include(router.urls)),
+                path("dashboard/", api.dashboard, name="api-dashboard"),
+                path("moi/", api.moi, name="api-moi"),
+                path("csrf/", api.csrf_endpoint, name="api-csrf"),
+                path("connexion/", api.api_login, name="api-login"),
+                path("deconnexion/", api.api_logout, name="api-logout"),
+            ]
+        ),
+    ),
 ]
+
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

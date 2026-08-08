@@ -34,6 +34,14 @@ class Utilisateur(models.Model):
     telephone = models.CharField(max_length=20)
     email = models.EmailField(blank=True, null=True)
     role = models.CharField(max_length=20, choices=ROLE_CHOICES, default="agent")
+    compte = models.OneToOneField(
+        "auth.User",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="profil_agence",
+        help_text="Compte Django lié à cet utilisateur métier (clé du multi-tenant).",
+    )
     date_creation = models.DateTimeField(auto_now_add=True)
 
     class Meta:

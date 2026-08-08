@@ -24,7 +24,7 @@ class AgenceAdmin(admin.ModelAdmin):
 
 @admin.register(Utilisateur)
 class UtilisateurAdmin(admin.ModelAdmin):
-    list_display = ("nom", "agence", "role", "telephone", "email")
+    list_display = ("nom", "agence", "role", "telephone", "email", "compte")
     list_filter = ("agence", "role")
     search_fields = ("nom", "telephone", "email")
 
