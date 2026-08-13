@@ -11,6 +11,7 @@ import Pelerins from './pages/Pelerins'
 import PelerinDetail from './pages/PelerinDetail'
 import Documents from './pages/Documents'
 import Paiements from './pages/Paiements'
+import Dashboard from './pages/Dashboard'
 
 const queryClient = new QueryClient()
 
@@ -30,6 +31,7 @@ export default function App() {
               <Route path="/details-du-pelerin/:id" element={<PelerinDetail />} />
               <Route path="/gestion-des-documents" element={<Documents />} />
               <Route path="/paiements-echeanciers" element={<Paiements />} />
+              <Route path="/tableau-de-bord" element={<Dashboard />} />
               <Route path="*" element={<Navigate to="/tableau-de-bord" replace />} />
             </Route>
           </Routes>
