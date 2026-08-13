@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+
+<html class="light" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Tableau de bord - Hajj &amp; Omra SaaS</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "inverse-primary": "#bbc6e7",
+                        "surface-container": "#eeeeec",
+                        "surface-dim": "#dadad8",
+                        "primary": "#09152e",
+                        "secondary-fixed-dim": "#e8c086",
+                        "tertiary-fixed-dim": "#dfc391",
+                        "surface-container-high": "#e8e8e6",
+                        "surface-container-lowest": "#ffffff",
+                        "on-tertiary": "#ffffff",
+                        "on-primary-fixed-variant": "#3b4662",
+                        "inverse-on-surface": "#f1f1ef",
+                        "tertiary-container": "#382804",
+                        "error": "#ba1a1a",
+                        "secondary-container": "#ffd79b",
+                        "surface": "#f9f9f7",
+                        "primary-container": "#1f2a44",
+                        "on-primary-fixed": "#0f1b34",
+                        "on-secondary-fixed": "#281800",
+                        "surface-container-highest": "#e2e3e1",
+                        "on-surface": "#1a1c1b",
+                        "on-background": "#1a1c1b",
+                        "on-primary": "#ffffff",
+                        "on-primary-container": "#8691b0",
+                        "tertiary": "#1f1400",
+                        "primary-fixed-dim": "#bbc6e7",
+                        "on-tertiary-fixed-variant": "#57441d",
+                        "on-surface-variant": "#45464d",
+                        "on-secondary": "#ffffff",
+                        "surface-tint": "#535e7b",
+                        "background": "#f9f9f7",
+                        "on-secondary-container": "#7a5c2b",
+                        "surface-container-low": "#f4f4f2",
+                        "inverse-surface": "#2f3130",
+                        "surface-bright": "#f9f9f7",
+                        "primary-fixed": "#d9e2ff",
+                        "outline-variant": "#c6c6ce",
+                        "tertiary-fixed": "#fcdfab",
+                        "on-error": "#ffffff",
+                        "on-error-container": "#93000a",
+                        "secondary-fixed": "#ffdeae",
+                        "on-tertiary-fixed": "#261900",
+                        "on-secondary-fixed-variant": "#5d4213",
+                        "surface-variant": "#e2e3e1",
+                        "on-tertiary-container": "#a78f61",
+                        "outline": "#76777e",
+                        "secondary": "#775928",
+                        "error-container": "#ffdad6"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "gutter": "24px",
+                        "sidebar-width": "260px",
+                        "container-max": "1440px",
+                        "margin-mobile": "16px",
+                        "stack-sm": "8px",
+                        "stack-md": "16px",
+                        "stack-lg": "24px"
+                    },
+                    "fontFamily": {
+                        "display-lg": ["Inter"],
+                        "headline-md": ["Inter"],
+                        "body-md": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "data-mono": ["Inter"],
+                        "headline-sm": ["Inter"],
+                        "label-md": ["Inter"]
+                    },
+                    "fontSize": {
+                        "display-lg": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "headline-md": ["24px", { "lineHeight": "32px", "fontWeight": "600" }],
+                        "body-md": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+                        "body-lg": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "data-mono": ["14px", { "lineHeight": "20px", "letterSpacing": "-0.01em", "fontWeight": "500" }],
+                        "headline-sm": ["20px", { "lineHeight": "28px", "fontWeight": "600" }],
+                        "label-md": ["12px", { "lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600" }]
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-background text-on-background font-body-md antialiased min-h-screen flex">
+<!-- SideNavBar (Shared Component) -->
+<nav class="hidden md:flex flex-col h-full w-[260px] py-6 px-4 bg-surface-container-lowest dark:bg-surface-container-lowest text-primary dark:text-inverse-primary border-r border-outline-variant dark:border-outline fixed left-0 top-0 z-20">
+<!-- Header -->
+<div class="flex items-center gap-3 mb-8 px-2">
+<div class="w-10 h-10 rounded-full bg-surface-container flex items-center justify-center shrink-0 overflow-hidden border border-outline-variant">
+<img alt="Logo de l'agence" class="w-full h-full object-cover" data-alt="A clean, minimalist logo icon suitable for a professional corporate administration portal, featuring a subtle geometric or abstract design in a light mode palette with deep navy blue and crisp white tones. The aesthetic is modern, trustworthy, and precise, avoiding any clutter." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBYkizaEzfbjm_GmfRzggL-8II8AxsTb0A6Mg1Sf7R7LWkmU-ONaC2r9v70GGpRt_Id_0azvI-rV-5Pc_LRWQYVyCtUp5rTKKBdzLmXZZNf_7cZGr5oFi4nCQIMABbOEUlgR8I5OWygTG23eoAnl3tmzGVdSHPMjRmEL6xVBjLFZNGtywvDm1Zbpb-BB7W8HC2uQ4j21Rq05PokBTktbOpb8vzqOfQSB_dEzegeyLUttftqPJWU8ru2"/>
+</div>
+<div>
+<h1 class="text-headline-sm font-headline-sm font-bold text-primary dark:text-inverse-primary">Hajj &amp; Omra SaaS</h1>
+<p class="text-label-md font-label-md text-on-surface-variant">Portail Administrateur</p>
+</div>
+</div>
+<!-- Navigation Links -->
+<div class="flex-1 overflow-y-auto space-y-1">
+<!-- Active Tab -->
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg bg-surface-container text-primary font-bold border-l-4 border-secondary-fixed-dim hover:bg-surface-container-low transition-all translate-x-1 duration-200" href="#">
+<span class="material-symbols-outlined text-[20px]" style="font-variation-settings: 'FILL' 1;">dashboard</span>
+<span class="text-label-md font-label-md">Tableau de bord</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-on-surface-variant hover:bg-surface-container-low transition-all border-l-4 border-transparent" href="#">
+<span class="material-symbols-outlined text-[20px]">person</span>
+<span class="text-label-md font-label-md">Pèlerins</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-on-surface-variant hover:bg-surface-container-low transition-all border-l-4 border-transparent" href="#">
+<span class="material-symbols-outlined text-[20px]">group</span>
+<span class="text-label-md font-label-md">Groupes</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-on-surface-variant hover:bg-surface-container-low transition-all border-l-4 border-transparent" href="#">
+<span class="material-symbols-outlined text-[20px]">description</span>
+<span class="text-label-md font-label-md">Documents</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-on-surface-variant hover:bg-surface-container-low transition-all border-l-4 border-transparent" href="#">
+<span class="material-symbols-outlined text-[20px]">payments</span>
+<span class="text-label-md font-label-md">Paiements</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-on-surface-variant hover:bg-surface-container-low transition-all border-l-4 border-transparent" href="#">
+<span class="material-symbols-outlined text-[20px]">settings</span>
+<span class="text-label-md font-label-md">Administration</span>
+</a>
+</div>
+<!-- Footer Links -->
+<div class="pt-4 border-t border-outline-variant space-y-1">
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-on-surface-variant hover:bg-surface-container-low transition-all border-l-4 border-transparent" href="#">
+<span class="material-symbols-outlined text-[20px]">help</span>
+<span class="text-label-md font-label-md">Aide</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-error hover:bg-error-container transition-all border-l-4 border-transparent" href="#">
+<span class="material-symbols-outlined text-[20px]">logout</span>
+<span class="text-label-md font-label-md">Déconnexion</span>
+</a>
+</div>
+</nav>
+<!-- Main Content Area -->
+<main class="flex-1 flex flex-col md:ml-[260px] min-h-screen w-full relative">
+<!-- TopNavBar (Shared Component) -->
+<header class="flex justify-between items-center w-full px-6 py-3 bg-surface-container-lowest dark:bg-surface-container-lowest text-primary dark:text-inverse-primary border-b border-outline-variant dark:border-outline sticky top-0 z-10 h-[64px]">
+<div class="flex items-center gap-4">
+<!-- Mobile Menu Button -->
+<button class="md:hidden p-2 text-on-surface-variant hover:bg-surface-container-low rounded-lg transition-colors">
+<span class="material-symbols-outlined">menu</span>
+</button>
+<h2 class="text-headline-sm font-headline-sm font-bold">Al-Haram Manager</h2>
+</div>
+<!-- Search (on left logic implies search bar is placed towards the left of trailing actions) -->
+<div class="hidden sm:flex flex-1 max-w-md mx-6">
+<div class="relative w-full">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant">search</span>
+<input class="w-full pl-10 pr-4 py-2 bg-surface-container-low border border-outline-variant rounded-lg text-body-md font-body-md focus:border-primary focus:ring-1 focus:ring-primary transition-colors placeholder:text-on-surface-variant text-on-surface" placeholder="Rechercher pèlerins, groupes..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-2">
+<button aria-label="Notifications" class="p-2 text-on-surface-variant hover:bg-surface-container-low rounded-lg transition-colors relative">
+<span class="material-symbols-outlined">notifications</span>
+<span class="absolute top-1.5 right-1.5 w-2 h-2 bg-error rounded-full"></span>
+</button>
+<button aria-label="Help" class="p-2 text-on-surface-variant hover:bg-surface-container-low rounded-lg transition-colors">
+<span class="material-symbols-outlined">help_outline</span>
+</button>
+<div class="ml-2 pl-4 border-l border-outline-variant flex items-center gap-3">
+<div class="hidden lg:block text-right">
+<p class="text-label-md font-label-md text-on-surface">Admin Principal</p>
+<p class="text-[10px] text-on-surface-variant">Agence Al-Taqwa</p>
+</div>
+<div class="w-8 h-8 rounded-full overflow-hidden border border-outline-variant bg-surface-container">
+<img alt="Photo de profil administrateur" class="w-full h-full object-cover" data-alt="A small, professional avatar image representing an executive administrator. The portrait is simple, well-lit in a studio setting, with a calm and trustworthy expression. The background is a clean, neutral white or light gray, fitting a corporate light mode UI." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAjYwZ5sfZz3vuPxf-Q9Tsb7Vu2vGljE4zsze7qZU1xV8g7xJUFiEMCCJvUPB1Z4ds5F7UQh4aAKGm2utJZGx_hgA-v7Uye-WSW7HoRrlxzEhBklIOYvsnZKAng_GMbpjHVIdMLswkJ9Ao-7tpcA-A4KzaTu-hIN407jMuGYNYph_gESY-2HIODTJpEjtgiH02roK59jt2E6zou6ws1SxPeyf2n4gGi3YS_tRZ2ssI6uHD5a5Lb3GhF"/>
+</div>
+</div>
+</div>
+</header>
+<!-- Page Content -->
+<div class="p-6 md:p-8 max-w-[1440px] mx-auto w-full space-y-8 flex-1">
+<!-- Page Header -->
+<div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+<div>
+<h1 class="text-display-lg font-display-lg text-on-surface">Tableau de bord</h1>
+<p class="text-body-lg font-body-lg text-on-surface-variant mt-1">Vue d'ensemble de la saison Hajj 2024</p>
+</div>
+<div class="flex gap-3">
+<button class="px-4 py-2 bg-surface-container-lowest border border-primary text-primary rounded-lg text-label-md font-label-md flex items-center gap-2 hover:bg-surface-container-low transition-colors shadow-sm">
+<span class="material-symbols-outlined text-[18px]">download</span>
+                        Rapport Global
+                    </button>
+<button class="px-4 py-2 bg-primary text-on-primary rounded-lg text-label-md font-label-md flex items-center gap-2 hover:bg-primary-container transition-colors shadow-sm">
+<span class="material-symbols-outlined text-[18px]">add</span>
+                        Nouveau Pèlerin
+                    </button>
+</div>
+</div>
+<!-- Urgent Alerts Panel -->
+<section class="grid grid-cols-1 md:grid-cols-3 gap-4">
+<h2 class="sr-only">Alertes à traiter</h2>
+<!-- Alert 1 -->
+<a class="group block bg-error-container/20 border-l-4 border-error rounded-r-lg p-4 hover:bg-error-container/40 transition-colors relative overflow-hidden" href="#">
+<div class="flex items-start gap-3">
+<div class="p-2 bg-error/10 text-error rounded-full shrink-0">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">warning</span>
+</div>
+<div>
+<p class="text-headline-sm font-headline-sm text-error">3 Pèlerins</p>
+<p class="text-body-md font-body-md text-on-surface-variant mt-1">Dossiers incomplets (E-Visa)</p>
+</div>
+</div>
+<span class="material-symbols-outlined absolute top-4 right-4 text-error opacity-0 group-hover:opacity-100 transition-opacity translate-x-2 group-hover:translate-x-0">arrow_forward</span>
+</a>
+<!-- Alert 2 -->
+<a class="group block bg-secondary-container/20 border-l-4 border-secondary rounded-r-lg p-4 hover:bg-secondary-container/40 transition-colors relative overflow-hidden" href="#">
+<div class="flex items-start gap-3">
+<div class="p-2 bg-secondary/10 text-secondary rounded-full shrink-0">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">schedule</span>
+</div>
+<div>
+<p class="text-headline-sm font-headline-sm text-secondary">2 Paiements</p>
+<p class="text-body-md font-body-md text-on-surface-variant mt-1">En retard sur l'échéancier</p>
+</div>
+</div>
+<span class="material-symbols-outlined absolute top-4 right-4 text-secondary opacity-0 group-hover:opacity-100 transition-opacity translate-x-2 group-hover:translate-x-0">arrow_forward</span>
+</a>
+<!-- Alert 3 -->
+<a class="group block bg-error-container/20 border-l-4 border-error rounded-r-lg p-4 hover:bg-error-container/40 transition-colors relative overflow-hidden" href="#">
+<div class="flex items-start gap-3">
+<div class="p-2 bg-error/10 text-error rounded-full shrink-0">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">assignment_late</span>
+</div>
+<div>
+<p class="text-headline-sm font-headline-sm text-error">1 Document</p>
+<p class="text-body-md font-body-md text-on-surface-variant mt-1">Passeport expirant bientôt</p>
+</div>
+</div>
+<span class="material-symbols-outlined absolute top-4 right-4 text-error opacity-0 group-hover:opacity-100 transition-opacity translate-x-2 group-hover:translate-x-0">arrow_forward</span>
+</a>
+</section>
+<!-- Summary Cards Bento Grid -->
+<section class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+<!-- Total Pilgrims -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden">
+<div class="absolute top-0 right-0 -mr-8 -mt-8 w-32 h-32 bg-primary/5 rounded-full pointer-events-none"></div>
+<div class="flex justify-between items-start mb-4">
+<div>
+<p class="text-label-md font-label-md text-on-surface-variant uppercase tracking-wider">Total Pèlerins</p>
+<h3 class="text-display-lg font-display-lg text-on-surface mt-2">124</h3>
+</div>
+<div class="w-12 h-12 bg-primary-container text-on-primary-container rounded-lg flex items-center justify-center">
+<span class="material-symbols-outlined text-[24px]">group</span>
+</div>
+</div>
+<div class="flex items-center gap-2 mt-4 text-sm">
+<span class="flex items-center text-green-700 bg-green-50 px-2 py-1 rounded-md text-label-md font-label-md">
+<span class="material-symbols-outlined text-[16px] mr-1">trending_up</span> +12
+                        </span>
+<span class="text-body-md font-body-md text-on-surface-variant">cette semaine</span>
+</div>
+</div>
+<!-- Financial Progress -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow lg:col-span-2">
+<div class="flex justify-between items-start mb-6">
+<div>
+<p class="text-label-md font-label-md text-on-surface-variant uppercase tracking-wider">État Financier (FCFA)</p>
+<div class="flex items-baseline gap-2 mt-2">
+<h3 class="text-display-lg font-display-lg text-on-surface">45.000.000</h3>
+<span class="text-headline-sm font-headline-sm text-on-surface-variant">/ 62.000.000</span>
+</div>
+</div>
+<button aria-label="Détails financiers" class="p-2 text-primary hover:bg-surface-container-low rounded-lg transition-colors border border-outline-variant">
+<span class="material-symbols-outlined">open_in_new</span>
+</button>
+</div>
+<div class="space-y-2">
+<div class="flex justify-between text-label-md font-label-md text-on-surface-variant">
+<span>Collecté (72%)</span>
+<span>Restant (28%)</span>
+</div>
+<div class="h-3 w-full bg-surface-container-high rounded-full overflow-hidden flex">
+<div class="h-full bg-primary rounded-r-sm" style="width: 72%;"></div>
+<div class="h-full bg-secondary-fixed-dim" style="width: 0%;"></div> <!-- Example tertiary indicator if needed -->
+</div>
+</div>
+</div>
+<!-- Groups Overview -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow">
+<div class="flex justify-between items-start mb-4">
+<div>
+<p class="text-label-md font-label-md text-on-surface-variant uppercase tracking-wider">Nombre de Groupes</p>
+<h3 class="text-display-lg font-display-lg text-on-surface mt-2">8</h3>
+</div>
+<div class="w-12 h-12 bg-secondary-container text-on-secondary-container rounded-lg flex items-center justify-center">
+<span class="material-symbols-outlined text-[24px]">diversity_3</span>
+</div>
+</div>
+<div class="mt-4 pt-4 border-t border-outline-variant space-y-2">
+<div class="flex justify-between items-center text-body-md font-body-md">
+<span class="text-on-surface-variant">Complets</span>
+<span class="font-medium text-on-surface">5</span>
+</div>
+<div class="flex justify-between items-center text-body-md font-body-md">
+<span class="text-on-surface-variant">En cours de formation</span>
+<span class="font-medium text-on-surface">3</span>
+</div>
+</div>
+</div>
+</section>
+<!-- Recent Activity Split -->
+<section class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+<!-- Recent Pilgrims -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-xl shadow-sm flex flex-col h-full">
+<div class="p-6 border-b border-outline-variant flex justify-between items-center bg-[#F1F5F9] rounded-t-xl">
+<h3 class="text-headline-sm font-headline-sm text-on-surface">Derniers Pèlerins Inscrits</h3>
+<a class="text-label-md font-label-md text-primary hover:underline" href="#">Voir tout</a>
+</div>
+<div class="flex-1 overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="text-label-md font-label-md text-on-surface-variant border-b border-outline-variant">
+<th class="p-4 font-normal">Nom complet</th>
+<th class="p-4 font-normal">Date d'inscription</th>
+<th class="p-4 font-normal">Statut Dossier</th>
+<th class="p-4 font-normal text-right">Action</th>
+</tr>
+</thead>
+<tbody class="text-body-md font-body-md text-on-surface divide-y divide-outline-variant">
+<!-- Row 1 -->
+<tr class="hover:bg-surface-container-low transition-colors group">
+<td class="p-4 font-medium">Amadou Diallo</td>
+<td class="p-4 text-on-surface-variant">Aujourd'hui, 10:23</td>
+<td class="p-4">
+<span class="inline-flex items-center gap-1.5 px-2 py-1 rounded-md bg-green-50 text-green-700 text-[12px] font-medium border border-green-200">
+<span class="w-1.5 h-1.5 rounded-full bg-green-500"></span> Complet
+                                        </span>
+</td>
+<td class="p-4 text-right">
+<button aria-label="Voir" class="text-primary opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-surface-container rounded">
+<span class="material-symbols-outlined text-[20px]">visibility</span>
+</button>
+</td>
+</tr>
+<!-- Row 2 -->
+<tr class="hover:bg-surface-container-low transition-colors group">
+<td class="p-4 font-medium">Fatoumata Binta</td>
+<td class="p-4 text-on-surface-variant">Hier, 15:45</td>
+<td class="p-4">
+<span class="inline-flex items-center gap-1.5 px-2 py-1 rounded-md bg-secondary-container/30 text-on-secondary-container text-[12px] font-medium border border-secondary-container">
+<span class="w-1.5 h-1.5 rounded-full bg-secondary"></span> En cours
+                                        </span>
+</td>
+<td class="p-4 text-right">
+<button aria-label="Voir" class="text-primary opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-surface-container rounded">
+<span class="material-symbols-outlined text-[20px]">visibility</span>
+</button>
+</td>
+</tr>
+<!-- Row 3 -->
+<tr class="hover:bg-surface-container-low transition-colors group">
+<td class="p-4 font-medium">Oumar Sylla</td>
+<td class="p-4 text-on-surface-variant">12 Oct 2023</td>
+<td class="p-4">
+<span class="inline-flex items-center gap-1.5 px-2 py-1 rounded-md bg-error-container/30 text-error text-[12px] font-medium border border-error-container">
+<span class="w-1.5 h-1.5 rounded-full bg-error"></span> Incomplet
+                                        </span>
+</td>
+<td class="p-4 text-right">
+<button aria-label="Voir" class="text-primary opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-surface-container rounded">
+<span class="material-symbols-outlined text-[20px]">visibility</span>
+</button>
+</td>
+</tr>
+<!-- Row 4 -->
+<tr class="hover:bg-surface-container-low transition-colors group">
+<td class="p-4 font-medium">Aïssatou Sow</td>
+<td class="p-4 text-on-surface-variant">10 Oct 2023</td>
+<td class="p-4">
+<span class="inline-flex items-center gap-1.5 px-2 py-1 rounded-md bg-green-50 text-green-700 text-[12px] font-medium border border-green-200">
+<span class="w-1.5 h-1.5 rounded-full bg-green-500"></span> Complet
+                                        </span>
+</td>
+<td class="p-4 text-right">
+<button aria-label="Voir" class="text-primary opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-surface-container rounded">
+<span class="material-symbols-outlined text-[20px]">visibility</span>
+</button>
+</td>
+</tr>
+<!-- Row 5 -->
+<tr class="hover:bg-surface-container-low transition-colors group">
+<td class="p-4 font-medium">Ibrahima Camara</td>
+<td class="p-4 text-on-surface-variant">08 Oct 2023</td>
+<td class="p-4">
+<span class="inline-flex items-center gap-1.5 px-2 py-1 rounded-md bg-green-50 text-green-700 text-[12px] font-medium border border-green-200">
+<span class="w-1.5 h-1.5 rounded-full bg-green-500"></span> Complet
+                                        </span>
+</td>
+<td class="p-4 text-right">
+<button aria-label="Voir" class="text-primary opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-surface-container rounded">
+<span class="material-symbols-outlined text-[20px]">visibility</span>
+</button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<!-- Recent Payments -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-xl shadow-sm flex flex-col h-full">
+<div class="p-6 border-b border-outline-variant flex justify-between items-center bg-[#F1F5F9] rounded-t-xl">
+<h3 class="text-headline-sm font-headline-sm text-on-surface">Derniers Paiements</h3>
+<a class="text-label-md font-label-md text-primary hover:underline" href="#">Voir tout</a>
+</div>
+<div class="flex-1 overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="text-label-md font-label-md text-on-surface-variant border-b border-outline-variant">
+<th class="p-4 font-normal">Pèlerin</th>
+<th class="p-4 font-normal">Montant</th>
+<th class="p-4 font-normal">Mode</th>
+<th class="p-4 font-normal">Date</th>
+</tr>
+</thead>
+<tbody class="text-body-md font-body-md text-on-surface divide-y divide-outline-variant">
+<!-- Row 1 -->
+<tr class="hover:bg-surface-container-low transition-colors">
+<td class="p-4">
+<div class="font-medium">Ousmane Kante</div>
+<div class="text-[12px] text-on-surface-variant">Ref: PAY-2024-089</div>
+</td>
+<td class="p-4 font-medium data-mono">1.500.000 FCFA</td>
+<td class="p-4">
+<span class="flex items-center gap-1 text-on-surface-variant text-[13px]">
+<span class="material-symbols-outlined text-[16px]">account_balance</span> Virement
+                                        </span>
+</td>
+<td class="p-4 text-on-surface-variant">Aujourd'hui</td>
+</tr>
+<!-- Row 2 -->
+<tr class="hover:bg-surface-container-low transition-colors">
+<td class="p-4">
+<div class="font-medium">Hawa Barry</div>
+<div class="text-[12px] text-on-surface-variant">Ref: PAY-2024-088</div>
+</td>
+<td class="p-4 font-medium data-mono">500.000 FCFA</td>
+<td class="p-4">
+<span class="flex items-center gap-1 text-on-surface-variant text-[13px]">
+<span class="material-symbols-outlined text-[16px]">payments</span> Espèces
+                                        </span>
+</td>
+<td class="p-4 text-on-surface-variant">Hier</td>
+</tr>
+<!-- Row 3 -->
+<tr class="hover:bg-surface-container-low transition-colors">
+<td class="p-4">
+<div class="font-medium">Mamadou Ba</div>
+<div class="text-[12px] text-on-surface-variant">Ref: PAY-2024-087</div>
+</td>
+<td class="p-4 font-medium data-mono">2.000.000 FCFA</td>
+<td class="p-4">
+<span class="flex items-center gap-1 text-on-surface-variant text-[13px]">
+<span class="material-symbols-outlined text-[16px]">credit_card</span> Chèque
+                                        </span>
+</td>
+<td class="p-4 text-on-surface-variant">11 Oct 2023</td>
+</tr>
+<!-- Row 4 -->
+<tr class="hover:bg-surface-container-low transition-colors">
+<td class="p-4">
+<div class="font-medium">Amadou Diallo</div>
+<div class="text-[12px] text-on-surface-variant">Ref: PAY-2024-086</div>
+</td>
+<td class="p-4 font-medium data-mono">1.000.000 FCFA</td>
+<td class="p-4">
+<span class="flex items-center gap-1 text-on-surface-variant text-[13px]">
+<span class="material-symbols-outlined text-[16px]">account_balance</span> Virement
+                                        </span>
+</td>
+<td class="p-4 text-on-surface-variant">10 Oct 2023</td>
+</tr>
+<!-- Row 5 -->
+<tr class="hover:bg-surface-container-low transition-colors">
+<td class="p-4">
+<div class="font-medium">Salif Keita</div>
+<div class="text-[12px] text-on-surface-variant">Ref: PAY-2024-085</div>
+</td>
+<td class="p-4 font-medium data-mono">750.000 FCFA</td>
+<td class="p-4">
+<span class="flex items-center gap-1 text-on-surface-variant text-[13px]">
+<span class="material-symbols-outlined text-[16px]">payments</span> Espèces
+                                        </span>
+</td>
+<td class="p-4 text-on-surface-variant">09 Oct 2023</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</section>
+</div>
+</main>
+</body></html>

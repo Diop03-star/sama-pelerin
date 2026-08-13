@@ -2129,8 +2129,11 @@ import EmptyState from '../components/ui/EmptyState'
 
 interface PelerinAvecJointures extends Pelerin {
   groupe: Groupe
-  plan_paiement: { montant_total: number; nombre_tranches: number } | null
-  paiements_somme: { somme: number | null }[]
+  plan_paiement: {
+    montant_total: number
+    nombre_tranches: number
+    tranches: { paiements: { montant_paye: number }[] }[]
+  } | null
 }
 
 export default function Pelerins() {
@@ -2156,7 +2159,7 @@ export default function Pelerins() {
     queryFn: async () => {
       const { data } = await supabase
         .from('pelerins')
-        .select('*, groupe:groupes(*), plan_paiement:plans_paiement(montant_total, nombre_tranches), paiements_somme:paiements(count)')
+        .select('*, groupe:groupes(*), plan_paiement:plans_paiement(montant_total, nombre_tranches, tranches(paiements(montant_paye)))')
         .order('nom')
       return data as unknown as PelerinAvecJointures[]
     },
@@ -2198,8 +2201,8 @@ export default function Pelerins() {
   }
 
   const montantPaye = (p: PelerinAvecJointures) => {
-    const somme = p.paiements_somme[0]?.somme
-    return typeof somme === 'number' ? somme : 0
+    const paiements = p.plan_paiement?.tranches.flatMap((t) => t.paiements) ?? []
+    return paiements.reduce((s, p) => s + p.montant_paye, 0)
   }
 
   return (

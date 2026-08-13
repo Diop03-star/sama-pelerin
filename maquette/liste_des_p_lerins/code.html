@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+
+<html class="light" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Pèlerins - Al-Haram Manager</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "inverse-primary": "#bbc6e7",
+                        "surface-container": "#eeeeec",
+                        "surface-dim": "#dadad8",
+                        "primary": "#09152e",
+                        "secondary-fixed-dim": "#e8c086",
+                        "tertiary-fixed-dim": "#dfc391",
+                        "surface-container-high": "#e8e8e6",
+                        "surface-container-lowest": "#ffffff",
+                        "on-tertiary": "#ffffff",
+                        "on-primary-fixed-variant": "#3b4662",
+                        "inverse-on-surface": "#f1f1ef",
+                        "tertiary-container": "#382804",
+                        "error": "#ba1a1a",
+                        "secondary-container": "#ffd79b",
+                        "surface": "#f9f9f7",
+                        "primary-container": "#1f2a44",
+                        "on-primary-fixed": "#0f1b34",
+                        "on-secondary-fixed": "#281800",
+                        "surface-container-highest": "#e2e3e1",
+                        "on-surface": "#1a1c1b",
+                        "on-background": "#1a1c1b",
+                        "on-primary": "#ffffff",
+                        "on-primary-container": "#8691b0",
+                        "tertiary": "#1f1400",
+                        "primary-fixed-dim": "#bbc6e7",
+                        "on-tertiary-fixed-variant": "#57441d",
+                        "on-surface-variant": "#45464d",
+                        "on-secondary": "#ffffff",
+                        "surface-tint": "#535e7b",
+                        "background": "#f9f9f7",
+                        "on-secondary-container": "#7a5c2b",
+                        "surface-container-low": "#f4f4f2",
+                        "inverse-surface": "#2f3130",
+                        "surface-bright": "#f9f9f7",
+                        "primary-fixed": "#d9e2ff",
+                        "outline-variant": "#c6c6ce",
+                        "tertiary-fixed": "#fcdfab",
+                        "on-error": "#ffffff",
+                        "on-error-container": "#93000a",
+                        "secondary-fixed": "#ffdeae",
+                        "on-tertiary-fixed": "#261900",
+                        "on-secondary-fixed-variant": "#5d4213",
+                        "surface-variant": "#e2e3e1",
+                        "on-tertiary-container": "#a78f61",
+                        "outline": "#76777e",
+                        "secondary": "#775928",
+                        "error-container": "#ffdad6"
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    spacing: {
+                        "gutter": "24px",
+                        "sidebar-width": "260px",
+                        "container-max": "1440px",
+                        "margin-mobile": "16px",
+                        "stack-sm": "8px",
+                        "stack-md": "16px",
+                        "stack-lg": "24px"
+                    },
+                    fontFamily: {
+                        "display-lg": ["Inter"],
+                        "headline-md": ["Inter"],
+                        "body-md": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "data-mono": ["Inter"],
+                        "headline-sm": ["Inter"],
+                        "label-md": ["Inter"]
+                    },
+                    fontSize: {
+                        "display-lg": ["32px", { lineHeight: "40px", letterSpacing: "-0.02em", fontWeight: "700" }],
+                        "headline-md": ["24px", { lineHeight: "32px", fontWeight: "600" }],
+                        "body-md": ["14px", { lineHeight: "20px", fontWeight: "400" }],
+                        "body-lg": ["16px", { lineHeight: "24px", fontWeight: "400" }],
+                        "data-mono": ["14px", { lineHeight: "20px", letterSpacing: "-0.01em", fontWeight: "500" }],
+                        "headline-sm": ["20px", { lineHeight: "28px", fontWeight: "600" }],
+                        "label-md": ["12px", { lineHeight: "16px", letterSpacing: "0.05em", fontWeight: "600" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body class="bg-background text-on-background min-h-screen flex">
+<!-- SideNavBar -->
+<nav class="bg-surface-container-lowest dark:bg-surface-container-lowest text-primary dark:text-inverse-primary fixed left-0 top-0 h-full w-[260px] border-r border-outline-variant dark:border-outline flex flex-col h-full w-[260px] py-6 px-4 z-20">
+<div class="flex items-center gap-3 mb-10 px-2">
+<img alt="Logo de l'agence" class="w-10 h-10 rounded-full object-cover border border-outline-variant" data-alt="A minimalist, highly legible, clean corporate logo icon representing an administrative dashboard for travel management. The logo uses a palette of deep navy blue and soft white to convey trust, professionalism, and organizational clarity in a modern web environment." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAD8h3CfMqkVCPJm82R66SBa0ytxX2Jf2ZN-_7fCA28TWFOyi0kwS82StNtI3Z4IOBM2IO1wfQiYu-iHyfWfAUo2JhGNkagdecREu5bzH0lXKGjjf8c656MTcOBA3qb01c1y2tMT_Ji655kfaAS9LNNItxeAWTrx4lMjZkdkraOpoFIwZjRbBuAWRmKcGDT155869UHI2wrMW0vCO2tSUIaaZZyGsk-JSt1yYm8YQGrEKD7Pi5Vf52o"/>
+<div>
+<h1 class="text-headline-sm font-headline-sm font-bold text-primary dark:text-inverse-primary">Hajj &amp; Omra SaaS</h1>
+<p class="text-label-md font-label-md text-on-surface-variant">Portail Administrateur</p>
+</div>
+</div>
+<ul class="flex-1 flex flex-col gap-2">
+<li>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-on-surface-variant dark:text-on-surface-variant hover:bg-surface-container-low dark:hover:bg-surface-container-high transition-all text-label-md font-label-md" href="#">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+                    Tableau de bord
+                </a>
+</li>
+<li>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg bg-surface-container text-primary font-bold border-l-4 border-secondary-fixed-dim hover:bg-surface-container-low dark:hover:bg-surface-container-high transition-all text-label-md font-label-md translate-x-1 duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="person" data-weight="fill" style="font-variation-settings: 'FILL' 1;">person</span>
+                    Pèlerins
+                </a>
+</li>
+<li>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-on-surface-variant dark:text-on-surface-variant hover:bg-surface-container-low dark:hover:bg-surface-container-high transition-all text-label-md font-label-md" href="#">
+<span class="material-symbols-outlined" data-icon="group">group</span>
+                    Groupes
+                </a>
+</li>
+<li>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-on-surface-variant dark:text-on-surface-variant hover:bg-surface-container-low dark:hover:bg-surface-container-high transition-all text-label-md font-label-md" href="#">
+<span class="material-symbols-outlined" data-icon="description">description</span>
+                    Documents
+                </a>
+</li>
+<li>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-on-surface-variant dark:text-on-surface-variant hover:bg-surface-container-low dark:hover:bg-surface-container-high transition-all text-label-md font-label-md" href="#">
+<span class="material-symbols-outlined" data-icon="payments">payments</span>
+                    Paiements
+                </a>
+</li>
+<li>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-on-surface-variant dark:text-on-surface-variant hover:bg-surface-container-low dark:hover:bg-surface-container-high transition-all text-label-md font-label-md" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+                    Administration
+                </a>
+</li>
+</ul>
+<ul class="mt-auto border-t border-outline-variant pt-4 flex flex-col gap-2">
+<li>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-on-surface-variant hover:bg-surface-container-low transition-all text-label-md font-label-md" href="#">
+<span class="material-symbols-outlined" data-icon="help">help</span>
+                    Aide
+                </a>
+</li>
+<li>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-on-surface-variant hover:bg-surface-container-low transition-all text-label-md font-label-md" href="#">
+<span class="material-symbols-outlined" data-icon="logout">logout</span>
+                    Déconnexion
+                </a>
+</li>
+</ul>
+</nav>
+<!-- Main Content Wrapper -->
+<div class="flex-1 flex flex-col ml-[260px] min-h-screen">
+<!-- TopNavBar -->
+<header class="bg-surface-container-lowest dark:bg-surface-container-lowest text-primary dark:text-inverse-primary docked full-width top-0 border-b border-outline-variant dark:border-outline flex justify-between items-center w-full px-6 py-3 max-w-[calc(1440px-260px)] z-10 sticky">
+<div class="flex-1 flex items-center gap-4">
+<h2 class="text-headline-sm font-headline-sm font-bold text-primary dark:text-inverse-primary">Al-Haram Manager</h2>
+<div class="relative w-96 hidden md:block">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant" data-icon="search">search</span>
+<input class="w-full pl-10 pr-4 py-2 bg-surface-container-low border border-outline-variant rounded-full text-body-md font-body-md focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-colors" placeholder="Rechercher un pèlerin, un groupe..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<button class="w-10 h-10 rounded-full flex items-center justify-center text-on-surface-variant hover:bg-surface-container-low dark:hover:bg-surface-container-high transition-colors">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+</button>
+<button class="w-10 h-10 rounded-full flex items-center justify-center text-on-surface-variant hover:bg-surface-container-low dark:hover:bg-surface-container-high transition-colors">
+<span class="material-symbols-outlined" data-icon="help_outline">help_outline</span>
+</button>
+<div class="w-8 h-8 rounded-full overflow-hidden border border-outline-variant">
+<img alt="Photo de profil administrateur" class="w-full h-full object-cover" data-alt="A professional headshot of an administrative professional in a well-lit, modern corporate office setting. The individual appears confident and approachable, wearing smart business attire. The image uses a clean, high-key lighting style to ensure the profile photo looks pristine and trustworthy on a light-mode dashboard." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBtFa9kZn4I7ZgfeqyR15M8f4Haxn2zHMlMsXTqu9dfv7alxTg9wGxI54VY4h7wzjkRwDNECiFtauzcGYRodMznfQBmlevLEjOYPL2tW2nz7_2FELSt49AYVzZRSgXIRRwA6ao2WIKeGGsPczMBoiMMOMa2NuJBMyi3V434sznCSMmhPK6G60xE2AfnK6HpQq4zckUODrwHd5f1BCJwZx62bWGcA8aMKS6M24gkmUkV-fSGmUma3_ka"/>
+</div>
+</div>
+</header>
+<!-- Page Content -->
+<main class="flex-1 p-6 md:p-gutter max-w-container-max mx-auto w-full">
+<div class="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
+<div>
+<h2 class="text-display-lg font-display-lg text-on-surface mb-2">Gestion des Pèlerins</h2>
+<p class="text-body-lg font-body-lg text-on-surface-variant">Gérez les dossiers, suivez l'avancement et gérez les paiements.</p>
+</div>
+<button class="bg-tertiary-fixed-dim text-on-tertiary-fixed-variant px-6 py-3 rounded-lg text-label-md font-label-md hover:bg-secondary-fixed-dim transition-colors flex items-center justify-center gap-2 shadow-sm whitespace-nowrap">
+<span class="material-symbols-outlined text-[18px]" data-icon="add">add</span>
+                    Ajouter un pèlerin
+                </button>
+</div>
+<!-- Filters Bar -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-4 mb-6 flex flex-wrap gap-4 items-end">
+<div class="flex-1 min-w-[250px]">
+<label class="block text-label-md font-label-md text-on-surface-variant mb-2">Recherche rapide</label>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant" data-icon="search">search</span>
+<input class="w-full pl-10 pr-4 py-2.5 bg-surface border border-outline-variant rounded-lg text-body-md font-body-md focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-colors" placeholder="Nom, téléphone, passeport..." type="text"/>
+</div>
+</div>
+<div class="w-full md:w-48">
+<label class="block text-label-md font-label-md text-on-surface-variant mb-2">Statut du dossier</label>
+<select class="w-full px-4 py-2.5 bg-surface border border-outline-variant rounded-lg text-body-md font-body-md focus:border-primary outline-none appearance-none">
+<option>Tous les statuts</option>
+<option>Complet</option>
+<option>Incomplet</option>
+<option>En attente visa</option>
+</select>
+</div>
+<div class="w-full md:w-48">
+<label class="block text-label-md font-label-md text-on-surface-variant mb-2">Groupe</label>
+<select class="w-full px-4 py-2.5 bg-surface border border-outline-variant rounded-lg text-body-md font-body-md focus:border-primary outline-none appearance-none">
+<option>Tous les groupes</option>
+<option>Hajj 2024 - VIP</option>
+<option>Omra Ramadan</option>
+<option>Omra Décembre</option>
+</select>
+</div>
+<button class="h-[46px] px-4 border border-outline-variant rounded-lg flex items-center justify-center text-on-surface-variant hover:bg-surface-container-low transition-colors bg-surface">
+<span class="material-symbols-outlined" data-icon="filter_list">filter_list</span>
+</button>
+</div>
+<!-- Data Table -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-xl overflow-hidden">
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-surface-container-low border-b border-outline-variant">
+<th class="px-6 py-4 text-label-md font-label-md text-on-surface-variant font-medium">Pèlerin</th>
+<th class="px-6 py-4 text-label-md font-label-md text-on-surface-variant font-medium">Contact</th>
+<th class="px-6 py-4 text-label-md font-label-md text-on-surface-variant font-medium">Groupe &amp; Type</th>
+<th class="px-6 py-4 text-label-md font-label-md text-on-surface-variant font-medium">Progression Dossier</th>
+<th class="px-6 py-4 text-label-md font-label-md text-on-surface-variant font-medium text-right">Actions</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-outline-variant">
+<!-- Row 1 -->
+<tr class="hover:bg-surface-container-low/50 transition-colors group">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-primary-container text-on-primary-container flex items-center justify-center text-headline-sm font-headline-sm font-semibold">
+                                            MD
+                                        </div>
+<div>
+<p class="text-body-md font-body-md font-medium text-on-surface">Moussa Diop</p>
+<p class="text-label-md font-label-md text-on-surface-variant">P-24-001</p>
+</div>
+</div>
+</td>
+<td class="px-6 py-4">
+<p class="text-data-mono font-data-mono text-on-surface">+221 77 123 45 67</p>
+<p class="text-label-md font-label-md text-on-surface-variant">moussa.d@example.com</p>
+</td>
+<td class="px-6 py-4">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-secondary-container text-on-secondary-container mb-1">
+                                        Hajj
+                                    </span>
+<p class="text-body-md font-body-md text-on-surface">Groupe A - VIP 2024</p>
+</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="flex-1 h-2 bg-surface-variant rounded-full overflow-hidden w-24">
+<div class="h-full bg-tertiary-fixed-dim w-3/4 rounded-full"></div>
+</div>
+<span class="text-label-md font-label-md text-on-surface-variant">3/4 docs</span>
+</div>
+</td>
+<td class="px-6 py-4 text-right">
+<div class="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+<button class="p-2 text-on-surface-variant hover:text-primary hover:bg-surface-container rounded-md transition-colors" title="Voir détails">
+<span class="material-symbols-outlined text-[20px]" data-icon="visibility">visibility</span>
+</button>
+<button class="p-2 text-on-surface-variant hover:text-primary hover:bg-surface-container rounded-md transition-colors" title="Modifier">
+<span class="material-symbols-outlined text-[20px]" data-icon="edit">edit</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 2 -->
+<tr class="hover:bg-surface-container-low/50 transition-colors group">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-surface-variant text-on-surface-variant flex items-center justify-center text-headline-sm font-headline-sm font-semibold">
+                                            FS
+                                        </div>
+<div>
+<p class="text-body-md font-body-md font-medium text-on-surface">Fatou Sow</p>
+<p class="text-label-md font-label-md text-on-surface-variant">P-24-002</p>
+</div>
+</div>
+</td>
+<td class="px-6 py-4">
+<p class="text-data-mono font-data-mono text-on-surface">+221 76 987 65 43</p>
+<p class="text-label-md font-label-md text-on-surface-variant">Sans email</p>
+</td>
+<td class="px-6 py-4">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary-fixed text-on-primary-fixed mb-1">
+                                        Omra
+                                    </span>
+<p class="text-body-md font-body-md text-on-surface">Ramadan 2024</p>
+</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="flex-1 h-2 bg-surface-variant rounded-full overflow-hidden w-24">
+<div class="h-full bg-error w-1/4 rounded-full"></div>
+</div>
+<span class="text-label-md font-label-md text-error">1/4 docs</span>
+</div>
+</td>
+<td class="px-6 py-4 text-right">
+<div class="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+<button class="p-2 text-on-surface-variant hover:text-primary hover:bg-surface-container rounded-md transition-colors" title="Voir détails">
+<span class="material-symbols-outlined text-[20px]" data-icon="visibility">visibility</span>
+</button>
+<button class="p-2 text-on-surface-variant hover:text-primary hover:bg-surface-container rounded-md transition-colors" title="Modifier">
+<span class="material-symbols-outlined text-[20px]" data-icon="edit">edit</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 3 -->
+<tr class="hover:bg-surface-container-low/50 transition-colors group">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<img alt="Avatar" class="w-10 h-10 rounded-full object-cover" data-alt="A small, professional headshot photo of an elderly gentleman used as a table row avatar. He is dressed modestly, conveying dignity. The lighting is bright and clean, fitting a modern administrative dashboard light-mode aesthetic, ensuring high legibility even at small scales." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCmUUqn1vRJ_KVz0sOS5GW1Xwb_jtHqDL4xyVRdjZS9dd8HvBPq2N3dGSWH9iZUG1Ln0OvBuozKuTLCrGJfeyx7RRUeffgrsVLJNwSPIHE5jrVhjkJJd6hln_83BB3Q4cpYal0Z3Np6EySeSsGG4Lv-iHW_auR02mquFuz1ijAfqP08r0_VdHVOJwL4AwX2fIXYPqr_IyNcOL7ivNi3GBOEJ1Cihv9bGOGWNOcZ7S38r5dRaDncFNn7"/>
+<div>
+<p class="text-body-md font-body-md font-medium text-on-surface">Amadou Fall</p>
+<p class="text-label-md font-label-md text-on-surface-variant">P-24-003</p>
+</div>
+</div>
+</td>
+<td class="px-6 py-4">
+<p class="text-data-mono font-data-mono text-on-surface">+221 70 456 78 90</p>
+<p class="text-label-md font-label-md text-on-surface-variant">a.fall@example.com</p>
+</td>
+<td class="px-6 py-4">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-secondary-container text-on-secondary-container mb-1">
+                                        Hajj
+                                    </span>
+<p class="text-body-md font-body-md text-on-surface">Groupe A - VIP 2024</p>
+</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="flex-1 h-2 bg-surface-variant rounded-full overflow-hidden w-24">
+<div class="h-full bg-green-600 w-full rounded-full"></div>
+</div>
+<span class="text-label-md font-label-md text-green-700">4/4 docs</span>
+</div>
+</td>
+<td class="px-6 py-4 text-right">
+<div class="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+<button class="p-2 text-on-surface-variant hover:text-primary hover:bg-surface-container rounded-md transition-colors" title="Voir détails">
+<span class="material-symbols-outlined text-[20px]" data-icon="visibility">visibility</span>
+</button>
+<button class="p-2 text-on-surface-variant hover:text-primary hover:bg-surface-container rounded-md transition-colors" title="Modifier">
+<span class="material-symbols-outlined text-[20px]" data-icon="edit">edit</span>
+</button>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Pagination -->
+<div class="px-6 py-4 border-t border-outline-variant flex items-center justify-between bg-surface-container-lowest">
+<p class="text-label-md font-label-md text-on-surface-variant">Affichage 1 à 3 sur 124 pèlerins</p>
+<div class="flex items-center gap-2">
+<button class="p-1 rounded text-outline hover:bg-surface-container transition-colors disabled:opacity-50" disabled="">
+<span class="material-symbols-outlined" data-icon="chevron_left">chevron_left</span>
+</button>
+<button class="w-8 h-8 rounded bg-primary text-on-primary text-label-md font-label-md flex items-center justify-center">1</button>
+<button class="w-8 h-8 rounded hover:bg-surface-container text-on-surface text-label-md font-label-md flex items-center justify-center transition-colors">2</button>
+<button class="w-8 h-8 rounded hover:bg-surface-container text-on-surface text-label-md font-label-md flex items-center justify-center transition-colors">3</button>
+<span class="text-on-surface-variant">...</span>
+<button class="p-1 rounded text-on-surface-variant hover:bg-surface-container transition-colors">
+<span class="material-symbols-outlined" data-icon="chevron_right">chevron_right</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Empty State Example (Hidden by default, structure provided) -->
+<!-- 
+            <div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-12 flex flex-col items-center justify-center text-center mt-6">
+                <div class="w-20 h-20 bg-surface-container rounded-full flex items-center justify-center mb-4">
+                    <span class="material-symbols-outlined text-[40px] text-on-surface-variant" data-icon="group_off">group_off</span>
+                </div>
+                <h3 class="text-headline-md font-headline-md text-on-surface mb-2">Aucun pèlerin enregistré</h3>
+                <p class="text-body-md font-body-md text-on-surface-variant max-w-md mb-6">Commencez par ajouter votre premier pèlerin pour constituer vos groupes de voyage pour le Hajj ou la Omra.</p>
+                <button class="bg-primary text-on-primary px-6 py-2.5 rounded-lg text-label-md font-label-md hover:bg-primary/90 transition-colors">
+                    Ajouter un pèlerin
+                </button>
+            </div>
+            -->
+</main>
+</div>
+</body></html>

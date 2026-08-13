@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+
+<html class="light" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Documents - Hajj &amp; Omra SaaS</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "inverse-primary": "#bbc6e7",
+                      "surface-container": "#eeeeec",
+                      "surface-dim": "#dadad8",
+                      "primary": "#09152e",
+                      "secondary-fixed-dim": "#e8c086",
+                      "tertiary-fixed-dim": "#dfc391",
+                      "surface-container-high": "#e8e8e6",
+                      "surface-container-lowest": "#ffffff",
+                      "on-tertiary": "#ffffff",
+                      "on-primary-fixed-variant": "#3b4662",
+                      "inverse-on-surface": "#f1f1ef",
+                      "tertiary-container": "#382804",
+                      "error": "#ba1a1a",
+                      "secondary-container": "#ffd79b",
+                      "surface": "#f9f9f7",
+                      "primary-container": "#1f2a44",
+                      "on-primary-fixed": "#0f1b34",
+                      "on-secondary-fixed": "#281800",
+                      "surface-container-highest": "#e2e3e1",
+                      "on-surface": "#1a1c1b",
+                      "on-background": "#1a1c1b",
+                      "on-primary": "#ffffff",
+                      "on-primary-container": "#8691b0",
+                      "tertiary": "#1f1400",
+                      "primary-fixed-dim": "#bbc6e7",
+                      "on-tertiary-fixed-variant": "#57441d",
+                      "on-surface-variant": "#45464d",
+                      "on-secondary": "#ffffff",
+                      "surface-tint": "#535e7b",
+                      "background": "#f9f9f7",
+                      "on-secondary-container": "#7a5c2b",
+                      "surface-container-low": "#f4f4f2",
+                      "inverse-surface": "#2f3130",
+                      "surface-bright": "#f9f9f7",
+                      "primary-fixed": "#d9e2ff",
+                      "outline-variant": "#c6c6ce",
+                      "tertiary-fixed": "#fcdfab",
+                      "on-error": "#ffffff",
+                      "on-error-container": "#93000a",
+                      "secondary-fixed": "#ffdeae",
+                      "on-tertiary-fixed": "#261900",
+                      "on-secondary-fixed-variant": "#5d4213",
+                      "surface-variant": "#e2e3e1",
+                      "on-tertiary-container": "#a78f61",
+                      "outline": "#76777e",
+                      "secondary": "#775928",
+                      "error-container": "#ffdad6"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "gutter": "24px",
+                      "sidebar-width": "260px",
+                      "container-max": "1440px",
+                      "margin-mobile": "16px",
+                      "stack-sm": "8px",
+                      "stack-md": "16px",
+                      "stack-lg": "24px"
+              },
+              "fontFamily": {
+                      "display-lg": [
+                              "Inter"
+                      ],
+                      "headline-md": [
+                              "Inter"
+                      ],
+                      "body-md": [
+                              "Inter"
+                      ],
+                      "body-lg": [
+                              "Inter"
+                      ],
+                      "data-mono": [
+                              "Inter"
+                      ],
+                      "headline-sm": [
+                              "Inter"
+                      ],
+                      "label-md": [
+                              "Inter"
+                      ]
+              },
+              "fontSize": {
+                      "display-lg": [
+                              "32px",
+                              {
+                                      "lineHeight": "40px",
+                                      "letterSpacing": "-0.02em",
+                                      "fontWeight": "700"
+                              }
+                      ],
+                      "headline-md": [
+                              "24px",
+                              {
+                                      "lineHeight": "32px",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "body-md": [
+                              "14px",
+                              {
+                                      "lineHeight": "20px",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "body-lg": [
+                              "16px",
+                              {
+                                      "lineHeight": "24px",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "data-mono": [
+                              "14px",
+                              {
+                                      "lineHeight": "20px",
+                                      "letterSpacing": "-0.01em",
+                                      "fontWeight": "500"
+                              }
+                      ],
+                      "headline-sm": [
+                              "20px",
+                              {
+                                      "lineHeight": "28px",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "label-md": [
+                              "12px",
+                              {
+                                      "lineHeight": "16px",
+                                      "letterSpacing": "0.05em",
+                                      "fontWeight": "600"
+                              }
+                      ]
+              }
+      },
+          },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .icon-fill-1 {
+            font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        
+        .accordion-content {
+            transition: max-height 0.3s ease-in-out, opacity 0.3s ease-in-out;
+            max-height: 0;
+            opacity: 0;
+            overflow: hidden;
+        }
+        .accordion-content.expanded {
+            max-height: 1000px;
+            opacity: 1;
+        }
+        .accordion-icon {
+            transition: transform 0.3s ease-in-out;
+        }
+        .accordion-button[aria-expanded="true"] .accordion-icon {
+            transform: rotate(180deg);
+        }
+    </style>
+</head>
+<body class="bg-surface text-on-surface font-body-md antialiased min-h-screen">
+<!-- SideNavBar Component -->
+<nav class="fixed left-0 top-0 h-full w-[260px] bg-surface-container-lowest border-r border-outline-variant flex flex-col py-6 px-4 z-20">
+<!-- Header -->
+<div class="flex items-center gap-3 mb-8 px-2">
+<div class="w-10 h-10 rounded-full bg-primary-container flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-on-primary-container" data-icon="mosque">mosque</span>
+</div>
+<div>
+<h1 class="text-headline-sm font-headline-sm font-bold text-primary">Hajj &amp; Omra SaaS</h1>
+<p class="text-label-md font-label-md text-on-surface-variant">Portail Administrateur</p>
+</div>
+</div>
+<!-- Main Navigation Tabs -->
+<div class="flex-1 flex flex-col gap-1">
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-on-surface-variant hover:bg-surface-container-low transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+<span class="text-label-md font-label-md">Tableau de bord</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-on-surface-variant hover:bg-surface-container-low transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="person">person</span>
+<span class="text-label-md font-label-md">Pèlerins</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-on-surface-variant hover:bg-surface-container-low transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="group">group</span>
+<span class="text-label-md font-label-md">Groupes</span>
+</a>
+<!-- Active Tab: Documents -->
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg bg-surface-container text-primary font-bold border-l-4 border-secondary-fixed-dim translate-x-1 duration-200" href="#">
+<span class="material-symbols-outlined icon-fill-1" data-icon="description">description</span>
+<span class="text-label-md font-label-md">Documents</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-on-surface-variant hover:bg-surface-container-low transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="payments">payments</span>
+<span class="text-label-md font-label-md">Paiements</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-on-surface-variant hover:bg-surface-container-low transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+<span class="text-label-md font-label-md">Administration</span>
+</a>
+</div>
+<!-- Footer Navigation Tabs -->
+<div class="mt-auto flex flex-col gap-1 border-t border-outline-variant pt-4">
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-on-surface-variant hover:bg-surface-container-low transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="help">help</span>
+<span class="text-label-md font-label-md">Aide</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-on-surface-variant hover:bg-surface-container-low transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="logout">logout</span>
+<span class="text-label-md font-label-md">Déconnexion</span>
+</a>
+</div>
+</nav>
+<!-- TopNavBar Component -->
+<header class="fixed top-0 w-full flex justify-between items-center px-6 py-3 ml-[260px] max-w-[calc(1440px-260px)] bg-surface-container-lowest border-b border-outline-variant z-10">
+<div class="flex items-center gap-4">
+<h2 class="text-headline-sm font-headline-sm font-bold text-primary">Al-Haram Manager</h2>
+<!-- Search Bar on Left -->
+<div class="relative hidden md:block w-64 ml-4">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-sm">search</span>
+<input class="w-full pl-9 pr-4 py-1.5 text-body-md bg-surface border border-outline-variant rounded-full focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors" placeholder="Rechercher..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<button class="w-10 h-10 rounded-full flex items-center justify-center text-on-surface-variant hover:bg-surface-container-low transition-colors">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+</button>
+<button class="w-10 h-10 rounded-full flex items-center justify-center text-on-surface-variant hover:bg-surface-container-low transition-colors">
+<span class="material-symbols-outlined" data-icon="help_outline">help_outline</span>
+</button>
+<!-- Profile Image -->
+<div class="w-10 h-10 rounded-full overflow-hidden border border-outline-variant ml-2">
+<img alt="Photo de profil administrateur" class="w-full h-full object-cover" data-alt="A professional headshot of a travel agency administrator in a well-lit modern office. The lighting is bright and clean, reflecting a high-end corporate environment. The person appears trustworthy and organized. Soft neutral background to maintain focus on the subject. 8k resolution, photorealistic style." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBLNs5t0DD91VpkzgsqZrT0J7DB8DMhDaUX5QaqGzdYTcx0c09l-AsP_JthkHS3F9IZP9a7s_FcmFFlX_yend0lbMJPq1e1kJkaAGKmdxoku-rvMp_gDm0AHcR1ooWcw65MvwnGcyj1JcmNYWjIS0fwcqartHg9lHfgBKv8MSAT-UzmsRpyvxZPwZZhmRSiLzEXpE89CgPfyENCij2Rc4uYhAXAhIGlh2TX44SbcWilMLhelxHWIwzv"/>
+</div>
+</div>
+</header>
+<!-- Main Content Canvas -->
+<main class="pt-20 pl-[260px] pr-6 pb-12 w-full max-w-container-max mx-auto min-h-screen bg-background">
+<div class="max-w-5xl mx-auto mt-6">
+<!-- Page Header -->
+<div class="flex justify-between items-end mb-8">
+<div>
+<h1 class="text-display-lg font-display-lg text-primary mb-2">Gestion des Documents</h1>
+<p class="text-body-lg font-body-lg text-on-surface-variant">Vérification et validation des dossiers pèlerins pour le Groupe A - Hajj 2024.</p>
+</div>
+<div class="flex gap-3">
+<button class="px-4 py-2 bg-surface-container-lowest border border-outline text-on-surface font-label-md text-label-md rounded-lg hover:bg-surface-container-low flex items-center gap-2 transition-colors shadow-sm">
+<span class="material-symbols-outlined text-[18px]">filter_list</span>
+                        Filtrer
+                    </button>
+<button class="px-4 py-2 bg-primary text-on-primary font-label-md text-label-md rounded-lg hover:bg-primary-container flex items-center gap-2 transition-colors shadow-sm">
+<span class="material-symbols-outlined text-[18px]">file_download</span>
+                        Exporter (Zip)
+                    </button>
+</div>
+</div>
+<!-- Global Progress / Status Summary -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+<div class="bg-surface-container-lowest p-5 rounded-xl border border-outline-variant shadow-sm flex items-center justify-between">
+<div>
+<p class="text-label-md font-label-md text-on-surface-variant mb-1 uppercase tracking-wider">Validés</p>
+<p class="text-headline-md font-headline-md text-primary">142</p>
+</div>
+<div class="w-12 h-12 rounded-full bg-emerald-100 flex items-center justify-center border border-emerald-200">
+<span class="material-symbols-outlined text-emerald-700" data-icon="check_circle">check_circle</span>
+</div>
+</div>
+<div class="bg-surface-container-lowest p-5 rounded-xl border border-outline-variant shadow-sm flex items-center justify-between">
+<div>
+<p class="text-label-md font-label-md text-on-surface-variant mb-1 uppercase tracking-wider">En attente (Soumis)</p>
+<p class="text-headline-md font-headline-md text-primary">38</p>
+</div>
+<div class="w-12 h-12 rounded-full bg-amber-100 flex items-center justify-center border border-amber-200">
+<span class="material-symbols-outlined text-amber-700" data-icon="hourglass_empty">hourglass_empty</span>
+</div>
+</div>
+<div class="bg-surface-container-lowest p-5 rounded-xl border border-outline-variant shadow-sm flex items-center justify-between">
+<div>
+<p class="text-label-md font-label-md text-on-surface-variant mb-1 uppercase tracking-wider">Manquants / Refusés</p>
+<p class="text-headline-md font-headline-md text-error">15</p>
+</div>
+<div class="w-12 h-12 rounded-full bg-error-container flex items-center justify-center border border-red-200">
+<span class="material-symbols-outlined text-error" data-icon="error">error</span>
+</div>
+</div>
+</div>
+<!-- Documents List (Accordion Style) -->
+<div class="flex flex-col gap-4">
+<!-- Pilgrim 1 -->
+<div class="bg-surface-container-lowest rounded-xl border border-outline-variant shadow-sm overflow-hidden">
+<button aria-expanded="false" class="accordion-button w-full flex items-center justify-between p-4 hover:bg-surface-container-low transition-colors text-left" onclick="toggleAccordion(this)">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-full bg-surface-container-highest flex items-center justify-center text-on-surface-variant font-headline-sm">
+                                AH
+                            </div>
+<div>
+<h3 class="text-body-lg font-body-lg font-semibold text-primary">Ahmed Hassan</h3>
+<p class="text-body-md font-body-md text-on-surface-variant">ID: P-2024-089 • Formule Confort</p>
+</div>
+</div>
+<div class="flex items-center gap-6">
+<!-- Status Mini-Bar -->
+<div class="hidden md:flex gap-1 items-center">
+<div class="w-2 h-8 rounded-full bg-emerald-500" title="Passeport: Validé"></div>
+<div class="w-2 h-8 rounded-full bg-amber-500" title="Photo: Soumise"></div>
+<div class="w-2 h-8 rounded-full bg-emerald-500" title="Certificat Médical: Validé"></div>
+<div class="w-2 h-8 rounded-full bg-error" title="Visa: Manquant"></div>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant accordion-icon">expand_more</span>
+</div>
+</button>
+<div class="accordion-content border-t border-outline-variant bg-surface-bright">
+<div class="p-4 flex flex-col gap-3">
+<!-- Document Item: Validated -->
+<div class="flex items-center justify-between p-3 border border-outline-variant rounded-lg bg-surface-container-lowest">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded bg-surface-container flex items-center justify-center shrink-0 border border-outline-variant overflow-hidden">
+<span class="material-symbols-outlined text-on-surface-variant opacity-50" data-icon="badge">badge</span>
+</div>
+<div>
+<p class="text-body-md font-body-md font-medium text-on-surface">Passeport Biométrique</p>
+<p class="text-label-md font-label-md text-on-surface-variant">Mis à jour le 12/05/2024</p>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 text-label-md font-label-md border border-emerald-200">
+<span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Validé
+                                    </span>
+<div class="flex gap-2">
+<button class="p-2 text-on-surface-variant hover:text-primary hover:bg-surface-container-low rounded-md transition-colors" title="Télécharger">
+<span class="material-symbols-outlined text-[20px]">download</span>
+</button>
+<button class="p-2 text-on-surface-variant hover:text-primary hover:bg-surface-container-low rounded-md transition-colors" title="Voir">
+<span class="material-symbols-outlined text-[20px]">visibility</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Document Item: Submitted (Pending) -->
+<div class="flex items-center justify-between p-3 border border-outline-variant rounded-lg bg-surface-container-lowest border-l-4 border-l-amber-500">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded bg-surface-container flex items-center justify-center shrink-0 border border-outline-variant overflow-hidden relative">
+<!-- Mock Thumbnail -->
+<img alt="Thumbnail" class="w-full h-full object-cover" data-alt="A small thumbnail preview of a passport style identity photo. A man with short dark hair and a neat beard against a plain white background. Bright, even studio lighting. Professional administrative style, high quality." src="https://lh3.googleusercontent.com/aida-public/AB6AXuArR_LIDuozU3roL-7-eULBDrXf24y9t7osxxb5mfP4NRYDNefe-4VBe6fIG3Twnvqqe1noSLk6I9h3EQ4hRTWYIy5FrfO0GbiU3efTvCxs-mJH4viFof2zhqNEpqxKBdbVlqUCQHfSSgAyfm0tEiLrCQde9q33x2SdQ0HKloVxSJGkoHau7h7f5uGHjLwMtlmUNvdUdS2ArgJTdkbsjnjObxagSy_bFY44mUg7wWHQpsh_VpQYHfCU"/>
+</div>
+<div>
+<p class="text-body-md font-body-md font-medium text-on-surface">Photo d'identité (x4)</p>
+<p class="text-label-md font-label-md text-on-surface-variant">Soumis le 15/05/2024</p>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-50 text-amber-800 text-label-md font-label-md border border-amber-200">
+<span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span> Soumis
+                                    </span>
+<div class="flex gap-2">
+<button class="px-3 py-1.5 text-label-md font-label-md text-emerald-700 bg-emerald-50 border border-emerald-200 rounded hover:bg-emerald-100 transition-colors">Valider</button>
+<button class="px-3 py-1.5 text-label-md font-label-md text-error bg-error-container border border-red-200 rounded hover:bg-red-100 transition-colors">Refuser</button>
+</div>
+</div>
+</div>
+<!-- Document Item: Missing -->
+<div class="flex items-center justify-between p-3 border border-outline-variant rounded-lg bg-surface-container-lowest border-l-4 border-l-error">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded bg-surface-container flex items-center justify-center shrink-0 border border-outline-variant border-dashed">
+<span class="material-symbols-outlined text-outline" data-icon="medical_information">medical_information</span>
+</div>
+<div>
+<p class="text-body-md font-body-md font-medium text-on-surface">Certificat de Vaccination (Méningite)</p>
+<p class="text-label-md font-label-md text-error">Requis avant le 30/05/2024</p>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-error-container text-error text-label-md font-label-md border border-red-200">
+<span class="w-1.5 h-1.5 rounded-full bg-error"></span> Manquant
+                                    </span>
+<div class="flex gap-2">
+<button class="px-3 py-1.5 text-label-md font-label-md text-primary bg-surface-container-low border border-outline-variant rounded hover:bg-surface-container-high transition-colors flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]">mail</span> Relancer
+                                        </button>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<script>
+        function toggleAccordion(button) {
+            const content = button.nextElementSibling;
+            const isExpanded = button.getAttribute('aria-expanded') === 'true';
+            
+            // Close all others (optional accordion behavior)
+            // document.querySelectorAll('.accordion-button').forEach(btn => {
+            //     btn.setAttribute('aria-expanded', 'false');
+            //     btn.nextElementSibling.classList.remove('expanded');
+            // });
+
+            if (!isExpanded) {
+                button.setAttribute('aria-expanded', 'true');
+                content.classList.add('expanded');
+            } else {
+                button.setAttribute('aria-expanded', 'false');
+                content.classList.remove('expanded');
+            }
+        }
+
+        // Open first accordion by default for demo purposes
+        document.addEventListener('DOMContentLoaded', () => {
+            const firstBtn = document.querySelector('.accordion-button');
+            if(firstBtn) {
+                toggleAccordion(firstBtn);
+            }
+        });
+    </script>
+</body></html>
