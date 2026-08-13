@@ -66,6 +66,7 @@ export default function PlanPaiementSection({ pelerinId }: { pelerinId: string }
       setMontantTotal('')
       setPremiereEcheance('')
       queryClient.invalidateQueries({ queryKey: ['plan', pelerinId] })
+      queryClient.invalidateQueries({ queryKey: ['echeanciers'] })
       queryClient.invalidateQueries({ queryKey: ['pelerins'] })
     },
     onError: (e: Error) => setErreur(e.message === 'Champs invalides' ? 'Renseignez un montant, un nombre de tranches et une première échéance.' : 'Impossible de créer le plan.'),
@@ -96,6 +97,7 @@ export default function PlanPaiementSection({ pelerinId }: { pelerinId: string }
       setMontantPaiement('')
       setReference('')
       queryClient.invalidateQueries({ queryKey: ['plan', pelerinId] })
+      queryClient.invalidateQueries({ queryKey: ['echeanciers'] })
       queryClient.invalidateQueries({ queryKey: ['pelerins'] })
     },
     onError: (e: Error) => setErreur(e.message === 'Montant invalide' ? 'Saisissez un montant positif.' : 'Encaissement impossible.'),
