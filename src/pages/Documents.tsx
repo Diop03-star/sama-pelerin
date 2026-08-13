@@ -37,6 +37,7 @@ export default function Documents() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['documents-tous'] })
       queryClient.invalidateQueries({ queryKey: ['pelerins'] })
+      queryClient.invalidateQueries({ queryKey: ['pelerin'] })
     },
   })
 
