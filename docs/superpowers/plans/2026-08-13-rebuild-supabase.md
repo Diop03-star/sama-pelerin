@@ -3715,12 +3715,12 @@ insert into public.tranches (id, agence_id, plan_paiement_id, numero_tranche, mo
 
 insert into public.paiements (id, agence_id, tranche_id, montant_paye, mode, reference, enregistre_par) values
   ('80000000-0000-4000-8000-000000000001', '10000000-0000-4000-8000-000000000001', '70000000-0000-4000-8000-000000000001', 250000, 'wave', 'WAVE-2026-0813-A1', '20000000-0000-4000-8000-000000000001'),
-  ('80000000-0000-4000-8000-000000000002', '10000000-0000-4000-8000-000000000002', '70000000-0000-4000-8000-000000000006', 500000, 'especes', null, '20000000-0000-4000-8000-000000000002'),
+  ('80000000-0000-4000-8000-000000000002', '10000000-0000-4000-8000-000000000001', '70000000-0000-4000-8000-000000000006', 500000, 'especes', null, '20000000-0000-4000-8000-000000000002'),
   ('80000000-0000-4000-8000-000000000003', '10000000-0000-4000-8000-000000000002', '70000000-0000-4000-8000-000000000014', 250000, 'orange_money', 'OM-88001', '20000000-0000-4000-8000-000000000003');
 
 insert into public.rappels (id, agence_id, tranche_id, document_id, canal, date_envoi_prevue, statut_envoi) values
   ('90000000-0000-4000-8000-000000000001', '10000000-0000-4000-8000-000000000001', '70000000-0000-4000-8000-000000000001', null, 'whatsapp', now() - interval '1 day', 'en_attente'),
-  ('90000000-0000-4000-8000-000000000002', '10000000-0000-4000-8000-000000000002', null, '50000000-0000-4000-8000-000000000004', 'whatsapp', now(), 'en_attente');
+  ('90000000-0000-4000-8000-000000000002', '10000000-0000-4000-8000-000000000002', null, '50000000-0000-4000-8000-000000000007', 'whatsapp', now(), 'en_attente');
 ```
 
 - [ ] **Step 2: Écrire `scripts/seed-auth.mjs`**
@@ -3750,7 +3750,7 @@ for (const c of comptes) {
     user_metadata: { nom: c.nom },
   })
   if (error) {
-    if (error.message.includes('already been registered')) {
+    if (error.message.includes('already registered')) {
       console.log('Déjà existant :', c.email)
     } else {
       console.error('Échec :', c.email, error.message)
@@ -3785,7 +3785,7 @@ Vérifications (en suivant l'ordre de la spec) :
    select p.prenom, p.nom, p.statut_dossier from public.pelerins p order by p.nom;
    select numero_tranche, statut from public.tranches order by plan_paiement_id, numero_tranche;
    ```
-   Expected: dossiers « incomplet / valide / valide / incomplet » (triggers appliqués), tranche 1 d'Awa Ndiaye « partielle », tranche 1 de Cheikh Diop « payée » (échéance passée ? non — vérifier que les statuts correspondent : payée car versée 500 000).
+   Expected: dossiers « incomplet / valide / incomplet / incomplet » (ordre par nom : Diop → passeport rejeté → incomplet ; Fall → passeport valide seul → valide ; Ndiaye → visa manquant → incomplet ; Sy → visa manquant → incomplet — triggers appliqués), tranche 1 d'Awa Ndiaye « partielle », tranche 1 de Cheikh Diop « payée » (payée car versée 500 000).
 3. Se connecter comme `moussa@alhidjah.sn` / `Hajj2027!` → l'agence « Al Hidjah Travel Dakar » doit être affichée, 3 groupes, 3 pèlerins visibles, dashboard avec 1 rappel en attente.
 4. Se connecter comme `omar@albarakah.sn` / `Hajj2027!` → 1 groupe, 1 pèlerin (Mariama Sy) — **aucune donnée d'Al Hidjah visible** (test RLS).
 5. Parcours complet : encaisser la tranche 2 d'Awa Ndiaye → statut « À venir » ; téléverser un document → statut « Soumis ».

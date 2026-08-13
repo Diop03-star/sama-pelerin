@@ -23,7 +23,7 @@ for (const c of comptes) {
     user_metadata: { nom: c.nom },
   })
   if (error) {
-    if (error.message.includes('already been registered')) {
+    if (error.message.includes('already registered')) {
       console.log('Déjà existant :', c.email)
     } else {
       console.error('Échec :', c.email, error.message)
