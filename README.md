@@ -1,32 +1,33 @@
-# React + TypeScript + Vite
+# Stitch Sama Pèlerin — SaaS de gestion Hajj & Omra
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+Gestion d'agences de voyage (Hajj/Omra) : groupes, pèlerins, documents, paiements
+échelonnés FCFA et rappels WhatsApp. Stack : Supabase (Postgres + Auth + Storage + RLS)
++ Vite/React/TypeScript.
 
-Currently, two official plugins are available:
+## Démarrage local
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+1. Créer un projet sur https://supabase.com (free tier).
+2. Copier `.env.example` vers `.env` et renseigner `VITE_SUPABASE_URL` et
+   `VITE_SUPABASE_ANON_KEY` ; copier la clé `service_role` dans `.env.local`
+   (jamais commitée).
+3. Authentication → Email : désactiver « Confirm email ».
+4. SQL Editor : exécuter `supabase/schema.sql` puis `supabase/seed.sql`.
+5. `npm install` puis `npm run seed:auth` (créé les comptes de démo).
+6. `npm run dev`.
 
-## React Compiler
+Comptes de démo (mot de passe `Hajj2027!`) :
+- `moussa@alhidjah.sn` (gérant, Al Hidjah Travel Dakar)
+- `fatou@alhidjah.sn` (agent, Al Hidjah Travel Dakar)
+- `omar@albarakah.sn` (gérant, Voyages Al-Barakah)
+- `aissatou@albarakah.sn` (agent, Voyages Al-Barakah)
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Déploiement (Vercel)
 
-## Expanding the Oxlint configuration
+1. Pousser le dépôt sur GitHub.
+2. https://vercel.com → New Project → importer le dépôt (framework détecté : Vite).
+3. Environment Variables : `VITE_SUPABASE_URL` et `VITE_SUPABASE_ANON_KEY`.
+4. Deploy. Chaque push déploie automatiquement.
 
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
+## Tests
 
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
-}
-```
-
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+`npm run test` — logique métier (format, tranches, statuts) en Vitest.
