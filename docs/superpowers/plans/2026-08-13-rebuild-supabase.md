@@ -658,6 +658,7 @@ export interface Rappel {
 }
 export interface Invitation {
   id: string; agence_id: string; email: string; role: Role; token: string
+  created_by: string | null
   created_at: string; expires_at: string; used_at: string | null
 }
 ```
