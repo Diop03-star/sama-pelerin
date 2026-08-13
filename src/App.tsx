@@ -6,6 +6,7 @@ import Login from './pages/Login'
 import Signup from './pages/Signup'
 import Onboarding from './pages/Onboarding'
 import Membres from './pages/Membres'
+import Groupes from './pages/Groupes'
 
 const queryClient = new QueryClient()
 
@@ -20,6 +21,7 @@ export default function App() {
             <Route element={<ProtectedRoute />}>
               <Route path="/onboarding" element={<Onboarding />} />
               <Route path="/membres" element={<Membres />} />
+              <Route path="/liste-des-groupes" element={<Groupes />} />
               <Route path="*" element={<Navigate to="/tableau-de-bord" replace />} />
             </Route>
           </Routes>
