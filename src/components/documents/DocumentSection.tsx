@@ -59,14 +59,17 @@ export default function DocumentSection({ pelerinId }: { pelerinId: string }) {
         .from('documents_pelerins')
         .upload(chemin, fichier)
       if (eUpload) throw eUpload
-      const { error: eInsert } = await supabase.from('documents').insert({
-        agence_id: agence!.id,
-        pelerin_id: pelerinId,
-        type_document: typeDocument,
-        fichier_url: chemin,
-        statut: 'soumis',
-        date_upload: new Date().toISOString(),
-      })
+      const { error: eInsert } = await supabase.from('documents').upsert(
+        {
+          agence_id: agence!.id,
+          pelerin_id: pelerinId,
+          type_document: typeDocument,
+          fichier_url: chemin,
+          statut: 'soumis',
+          date_upload: new Date().toISOString(),
+        },
+        { onConflict: 'pelerin_id,type_document' }
+      )
       if (eInsert) throw eInsert
     },
     onSuccess: () => {
