@@ -4,6 +4,13 @@ export interface TrancheDraft {
   date_echeance: string
 }
 
+export function statutDossierDepuisDocuments(statuts: string[]): 'incomplet' | 'complet' | 'valide' {
+  if (statuts.length === 0) return 'incomplet'
+  if (statuts.every((s) => s === 'valide')) return 'valide'
+  if (statuts.every((s) => s === 'soumis' || s === 'valide')) return 'complet'
+  return 'incomplet'
+}
+
 export function genererTranches(
   montantTotal: number,
   nombreTranches: number,

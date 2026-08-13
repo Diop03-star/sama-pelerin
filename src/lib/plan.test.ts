@@ -1,5 +1,19 @@
 import { describe, it, expect } from 'vitest'
 import { genererTranches } from './plan'
+import { statutDossierDepuisDocuments } from './plan'
+
+describe('statutDossierDepuisDocuments', () => {
+  it('retourne valide si tous les documents sont valides', () => {
+    expect(statutDossierDepuisDocuments(['valide', 'valide'])).toBe('valide')
+  })
+  it('retourne complet si tous sont soumis ou valides', () => {
+    expect(statutDossierDepuisDocuments(['soumis', 'valide'])).toBe('complet')
+  })
+  it('retourne incomplet sinon', () => {
+    expect(statutDossierDepuisDocuments(['manquant', 'valide'])).toBe('incomplet')
+    expect(statutDossierDepuisDocuments([])).toBe('incomplet')
+  })
+})
 
 describe('genererTranches', () => {
   it('répartit équitablement et met le reste sur la dernière tranche', () => {

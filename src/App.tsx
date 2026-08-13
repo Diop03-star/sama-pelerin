@@ -9,6 +9,7 @@ import Membres from './pages/Membres'
 import Groupes from './pages/Groupes'
 import Pelerins from './pages/Pelerins'
 import PelerinDetail from './pages/PelerinDetail'
+import Documents from './pages/Documents'
 
 const queryClient = new QueryClient()
 
@@ -26,6 +27,7 @@ export default function App() {
               <Route path="/liste-des-groupes" element={<Groupes />} />
               <Route path="/liste-des-pelerins" element={<Pelerins />} />
               <Route path="/details-du-pelerin/:id" element={<PelerinDetail />} />
+              <Route path="/gestion-des-documents" element={<Documents />} />
               <Route path="*" element={<Navigate to="/tableau-de-bord" replace />} />
             </Route>
           </Routes>

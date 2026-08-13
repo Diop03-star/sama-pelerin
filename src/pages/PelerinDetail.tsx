@@ -8,6 +8,7 @@ import Card from '../components/ui/Card'
 import { Field, Input, Select } from '../components/ui/Field'
 import Button from '../components/ui/Button'
 import Badge from '../components/ui/Badge'
+import DocumentSection from '../components/documents/DocumentSection'
 
 export default function PelerinDetail() {
   const { id } = useParams<{ id: string }>()
@@ -127,7 +128,7 @@ export default function PelerinDetail() {
         )}
       </Card>
 
-      {/* Sections Documents (Task 10) et Plan de paiement (Task 11) ajoutées ci-dessous */}
+      <DocumentSection pelerinId={pelerin.id} />
     </div>
   )
 }
