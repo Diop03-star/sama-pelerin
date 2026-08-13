@@ -94,7 +94,7 @@ export default function Pelerins() {
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <h1 className="text-headline text-navy">Pèlerins</h1>
-        <Button onClick={() => { setForm({ ...form, groupe_id: groupes[0]?.id ?? '' }); setModalOuverte(true) }}>
+        <Button onClick={() => { setForm({ ...form, groupe_id: groupeFiltre ?? groupes[0]?.id ?? '' }); setModalOuverte(true) }}>
           Inscrire un pèlerin
         </Button>
       </div>
