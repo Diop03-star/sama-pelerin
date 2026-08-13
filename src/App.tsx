@@ -7,6 +7,8 @@ import Signup from './pages/Signup'
 import Onboarding from './pages/Onboarding'
 import Membres from './pages/Membres'
 import Groupes from './pages/Groupes'
+import Pelerins from './pages/Pelerins'
+import PelerinDetail from './pages/PelerinDetail'
 
 const queryClient = new QueryClient()
 
@@ -22,6 +24,8 @@ export default function App() {
               <Route path="/onboarding" element={<Onboarding />} />
               <Route path="/membres" element={<Membres />} />
               <Route path="/liste-des-groupes" element={<Groupes />} />
+              <Route path="/liste-des-pelerins" element={<Pelerins />} />
+              <Route path="/details-du-pelerin/:id" element={<PelerinDetail />} />
               <Route path="*" element={<Navigate to="/tableau-de-bord" replace />} />
             </Route>
           </Routes>
