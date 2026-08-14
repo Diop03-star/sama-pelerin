@@ -2,17 +2,64 @@
 
 @theme {
   --color-surface: #f9f9f7;
+  --color-surface-bright: #f9f9f7;
   --color-surface-dim: #dadad8;
+  --color-surface-container-lowest: #ffffff;
+  --color-surface-container-low: #f4f4f2;
+  --color-surface-container: #eeeeec;
+  --color-surface-container-high: #e8e8e6;
+  --color-surface-container-highest: #e2e3e1;
+  --color-on-surface: #1a1c1b;
+  --color-on-surface-variant: #45464d;
+  --color-outline: #76777e;
+  --color-outline-variant: #c6c6ce;
+  --color-primary: #09152e;
+  --color-on-primary: #ffffff;
+  --color-primary-container: #1f2a44;
+  --color-on-primary-container: #8691b0;
+  --color-surface-tint: #535e7b;
+  --color-secondary: #775928;
+  --color-on-secondary: #ffffff;
+  --color-secondary-container: #ffd79b;
+  --color-on-secondary-container: #7a5c2b;
+  --color-secondary-fixed: #ffdeae;
+  --color-secondary-fixed-dim: #e8c086;
+  --color-on-secondary-fixed-variant: #5d4213;
+  --color-error: #ba1a1a;
+  --color-on-error: #ffffff;
+  --color-error-container: #ffdad6;
+  --color-on-error-container: #93000a;
   --color-navy: #09152e;
   --color-navy-light: #1f2a44;
   --color-gold: #775928;
   --color-gold-container: #ffd79b;
   --color-border: #e2e8f0;
-  --color-error: #ba1a1a;
   --color-vert: #2e7d32;
   --color-ambre: #b26a00;
   --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
   --radius-card: 1rem;
+  --text-display-lg: 32px;
+  --text-display-lg--line-height: 40px;
+  --text-display-lg--letter-spacing: -0.02em;
+  --text-display-lg--font-weight: 700;
+  --text-headline-md: 24px;
+  --text-headline-md--line-height: 32px;
+  --text-headline-md--font-weight: 600;
+  --text-headline-sm: 20px;
+  --text-headline-sm--line-height: 28px;
+  --text-headline-sm--font-weight: 600;
+  --text-body-lg: 16px;
+  --text-body-lg--line-height: 24px;
+  --text-body-md: 14px;
+  --text-body-md--line-height: 20px;
+  --text-label-md: 12px;
+  --text-label-md--line-height: 16px;
+  --text-label-md--letter-spacing: 0.05em;
+  --text-label-md--font-weight: 600;
+  --text-data-mono: 14px;
+  --text-data-mono--line-height: 20px;
+  --text-data-mono--letter-spacing: -0.01em;
+  --text-data-mono--font-weight: 500;
 }
 
 @layer components {
