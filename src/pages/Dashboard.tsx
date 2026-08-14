@@ -9,6 +9,7 @@ import type { Pelerin, Tranche } from '../lib/types'
 import Badge from '../components/ui/Badge'
 import EmptyState from '../components/ui/EmptyState'
 import Icon from '../components/ui/Icon'
+import WhatsAppIcon from '../components/ui/WhatsAppIcon'
 import StatCard from '../components/ui/StatCard'
 import AlertLink from '../components/ui/AlertLink'
 import ProgressBar from '../components/ui/ProgressBar'
@@ -219,7 +220,7 @@ export default function Dashboard() {
                       className="rounded-lg p-2 text-on-surface-variant hover:bg-surface-container-low hover:text-primary"
                       title="Envoyer sur WhatsApp"
                     >
-                      <Icon name="whatsapp" size={18} />
+                      <WhatsAppIcon size={18} />
                     </a>
                   </div>
                 </li>
