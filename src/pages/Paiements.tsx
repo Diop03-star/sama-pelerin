@@ -1,11 +1,13 @@
-import { Link } from 'react-router-dom'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { supabase } from '../lib/supabase'
 import { LIBELLES_TRANCHE, TONE_TRANCHE, formatDate, formatFCFA } from '../lib/format'
 import type { Paiement, PlanPaiement, Tranche } from '../lib/types'
-import Card from '../components/ui/Card'
+import Icon from '../components/ui/Icon'
+import StatCard from '../components/ui/StatCard'
+import ProgressBar from '../components/ui/ProgressBar'
+import Button from '../components/ui/Button'
 import Badge from '../components/ui/Badge'
-import AlertPanel from '../components/ui/AlertPanel'
 import EmptyState from '../components/ui/EmptyState'
 
 interface PlanEcheancier extends PlanPaiement {
@@ -14,6 +16,10 @@ interface PlanEcheancier extends PlanPaiement {
 }
 
 export default function Paiements() {
+  const navigate = useNavigate()
+  const [params] = useSearchParams()
+  const statutFiltre = params.get('statut') ?? ''
+
   const { data: plans = [] } = useQuery({
     queryKey: ['echeanciers'],
     queryFn: async () => {
@@ -39,38 +45,41 @@ export default function Paiements() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-headline text-navy">Paiements & échéanciers</h1>
-
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-        <Card className="p-5">
-          <p className="label">Total attendu</p>
-          <p className="mt-1 text-lg font-semibold text-navy">{formatFCFA(totals.total)}</p>
-        </Card>
-        <Card className="p-5">
-          <p className="label">Total encaissé</p>
-          <p className="mt-1 text-lg font-semibold text-green-700">{formatFCFA(totals.paye)}</p>
-        </Card>
-        <Card className="p-5">
-          <p className="label">Reste global</p>
-          <p className="mt-1 text-lg font-semibold text-error">{formatFCFA(totals.total - totals.paye)}</p>
-        </Card>
+      <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
+        <div>
+          <h1 className="text-display-lg text-on-surface">Paiements & échéanciers</h1>
+          <p className="text-body-lg mt-1 text-on-surface-variant">Suivez les encaissements de vos pèlerins</p>
+        </div>
+        <Button onClick={() => plans[0] && navigate(`/details-du-pelerin/${plans[0].pelerin.id}`)} disabled={plans.length === 0}>
+          <Icon name="payments" size={18} className="mr-2" />
+          Enregistrer un paiement
+        </Button>
       </div>
 
+      <section className="grid grid-cols-1 gap-4 md:grid-cols-3">
+        <StatCard label="Total attendu" valeur={formatFCFA(totals.total)} icon="request_quote" />
+        <StatCard label="Total encaissé" valeur={formatFCFA(totals.paye)} icon="payments" tone="vert" />
+        <StatCard label="Reste global" valeur={formatFCFA(totals.total - totals.paye)} icon="account_balance_wallet" tone={totals.total - totals.paye > 0 ? 'error' : 'vert'} />
+      </section>
+
       {enRetard.length > 0 && (
-        <AlertPanel tone="rouge" title={`${enRetard.length} tranche(s) en retard`}>
-          {enRetard.map(({ p, t }) => (
-            <p key={t.id}>
-              {p.pelerin.prenom} {p.pelerin.nom} — tranche {t.numero_tranche} ({formatFCFA(t.montant_prevu)}), échéance {formatDate(t.date_echeance)}.
-            </p>
-          ))}
-        </AlertPanel>
+        <div className="rounded-r-lg border-l-4 border-error bg-error-container/20 p-4">
+          <p className="text-headline-sm text-error">{enRetard.length} tranche(s) en retard</p>
+          <ul className="text-body-md mt-1 text-on-surface-variant">
+            {enRetard.map(({ p, t }) => (
+              <li key={t.id}>
+                {p.pelerin.prenom} {p.pelerin.nom} — tranche {t.numero_tranche} ({formatFCFA(t.montant_prevu)}), échéance {formatDate(t.date_echeance)}.
+              </li>
+            ))}
+          </ul>
+        </div>
       )}
 
-      <Card>
+      <div className="overflow-hidden rounded-xl border border-outline-variant bg-surface-container-lowest shadow-sm">
         <div className="overflow-x-auto">
-          <table className="w-full text-sm">
+          <table className="w-full text-body-md">
             <thead>
-              <tr className="bg-[#f1f5f9] text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
+              <tr className="bg-[#f1f5f9] text-left text-label-md uppercase tracking-wider text-on-surface-variant">
                 <th className="px-4 py-3">Pèlerin</th>
                 <th className="px-4 py-3">Plan</th>
                 <th className="px-4 py-3">Payé</th>
@@ -84,29 +93,28 @@ export default function Paiements() {
                 const paye = p.tranches.reduce((s, t) => s + t.paiements.reduce((x, y) => x + y.montant_paye, 0), 0)
                 const reste = p.montant_total - paye
                 const progression = p.montant_total > 0 ? Math.round((paye / p.montant_total) * 100) : 0
+                const retard = p.tranches.filter((t) => t.statut === 'en_retard').length
                 return (
-                  <tr key={p.id} className="border-t border-border">
-                    <td className="px-4 py-3">
-                      <Link to={`/details-du-pelerin/${p.pelerin.id}`} className="font-medium text-navy hover:underline">
+                  <tr key={p.id} className="group border-t border-outline-variant transition-colors hover:bg-surface-container-low">
+                    <td className="px-4 py-4">
+                      <Link to={`/details-du-pelerin/${p.pelerin.id}`} className="font-medium text-primary hover:underline">
                         {p.pelerin.prenom} {p.pelerin.nom}
                       </Link>
-                      <p className="text-xs text-gray-500">{p.pelerin.telephone}</p>
+                      <p className="text-label-md text-on-surface-variant">{p.pelerin.telephone}</p>
                     </td>
-                    <td className="px-4 py-3">{formatFCFA(p.montant_total)} · {p.nombre_tranches} tranches</td>
-                    <td className="px-4 py-3 text-green-700">{formatFCFA(paye)}</td>
-                    <td className={`px-4 py-3 font-medium ${reste > 0 ? 'text-error' : 'text-green-700'}`}>{formatFCFA(reste)}</td>
-                    <td className="px-4 py-3">
-                      <div className="flex items-center gap-2">
-                        <div className="h-2 w-32 overflow-hidden rounded-full bg-gray-200">
-                          <div className="h-full rounded-full bg-gold" style={{ width: `${progression}%` }} />
+                    <td className="px-4 py-4 text-data-mono">{formatFCFA(p.montant_total)} · {p.nombre_tranches} tranches</td>
+                    <td className="px-4 py-4 font-medium text-vert">{formatFCFA(paye)}</td>
+                    <td className={`px-4 py-4 font-medium ${reste > 0 ? 'text-error' : 'text-vert'}`}>{formatFCFA(reste)}</td>
+                    <td className="px-4 py-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-32">
+                          <ProgressBar valeur={progression} tone={progression === 100 ? 'vert' : 'gold'} />
                         </div>
-                        <span className="text-xs text-gray-500">{progression}%</span>
+                        <span className="text-data-mono text-on-surface-variant">{progression}%</span>
                       </div>
                     </td>
-                    <td className="px-4 py-3 text-right">
-                      {p.tranches.filter((t) => t.statut === 'en_retard').length > 0 && (
-                        <Badge tone="rouge">{p.tranches.filter((t) => t.statut === 'en_retard').length} en retard</Badge>
-                      )}
+                    <td className="px-4 py-4 text-right">
+                      {retard > 0 && <Badge tone="rouge">{retard} en retard</Badge>}
                     </td>
                   </tr>
                 )
@@ -115,14 +123,17 @@ export default function Paiements() {
           </table>
           {plans.length === 0 && <EmptyState message="Aucun plan de paiement." />}
         </div>
-      </Card>
+      </div>
 
-      <Card>
-        <h2 className="px-6 pt-5 text-sm font-semibold text-navy">Détail des tranches</h2>
+      <div className="overflow-hidden rounded-xl border border-outline-variant bg-surface-container-lowest shadow-sm">
+        <div className="flex items-center gap-2 px-6 pt-5">
+          <Icon name="event_note" size={20} className="text-primary" />
+          <h2 className="text-headline-sm text-primary">Détail des tranches</h2>
+        </div>
         <div className="overflow-x-auto">
-          <table className="w-full text-sm">
+          <table className="w-full text-body-md">
             <thead>
-              <tr className="bg-[#f1f5f9] text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
+              <tr className="bg-[#f1f5f9] text-left text-label-md uppercase tracking-wider text-on-surface-variant">
                 <th className="px-4 py-3">Pèlerin</th>
                 <th className="px-4 py-3">Tranche</th>
                 <th className="px-4 py-3">Montant</th>
@@ -131,23 +142,26 @@ export default function Paiements() {
               </tr>
             </thead>
             <tbody>
-              {plans.flatMap((p) =>
-                p.tranches.map((t) => (
-                  <tr key={t.id} className="border-t border-border">
-                    <td className="px-4 py-3">{p.pelerin.prenom} {p.pelerin.nom}</td>
-                    <td className="px-4 py-3">Tranche {t.numero_tranche}</td>
-                    <td className="px-4 py-3">{formatFCFA(t.montant_prevu)}</td>
-                    <td className="px-4 py-3">{formatDate(t.date_echeance)}</td>
-                    <td className="px-4 py-3">
+              {plans
+                .flatMap((p) =>
+                  p.tranches.map((t) => ({ p, t }))
+                )
+                .filter(({ t }) => (statutFiltre === 'en_retard' ? t.statut === 'en_retard' : true))
+                .map(({ p, t }) => (
+                  <tr key={t.id} className="border-t border-outline-variant">
+                    <td className="px-4 py-4">{p.pelerin.prenom} {p.pelerin.nom}</td>
+                    <td className="px-4 py-4">Tranche {t.numero_tranche}</td>
+                    <td className="px-4 py-4 text-data-mono">{formatFCFA(t.montant_prevu)}</td>
+                    <td className="px-4 py-4">{formatDate(t.date_echeance)}</td>
+                    <td className="px-4 py-4">
                       <Badge tone={TONE_TRANCHE[t.statut]}>{LIBELLES_TRANCHE[t.statut]}</Badge>
                     </td>
                   </tr>
-                ))
-              )}
+                ))}
             </tbody>
           </table>
         </div>
-      </Card>
+      </div>
     </div>
   )
 }

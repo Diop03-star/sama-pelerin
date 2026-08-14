@@ -1,11 +1,12 @@
-import { useMemo, useState, type FormEvent } from 'react'
+import { useEffect, useMemo, useState, type FormEvent } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '../lib/supabase'
 import { useAgence } from '../hooks/useAgence'
 import { LIBELLES_DOSSIER, TONE_DOSSIER, formatFCFA } from '../lib/format'
 import type { Groupe, Pelerin } from '../lib/types'
-import Card from '../components/ui/Card'
+import Icon from '../components/ui/Icon'
+import StatCard from '../components/ui/StatCard'
 import { Field, Input, Select } from '../components/ui/Field'
 import Button from '../components/ui/Button'
 import Badge from '../components/ui/Badge'
@@ -26,7 +27,8 @@ export default function Pelerins() {
   const queryClient = useQueryClient()
   const [params, setParams] = useSearchParams()
   const groupeFiltre = params.get('groupe') ?? ''
-  const [recherche, setRecherche] = useState('')
+  const statutFiltre = params.get('statut') ?? ''
+  const [recherche, setRecherche] = useState(params.get('q') ?? '')
   const [modalOuverte, setModalOuverte] = useState(false)
   const [erreur, setErreur] = useState('')
   const [form, setForm] = useState({ groupe_id: '', nom: '', prenom: '', telephone: '', email: '', sexe: 'M' })
@@ -54,10 +56,32 @@ export default function Pelerins() {
     const terme = recherche.trim().toLowerCase()
     return pelerins.filter((p) => {
       if (groupeFiltre && p.groupe_id !== groupeFiltre) return false
+      if (statutFiltre && p.statut_dossier !== statutFiltre) return false
       if (!terme) return true
       return `${p.prenom} ${p.nom}`.toLowerCase().includes(terme) || p.telephone.includes(terme)
     })
-  }, [pelerins, recherche, groupeFiltre])
+  }, [pelerins, recherche, groupeFiltre, statutFiltre])
+
+  const compteurs = useMemo(
+    () => ({
+      total: pelerins.length,
+      valides: pelerins.filter((p) => p.statut_dossier === 'valide').length,
+      incomplets: pelerins.filter((p) => p.statut_dossier === 'incomplet').length,
+    }),
+    [pelerins]
+  )
+
+  useEffect(() => {
+    if (params.get('nouveau')) {
+      setForm((f) => ({ ...f, groupe_id: groupeFiltre ?? groupes[0]?.id ?? '' }))
+      setModalOuverte(true)
+      setParams((prev) => {
+        const next = new URLSearchParams(prev)
+        next.delete('nouveau')
+        return next
+      })
+    }
+  }, [params, groupeFiltre, groupes, setParams])
 
   const sauver = useMutation({
     mutationFn: async () => {
@@ -92,33 +116,52 @@ export default function Pelerins() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <h1 className="text-headline text-navy">Pèlerins</h1>
-        <Button onClick={() => { setForm({ ...form, groupe_id: groupeFiltre ?? groupes[0]?.id ?? '' }); setModalOuverte(true) }}>
-          Inscrire un pèlerin
+      <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
+        <div>
+          <h1 className="text-display-lg text-on-surface">Pèlerins</h1>
+          <p className="text-body-lg mt-1 text-on-surface-variant">Gérez les dossiers de vos pèlerins</p>
+        </div>
+        <Button
+          onClick={() => {
+            setForm({ ...form, groupe_id: groupeFiltre ?? groupes[0]?.id ?? '' })
+            setModalOuverte(true)
+          }}
+        >
+          <Icon name="add" size={18} className="mr-2" />
+          Nouveau Pèlerin
         </Button>
       </div>
 
+      <section className="grid grid-cols-1 gap-4 md:grid-cols-3">
+        <StatCard label="Total Pèlerins" valeur={compteurs.total} icon="group" />
+        <StatCard label="Dossiers validés" valeur={compteurs.valides} icon="check_circle" tone="vert" />
+        <StatCard label="Dossiers incomplets" valeur={compteurs.incomplets} icon="warning" tone="error" />
+      </section>
+
       <div className="flex flex-wrap gap-4">
-        <Input
-          placeholder="Rechercher par nom ou téléphone…"
-          value={recherche}
-          onChange={(e) => setRecherche(e.target.value)}
-          className="max-w-xs"
-        />
+        <div className="relative">
+          <Icon name="search" size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant" />
+          <Input placeholder="Rechercher par nom ou téléphone…" value={recherche} onChange={(e) => setRecherche(e.target.value)} className="max-w-xs pl-10" />
+        </div>
         <Select value={groupeFiltre} onChange={(e) => setParams(e.target.value ? { groupe: e.target.value } : {})} className="max-w-xs">
           <option value="">Tous les groupes</option>
           {groupes.map((g) => (
             <option key={g.id} value={g.id}>{g.nom}</option>
           ))}
         </Select>
+        <Select value={statutFiltre} onChange={(e) => setParams(e.target.value ? { statut: e.target.value } : {})} className="max-w-xs">
+          <option value="">Tous les statuts</option>
+          <option value="valide">Validé</option>
+          <option value="complet">Complet</option>
+          <option value="incomplet">Incomplet</option>
+        </Select>
       </div>
 
-      <Card>
+      <div className="overflow-hidden rounded-xl border border-outline-variant bg-surface-container-lowest shadow-sm">
         <div className="overflow-x-auto">
-          <table className="w-full text-sm">
+          <table className="w-full text-body-md">
             <thead>
-              <tr className="bg-[#f1f5f9] text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
+              <tr className="bg-[#f1f5f9] text-left text-label-md uppercase tracking-wider text-on-surface-variant">
                 <th className="px-4 py-3">Nom</th>
                 <th className="px-4 py-3">Groupe</th>
                 <th className="px-4 py-3">Téléphone</th>
@@ -131,16 +174,26 @@ export default function Pelerins() {
               {filtres.map((p) => {
                 const reste = p.plan_paiement ? p.plan_paiement.montant_total - montantPaye(p) : 0
                 return (
-                  <tr key={p.id} className="border-t border-border">
-                    <td className="px-4 py-3 font-medium text-navy">{p.prenom} {p.nom}</td>
-                    <td className="px-4 py-3">{p.groupe?.nom ?? '—'}</td>
-                    <td className="px-4 py-3">{p.telephone}</td>
-                    <td className="px-4 py-3">
+                  <tr key={p.id} className="group border-t border-outline-variant transition-colors hover:bg-surface-container-low">
+                    <td className="px-4 py-4 font-medium text-primary">{p.prenom} {p.nom}</td>
+                    <td className="px-4 py-4">{p.groupe?.nom ?? '—'}</td>
+                    <td className="px-4 py-4 text-data-mono text-on-surface-variant">{p.telephone}</td>
+                    <td className="px-4 py-4">
                       <Badge tone={TONE_DOSSIER[p.statut_dossier]}>{LIBELLES_DOSSIER[p.statut_dossier]}</Badge>
                     </td>
-                    <td className="px-4 py-3">{p.plan_paiement ? formatFCFA(reste) : '—'}</td>
-                    <td className="px-4 py-3 text-right">
-                      <Link to={`/details-du-pelerin/${p.id}`} className="text-xs text-navy hover:underline">Voir la fiche</Link>
+                    <td className={`px-4 py-4 font-medium ${reste > 0 ? 'text-error' : 'text-vert'}`}>
+                      {p.plan_paiement ? formatFCFA(reste) : '—'}
+                    </td>
+                    <td className="px-4 py-4 text-right">
+                      <div className="flex justify-end gap-1 opacity-0 transition-opacity group-hover:opacity-100">
+                        <Link
+                          to={`/details-du-pelerin/${p.id}`}
+                          title="Voir la fiche"
+                          className="rounded-lg p-2 text-on-surface-variant hover:bg-surface-container hover:text-primary"
+                        >
+                          <Icon name="visibility" size={18} />
+                        </Link>
+                      </div>
                     </td>
                   </tr>
                 )
@@ -149,7 +202,7 @@ export default function Pelerins() {
           </table>
           {filtres.length === 0 && <EmptyState message="Aucun pèlerin trouvé." />}
         </div>
-      </Card>
+      </div>
 
       <Modal open={modalOuverte} title="Inscrire un pèlerin" onClose={() => setModalOuverte(false)}>
         <form onSubmit={onSubmit} className="space-y-4">
