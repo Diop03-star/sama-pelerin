@@ -3,6 +3,9 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider } from './auth/AuthContext'
 import ProtectedRoute from './auth/ProtectedRoute'
 import AppLayout from './components/layout/AppLayout'
+import SuperAdminLayout from './components/layout/SuperAdminLayout'
+import SuperAdminGlobal from './pages/SuperAdminGlobal'
+import SuperAdminAgences from './pages/SuperAdminAgences'
 import Login from './pages/Login'
 import Signup from './pages/Signup'
 import Onboarding from './pages/Onboarding'
@@ -26,6 +29,10 @@ export default function App() {
             <Route path="/signup" element={<Signup />} />
             <Route element={<ProtectedRoute />}>
               <Route path="/onboarding" element={<Onboarding />} />
+              <Route element={<SuperAdminLayout />}>
+                <Route path="/superadmin" element={<SuperAdminGlobal />} />
+                <Route path="/superadmin/agences" element={<SuperAdminAgences />} />
+              </Route>
               <Route element={<AppLayout />}>
                 <Route path="/membres" element={<Membres />} />
                 <Route path="/liste-des-groupes" element={<Groupes />} />
