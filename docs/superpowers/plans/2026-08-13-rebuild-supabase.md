@@ -3786,7 +3786,7 @@ Vérifications (en suivant l'ordre de la spec) :
    select numero_tranche, statut from public.tranches order by plan_paiement_id, numero_tranche;
    ```
    Expected: dossiers « incomplet / valide / incomplet / incomplet » (ordre par nom : Diop → passeport rejeté → incomplet ; Fall → passeport valide seul → valide ; Ndiaye → visa manquant → incomplet ; Sy → visa manquant → incomplet — triggers appliqués), tranche 1 d'Awa Ndiaye « partielle », tranche 1 de Cheikh Diop « payée » (payée car versée 500 000).
-3. Se connecter comme `moussa@alhidjah.sn` / `Hajj2027!` → l'agence « Al Hidjah Travel Dakar » doit être affichée, 3 groupes, 3 pèlerins visibles, dashboard avec 1 rappel en attente.
+3. Se connecter comme `moussa@alhidjah.sn` / `Hajj2027!` → l'agence « Al Hidjah Travel Dakar » doit être affichée, 2 groupes, 3 pèlerins visibles, dashboard avec 1 rappel en attente.
 4. Se connecter comme `omar@albarakah.sn` / `Hajj2027!` → 1 groupe, 1 pèlerin (Mariama Sy) — **aucune donnée d'Al Hidjah visible** (test RLS).
 5. Parcours complet : encaisser la tranche 2 d'Awa Ndiaye → statut « À venir » ; téléverser un document → statut « Soumis ».
 
