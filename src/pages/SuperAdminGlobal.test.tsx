@@ -23,9 +23,9 @@ const fixture: Array<Record<string, unknown>> = [
 ]
 
 const paiements = [
-  { montant_paye: 400000, tranche: { pelerin: { agence_id: 'a1' } } },
-  { montant_paye: 100000, tranche: { pelerin: { agence_id: 'a1' } } },
-  { montant_paye: 50000, tranche: { pelerin: { agence_id: 'a2' } } },
+  { montant_paye: 400000, tranche: { plan_paiement: { pelerin: { agence_id: 'a1' } } } },
+  { montant_paye: 100000, tranche: { plan_paiement: { pelerin: { agence_id: 'a1' } } } },
+  { montant_paye: 50000, tranche: { plan_paiement: { pelerin: { agence_id: 'a2' } } } },
 ]
 
 const queryClient = new QueryClient()
