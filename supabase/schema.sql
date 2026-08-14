@@ -10,6 +10,7 @@ create table public.agences (
   email text,
   adresse text,
   logo_url text,
+  active boolean not null default true,
   created_at timestamptz not null default now()
 );
 
@@ -20,7 +21,7 @@ create table public.utilisateurs (
   nom text not null,
   telephone text not null default '',
   email text,
-  role text not null default 'agent' check (role in ('gerant','agent')),
+  role text not null default 'agent' check (role in ('gerant','agent','superadmin')),
   created_at timestamptz not null default now()
 );
 
@@ -121,7 +122,15 @@ create table public.invitations (
 -- ---------- FONCTIONS ----------
 create or replace function public.current_agence_id()
 returns uuid language sql stable security definer set search_path = public as $$
-  select agence_id from public.utilisateurs where user_id = auth.uid()
+  select case when a.active then u.agence_id end
+  from public.utilisateurs u
+  left join public.agences a on a.id = u.agence_id
+  where u.user_id = auth.uid()
+$$;
+
+create or replace function public.is_superadmin()
+returns boolean language sql stable set search_path = public as $$
+  select exists (select 1 from public.utilisateurs where user_id = auth.uid() and role = 'superadmin')
 $$;
 
 -- Inscription : crée la ligne utilisateurs, gère l'invitation, relie les comptes seedés
@@ -210,6 +219,48 @@ create trigger trg_document_maj_dossier
   after insert or update or delete on public.documents
   for each row execute function public.trg_maj_statut_dossier();
 
+-- ---------- RPC : STATS GLOBALES (superadmin) ----------
+create or replace function public.stats_globales()
+returns table (
+  agence_id uuid, agence_nom text, agence_active boolean,
+  pelerins_total bigint, dossiers_valides bigint, dossiers_complets bigint, dossiers_incomplets bigint,
+  groupes_total bigint, places_restantes bigint,
+  gerants bigint, agents bigint,
+  encaissements_total numeric, encaissements_30j numeric,
+  tranches_en_retard bigint, rappels_attente bigint, rappels_echec bigint
+) language plpgsql stable security definer set search_path = public as $$
+begin
+  if not public.is_superadmin() then
+    raise exception 'Accès refusé : réservé au superadmin';
+  end if;
+  return query
+  select
+    a.id, a.nom, a.active,
+    count(distinct p.id) as pelerins_total,
+    count(distinct p.id) filter (where p.statut_dossier = 'valide') as dossiers_valides,
+    count(distinct p.id) filter (where p.statut_dossier = 'complet') as dossiers_complets,
+    count(distinct p.id) filter (where p.statut_dossier = 'incomplet') as dossiers_incomplets,
+    count(distinct g.id) as groupes_total,
+    coalesce(sum(g.nb_places_max - coalesce(gd.nb, 0)), 0) as places_restantes,
+    count(distinct u.id) filter (where u.role = 'gerant') as gerants,
+    count(distinct u.id) filter (where u.role = 'agent') as agents,
+    coalesce(sum(pa.montant_paye), 0) as encaissements_total,
+    coalesce(sum(pa.montant_paye) filter (where pa.date_paiement >= now() - interval '30 days'), 0) as encaissements_30j,
+    count(distinct t.id) filter (where t.statut = 'en_retard') as tranches_en_retard,
+    count(distinct r.id) filter (where r.statut_envoi = 'en_attente') as rappels_attente,
+    count(distinct r.id) filter (where r.statut_envoi = 'echec') as rappels_echec
+  from public.agences a
+  left join public.pelerins p on p.agence_id = a.id
+  left join public.groupes g on g.agence_id = a.id
+  left join (select groupe_id, count(*) as nb from public.pelerins group by groupe_id) gd on gd.groupe_id = g.id
+  left join public.utilisateurs u on u.agence_id = a.id
+  left join public.paiements pa on pa.agence_id = a.id
+  left join public.tranches t on t.agence_id = a.id
+  left join public.rappels r on r.agence_id = a.id
+  group by a.id, a.nom, a.active
+  order by a.nom;
+end $$;
+
 -- ---------- RLS ----------
 alter table public.agences enable row level security;
 alter table public.utilisateurs enable row level security;
@@ -223,16 +274,16 @@ alter table public.rappels enable row level security;
 alter table public.invitations enable row level security;
 
 create policy agences_select on public.agences for select
-  using (id = public.current_agence_id());
+  using (id = public.current_agence_id() or public.is_superadmin());
 create policy agences_insert on public.agences for insert
   with check (true);
 create policy agences_update on public.agences for update
-  using (id = public.current_agence_id());
+  using (id = public.current_agence_id() or public.is_superadmin());
 
 create policy utilisateurs_select on public.utilisateurs for select
-  using (agence_id = public.current_agence_id() or user_id = auth.uid());
+  using (agence_id = public.current_agence_id() or user_id = auth.uid() or public.is_superadmin());
 create policy utilisateurs_insert on public.utilisateurs for insert
-  with check (agence_id = public.current_agence_id());
+  with check (agence_id = public.current_agence_id() or public.is_superadmin());
 create policy utilisateurs_update on public.utilisateurs for update
   using (user_id = auth.uid()
     or (agence_id = public.current_agence_id()
@@ -255,25 +306,25 @@ create policy invitations_delete on public.invitations for delete
                 where u.user_id = auth.uid() and u.role = 'gerant'));
 
 create policy groupes_all on public.groupes for all
-  using (agence_id = public.current_agence_id())
+  using (agence_id = public.current_agence_id() or public.is_superadmin())
   with check (agence_id = public.current_agence_id());
 create policy pelerins_all on public.pelerins for all
-  using (agence_id = public.current_agence_id())
+  using (agence_id = public.current_agence_id() or public.is_superadmin())
   with check (agence_id = public.current_agence_id());
 create policy documents_all on public.documents for all
-  using (agence_id = public.current_agence_id())
+  using (agence_id = public.current_agence_id() or public.is_superadmin())
   with check (agence_id = public.current_agence_id());
 create policy plans_all on public.plans_paiement for all
-  using (agence_id = public.current_agence_id())
+  using (agence_id = public.current_agence_id() or public.is_superadmin())
   with check (agence_id = public.current_agence_id());
 create policy tranches_all on public.tranches for all
-  using (agence_id = public.current_agence_id())
+  using (agence_id = public.current_agence_id() or public.is_superadmin())
   with check (agence_id = public.current_agence_id());
 create policy paiements_all on public.paiements for all
-  using (agence_id = public.current_agence_id())
+  using (agence_id = public.current_agence_id() or public.is_superadmin())
   with check (agence_id = public.current_agence_id());
 create policy rappels_all on public.rappels for all
-  using (agence_id = public.current_agence_id())
+  using (agence_id = public.current_agence_id() or public.is_superadmin())
   with check (agence_id = public.current_agence_id());
 
 -- ---------- STORAGE ----------
