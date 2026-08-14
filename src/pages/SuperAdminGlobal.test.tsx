@@ -1,10 +1,12 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import SuperAdminGlobal from './SuperAdminGlobal'
+import { debutPeriode } from '../lib/dates'
 
 const mockSupabase = vi.hoisted(() => ({
   rpc: vi.fn(),
+  from: vi.fn(),
 }))
 
 vi.mock('../lib/supabase', () => ({ supabase: mockSupabase }))
@@ -20,15 +22,27 @@ const fixture: Array<Record<string, unknown>> = [
   },
 ]
 
+const paiements = [
+  { montant_paye: 400000, tranche: { pelerin: { agence_id: 'a1' } } },
+  { montant_paye: 100000, tranche: { pelerin: { agence_id: 'a1' } } },
+  { montant_paye: 50000, tranche: { pelerin: { agence_id: 'a2' } } },
+]
+
 const queryClient = new QueryClient()
 
 beforeEach(() => {
   mockSupabase.rpc.mockReset()
+  mockSupabase.from.mockReset()
   mockSupabase.rpc.mockResolvedValue({ data: fixture, error: null })
+  mockSupabase.from.mockReturnValue({
+    select: vi.fn().mockReturnValue({
+      gte: vi.fn().mockResolvedValue({ data: paiements, error: null }),
+    }),
+  })
 })
 
 describe('SuperAdminGlobal', () => {
-  it('affiche les indicateurs globaux et le tableau des agences', async () => {
+  it('affiche les indicateurs globaux, le total encaissé et le tableau des agences', async () => {
     render(
       <QueryClientProvider client={queryClient}>
         <SuperAdminGlobal />
@@ -36,7 +50,8 @@ describe('SuperAdminGlobal', () => {
     )
     expect(await screen.findByText('Vue d’ensemble')).toBeInTheDocument()
     expect(screen.getAllByText('12').length).toBeGreaterThan(0)
-    expect(screen.getByText('400 000 FCFA')).toBeInTheDocument()
+    expect(screen.getByText('550 000')).toBeInTheDocument()
+    expect(screen.getByText('500 000 FCFA')).toBeInTheDocument()
     expect(screen.getByText('Al Hidjah')).toBeInTheDocument()
     expect(screen.getByText((_, el) => el?.textContent === '2 attente / 1 échec')).toBeInTheDocument()
   })
@@ -52,5 +67,22 @@ describe('SuperAdminGlobal', () => {
       </QueryClientProvider>
     )
     expect(await screen.findByText('Désactivée')).toBeInTheDocument()
+  })
+
+  it('relance la requête paiements avec la période sélectionnée', async () => {
+    render(
+      <QueryClientProvider client={queryClient}>
+        <SuperAdminGlobal />
+      </QueryClientProvider>
+    )
+    await screen.findByText('Vue d’ensemble')
+    fireEvent.click(screen.getByRole('button', { name: 'Semaine' }))
+    await waitFor(() => {
+      expect(mockSupabase.from.mock.results.length).toBe(2)
+    })
+    const gteAppels = mockSupabase.from.mock.results
+      .map((r) => r.value.select().gte)
+      .map((g) => g.mock.calls[0][1])
+    expect(gteAppels[1]).toBe(debutPeriode('semaine').toISOString())
   })
 })

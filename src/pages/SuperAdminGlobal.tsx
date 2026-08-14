@@ -1,12 +1,22 @@
+import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { supabase } from '../lib/supabase'
 import type { StatsAgence } from '../lib/types'
 import { formatFCFA } from '../lib/format'
+import { debutPeriode, nomPeriode, type Periode } from '../lib/dates'
 import StatCard from '../components/ui/StatCard'
 import Badge from '../components/ui/Badge'
 import EmptyState from '../components/ui/EmptyState'
+import FiltrePeriode from '../components/ui/FiltrePeriode'
+
+interface PaiementAgence {
+  montant_paye: number
+  tranche: { pelerin: { agence_id: string } | null } | null
+}
 
 export default function SuperAdminGlobal() {
+  const [periode, setPeriode] = useState<Periode>('annee')
+
   const { data: stats = [], isLoading } = useQuery({
     queryKey: ['superadmin-stats'],
     queryFn: async () => {
@@ -16,15 +26,34 @@ export default function SuperAdminGlobal() {
     },
   })
 
+  const { data: paiements = [] } = useQuery({
+    queryKey: ['superadmin-encaissements', periode],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('paiements')
+        .select('montant_paye, tranche:plans_paiement(pelerin:pelerins(agence_id))')
+        .gte('date_paiement', debutPeriode(periode).toISOString())
+      if (error) throw error
+      return (data ?? []) as unknown as PaiementAgence[]
+    },
+  })
+
+  const encaissesParAgence = new Map<string, number>()
+  for (const p of paiements) {
+    const agenceId = p.tranche?.pelerin?.agence_id
+    if (!agenceId) continue
+    encaissesParAgence.set(agenceId, (encaissesParAgence.get(agenceId) ?? 0) + p.montant_paye)
+  }
+  const totalEncaisses = [...encaissesParAgence.values()].reduce((s, n) => s + n, 0)
+
   const totaux = stats.reduce(
     (acc, s) => ({
       pelerins: acc.pelerins + Number(s.pelerins_total),
       valides: acc.valides + Number(s.dossiers_valides),
-      encaisses30: acc.encaisses30 + Number(s.encaissements_30j),
       rappels: acc.rappels + Number(s.rappels_attente),
       actives: acc.actives + (s.agence_active ? 1 : 0),
     }),
-    { pelerins: 0, valides: 0, encaisses30: 0, rappels: 0, actives: 0 }
+    { pelerins: 0, valides: 0, rappels: 0, actives: 0 }
   )
 
   if (isLoading) return <div className="text-navy">Chargement…</div>
@@ -39,7 +68,15 @@ export default function SuperAdminGlobal() {
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
         <StatCard label="Pèlerins" valeur={totaux.pelerins} icon="person" tone="primary" />
         <StatCard label="Dossiers valides" valeur={totaux.valides} icon="verified" tone="vert" />
-        <StatCard label="Encaissés (30 j)" valeur={formatFCFA(totaux.encaisses30)} icon="payments" tone="gold" />
+        <StatCard
+          label="Total encaissé"
+          valeur={totalEncaisses}
+          icon="payments"
+          tone="gold"
+          monetaire
+          actions={<FiltrePeriode periode={periode} onChange={setPeriode} />}
+          tendance={{ texte: nomPeriode(periode), positif: true, suffixe: '' }}
+        />
         <StatCard label="Rappels en attente" valeur={totaux.rappels} icon="notifications" tone="error" />
         <StatCard label="Agences actives" valeur={`${totaux.actives}/${stats.length}`} icon="business" tone="primary" />
       </div>
@@ -76,7 +113,7 @@ export default function SuperAdminGlobal() {
                     <span className="text-on-surface-variant"> · {s.dossiers_incomplets} incomplets</span>
                   </td>
                   <td className="px-4 py-4">{s.groupes_total} groupes · {s.places_restantes} places libres</td>
-                  <td className="px-4 py-4">{formatFCFA(Number(s.encaissements_total))}</td>
+                  <td className="px-4 py-4">{formatFCFA(encaissesParAgence.get(s.agence_id) ?? 0)}</td>
                   <td className="px-4 py-4">{s.tranches_en_retard}</td>
                   <td className="px-4 py-4">{s.rappels_attente} attente / {s.rappels_echec} échec</td>
                   <td className="px-4 py-4">{Number(s.gerants) + Number(s.agents)}</td>
