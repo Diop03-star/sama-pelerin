@@ -9,7 +9,8 @@ export default function Icon({ name, fill = false, size = 20, className = '' }: 
   return (
     <span
       aria-hidden="true"
-      className={`material-symbols-outlined inline-block select-none leading-none ${className}`}
+      translate="no"
+      className={`material-symbols-outlined notranslate inline-block select-none leading-none ${className}`}
       style={{ fontSize: size, fontVariationSettings: fill ? "'FILL' 1, 'wght' 500" : undefined }}
     >
       {name}
