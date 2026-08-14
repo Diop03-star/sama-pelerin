@@ -7,6 +7,7 @@ interface StatCardProps {
   icon: string
   tone?: 'primary' | 'gold' | 'vert' | 'error'
   tendance?: { texte: string; positif?: boolean }
+  grande?: boolean
 }
 
 const TONES: Record<string, string> = {
@@ -16,14 +17,14 @@ const TONES: Record<string, string> = {
   error: 'bg-error-container text-on-error-container',
 }
 
-export default function StatCard({ label, valeur, icon, tone = 'primary', tendance }: StatCardProps) {
+export default function StatCard({ label, valeur, icon, tone = 'primary', tendance, grande = false }: StatCardProps) {
   return (
     <div className="relative overflow-hidden rounded-xl border border-outline-variant bg-surface-container-lowest p-6 shadow-sm transition-shadow hover:shadow-md">
       <div className="pointer-events-none absolute right-0 top-0 -mr-8 -mt-8 h-32 w-32 rounded-full bg-primary/5" />
       <div className="mb-4 flex items-start justify-between">
         <div>
           <p className="text-label-md uppercase tracking-wider text-on-surface-variant">{label}</p>
-          <h3 className="text-display-lg mt-2 text-on-surface">{valeur}</h3>
+          <h3 className={`mt-2 text-on-surface ${grande ? 'text-display-lg' : 'text-headline-md'}`}>{valeur}</h3>
         </div>
         <div className={`flex h-12 w-12 items-center justify-center rounded-lg ${TONES[tone]}`}>
           <Icon name={icon} size={24} />

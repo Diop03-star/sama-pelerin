@@ -158,9 +158,9 @@ export default function Dashboard() {
       </section>
 
       <section className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        <StatCard label="Total Pèlerins" valeur={totalPelerins} icon="group" tendance={{ texte: `${valides} dossiers validés`, positif: true }} />
-        <StatCard label="Total encaissé" valeur={formatFCFA(totalPaye)} icon="payments" tone="gold" />
-        <StatCard label="Reste global" valeur={formatFCFA(resteGlobal)} icon="account_balance_wallet" tone={resteGlobal > 0 ? 'error' : 'vert'} />
+        <StatCard label="Total Pèlerins" valeur={totalPelerins} icon="group" tendance={{ texte: `${valides} dossiers validés`, positif: true }} grande />
+        <StatCard label="Total encaissé" valeur={formatFCFA(totalPaye)} icon="payments" tone="gold" grande />
+        <StatCard label="Reste global" valeur={formatFCFA(resteGlobal)} icon="account_balance_wallet" tone={resteGlobal > 0 ? 'error' : 'vert'} grande />
       </section>
 
       <section className="grid grid-cols-1 gap-6 lg:grid-cols-3">
