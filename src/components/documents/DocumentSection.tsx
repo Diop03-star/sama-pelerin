@@ -2,14 +2,35 @@ import { useRef, type ChangeEvent } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '../../lib/supabase'
 import { useAgence } from '../../hooks/useAgence'
-import { LIBELLES_DOCUMENT, TONE_DOCUMENT, formatDate } from '../../lib/format'
+import { LIBELLES_DOCUMENT, LIBELLES_DOC_STATUT, formatDate } from '../../lib/format'
 import type { Document } from '../../lib/types'
-import Card from '../ui/Card'
 import Button from '../ui/Button'
-import Badge from '../ui/Badge'
+import Icon from '../ui/Icon'
 import EmptyState from '../ui/EmptyState'
 
 const TYPES_DOCUMENT = ['passeport', 'visa', 'certificat_vaccination', 'photo', 'autre'] as const
+
+const ICONES_DOCUMENT: Record<string, string> = {
+  passeport: 'badge',
+  visa: 'flight',
+  certificat_vaccination: 'medical_information',
+  photo: 'photo_camera',
+  autre: 'description',
+}
+
+const TINTE_DOCUMENT: Record<string, string> = {
+  valide: 'bg-green-50 text-green-700',
+  soumis: 'bg-amber-50 text-ambre',
+  manquant: 'bg-red-50 text-error',
+  rejete: 'bg-red-50 text-error',
+}
+
+const CHIP_DOCUMENT: Record<string, string> = {
+  valide: 'bg-green-100 text-green-800 border-green-200',
+  soumis: 'bg-amber-100 text-ambre border-amber-200',
+  manquant: 'bg-red-100 text-error border-red-200',
+  rejete: 'bg-red-100 text-error border-red-200',
+}
 
 export default function DocumentSection({ pelerinId }: { pelerinId: string }) {
   const { data: agence } = useAgence()
@@ -92,9 +113,20 @@ export default function DocumentSection({ pelerinId }: { pelerinId: string }) {
     e.target.value = ''
   }
 
+  const valides = documents.filter((d) => d.statut === 'valide').length
+
   return (
-    <Card className="p-6">
-      <h2 className="mb-4 text-sm font-semibold text-navy">Documents du dossier</h2>
+    <div className="rounded-xl border border-outline-variant bg-surface-container-lowest p-6 shadow-sm">
+      <div className="mb-6 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <Icon name="folder_open" size={20} className="text-primary" />
+          <h4 className="text-headline-sm text-primary">Documents Requis</h4>
+        </div>
+        <span className="rounded-md bg-surface-container px-2 py-1 text-label-md text-on-surface-variant">
+          {valides}/{documents.length} Validés
+        </span>
+      </div>
+
       <div className="mb-4 flex flex-wrap items-center gap-2">
         <select
           className="input max-w-xs"
@@ -108,46 +140,52 @@ export default function DocumentSection({ pelerinId }: { pelerinId: string }) {
         </select>
         <input ref={inputRef} type="file" hidden onChange={onChangeFichier} />
         <Button type="button" variant="secondary" disabled={televerser.isPending} onClick={() => inputRef.current?.click()}>
+          <Icon name="upload_file" size={18} className="mr-2" />
           {televerser.isPending ? 'Upload…' : 'Téléverser un fichier'}
         </Button>
       </div>
 
       {documents.length === 0 && <EmptyState message="Aucun document pour ce pèlerin." />}
-      <div className="space-y-2">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         {documents.map((doc) => (
-          <div key={doc.id} className="flex flex-wrap items-center justify-between gap-3 rounded-md border border-border p-3">
-            <div>
-              <p className="text-sm font-medium text-navy">{LIBELLES_DOCUMENT[doc.type_document]}</p>
-              <p className="text-xs text-gray-500">
+          <div key={doc.id} className="flex items-start gap-4 rounded-lg border border-outline-variant p-4 transition-colors hover:bg-surface-container-low">
+            <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded ${TINTE_DOCUMENT[doc.statut] ?? 'bg-surface-container text-on-surface-variant'}`}>
+              <Icon name={ICONES_DOCUMENT[doc.type_document] ?? 'description'} size={20} />
+            </div>
+            <div className="flex-1">
+              <div className="mb-1 flex items-start justify-between gap-2">
+                <h5 className="text-body-md font-bold text-on-surface">{LIBELLES_DOCUMENT[doc.type_document]}</h5>
+                <span className={`rounded-sm border px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${CHIP_DOCUMENT[doc.statut] ?? 'bg-gray-100 text-gray-600 border-gray-200'}`}>
+                  {LIBELLES_DOC_STATUT[doc.statut]}
+                </span>
+              </div>
+              <p className="text-label-md mb-2 text-on-surface-variant">
                 {doc.fichier_url ? 'Fichier joint' : 'Aucun fichier'} · Expire le {formatDate(doc.date_expiration)}
               </p>
-            </div>
-            <div className="flex items-center gap-2">
-              <Badge tone={TONE_DOCUMENT[doc.statut]}>{doc.statut}</Badge>
-              {doc.fichier_url && (
-                <button onClick={() => voirFichier(doc)} className="text-xs text-navy hover:underline">Voir</button>
-              )}
-              {doc.statut !== 'valide' && (
-                <button
-                  onClick={() => majStatut.mutate({ id: doc.id, statut: 'valide' })}
-                  className="text-xs text-green-700 hover:underline"
-                >
-                  Valider
+              <div className="flex flex-wrap items-center gap-1">
+                {doc.fichier_url && (
+                  <button onClick={() => voirFichier(doc)} className="flex items-center gap-1 text-label-md text-primary hover:underline">
+                    <Icon name="visibility" size={14} /> Voir
+                  </button>
+                )}
+                {doc.statut !== 'valide' && (
+                  <button onClick={() => majStatut.mutate({ id: doc.id, statut: 'valide' })} className="flex items-center gap-1 text-label-md text-vert hover:underline">
+                    <Icon name="check_circle" size={14} /> Valider
+                  </button>
+                )}
+                {doc.statut === 'soumis' && (
+                  <button onClick={() => majStatut.mutate({ id: doc.id, statut: 'rejete' })} className="flex items-center gap-1 text-label-md text-error hover:underline">
+                    <Icon name="error" size={14} /> Rejeter
+                  </button>
+                )}
+                <button onClick={() => supprimer.mutate(doc)} title="Supprimer" className="rounded-lg p-1 text-gray-400 hover:text-error">
+                  <Icon name="delete" size={16} />
                 </button>
-              )}
-              {doc.statut === 'soumis' && (
-                <button
-                  onClick={() => majStatut.mutate({ id: doc.id, statut: 'rejete' })}
-                  className="text-xs text-error hover:underline"
-                >
-                  Rejeter
-                </button>
-              )}
-              <button onClick={() => supprimer.mutate(doc)} className="text-xs text-gray-400 hover:text-error">Suppr.</button>
+              </div>
             </div>
           </div>
         ))}
       </div>
-    </Card>
+    </div>
   )
 }

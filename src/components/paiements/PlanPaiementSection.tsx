@@ -6,6 +6,8 @@ import { genererTranches } from '../../lib/plan'
 import { LIBELLES_MODE, LIBELLES_TRANCHE, TONE_TRANCHE, formatDate, formatFCFA } from '../../lib/format'
 import type { Paiement, PlanPaiement, Tranche } from '../../lib/types'
 import Card from '../ui/Card'
+import Icon from '../ui/Icon'
+import ProgressBar from '../ui/ProgressBar'
 import { Field, Input, Select } from '../ui/Field'
 import Button from '../ui/Button'
 import Badge from '../ui/Badge'
@@ -107,8 +109,11 @@ export default function PlanPaiementSection({ pelerinId }: { pelerinId: string }
 
   if (!plan) {
     return (
-      <Card className="p-6">
-        <h2 className="mb-4 text-sm font-semibold text-navy">Plan de paiement</h2>
+      <div className="rounded-xl border border-outline-variant bg-surface-container-lowest p-6 shadow-sm">
+        <div className="mb-4 flex items-center gap-2">
+          <Icon name="payments" size={20} className="text-primary" />
+          <h2 className="text-headline-sm text-primary">Plan de paiement</h2>
+        </div>
         {creation ? (
           <form
             onSubmit={(e: FormEvent) => { e.preventDefault(); setErreur(''); creerPlan.mutate() }}
@@ -135,7 +140,7 @@ export default function PlanPaiementSection({ pelerinId }: { pelerinId: string }
             <Button variant="secondary" onClick={() => setCreation(true)}>Créer un plan</Button>
           </div>
         )}
-      </Card>
+      </div>
     )
   }
 
@@ -150,51 +155,68 @@ export default function PlanPaiementSection({ pelerinId }: { pelerinId: string }
   }
 
   return (
-    <Card className="p-6">
-      <h2 className="mb-2 text-sm font-semibold text-navy">Plan de paiement</h2>
-      <div className="mb-4 flex flex-wrap items-center gap-6 text-sm">
-        <p>Total : <span className="font-semibold text-navy">{formatFCFA(plan.montant_total)}</span></p>
-        <p>Payé : <span className="font-semibold text-green-700">{formatFCFA(paye)}</span></p>
-        <p>Reste dû : <span className={`font-semibold ${reste > 0 ? 'text-error' : 'text-green-700'}`}>{formatFCFA(reste)}</span></p>
-        <div className="h-2 w-48 overflow-hidden rounded-full bg-gray-200">
-          <div className="h-full rounded-full bg-gold" style={{ width: `${progression}%` }} />
+    <div className="rounded-xl border border-outline-variant bg-surface-container-lowest p-6 shadow-sm">
+      <div className="mb-4 flex items-center gap-2">
+        <Icon name="payments" size={20} className="text-primary" />
+        <h2 className="text-headline-sm text-primary">Plan de paiement</h2>
+      </div>
+
+      <div className="mb-6 flex flex-wrap items-center gap-6 text-body-md">
+        <p className="text-on-surface-variant">Total : <span className="font-semibold text-on-surface">{formatFCFA(plan.montant_total)}</span></p>
+        <p className="text-on-surface-variant">Payé : <span className="font-semibold text-vert">{formatFCFA(paye)}</span></p>
+        <p className="text-on-surface-variant">Reste dû : <span className={`font-semibold ${reste > 0 ? 'text-error' : 'text-vert'}`}>{formatFCFA(reste)}</span></p>
+        <div className="w-48">
+          <ProgressBar valeur={progression} tone={progression === 100 ? 'vert' : 'gold'} label={`${progression}%`} />
         </div>
       </div>
 
-      <div className="space-y-2">
+      <ol className="relative space-y-6 border-l-2 border-outline-variant pl-6">
         {plan.tranches.map((t) => {
           const verse = t.paiements.reduce((s, p) => s + p.montant_paye, 0)
+          const payee = verse >= t.montant_prevu
+          const partielle = verse > 0 && !payee
+          const dotCls = payee
+            ? 'bg-green-600'
+            : partielle
+              ? 'bg-secondary-fixed-dim'
+              : 'border-2 border-outline bg-surface-container-lowest'
           return (
-            <div key={t.id} className="rounded-md border border-border p-3">
-              <div className="flex flex-wrap items-center justify-between gap-3">
-                <div>
-                  <p className="text-sm font-medium text-navy">Tranche {t.numero_tranche} — {formatFCFA(t.montant_prevu)}</p>
-                  <p className="text-xs text-gray-500">Échéance {formatDate(t.date_echeance)} · Versé {formatFCFA(verse)}</p>
+            <li key={t.id} className="relative">
+              <span className={`absolute -left-8 top-4 flex h-4 w-4 items-center justify-center rounded-full ${dotCls}`}>
+                {payee && <Icon name="check" size={12} className="text-white" />}
+              </span>
+              <div className="rounded-lg border border-outline-variant p-4 transition-colors hover:bg-surface-container-low">
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <div>
+                    <p className="text-body-md font-bold text-on-surface">Tranche {t.numero_tranche} — {formatFCFA(t.montant_prevu)}</p>
+                    <p className="text-label-md text-on-surface-variant">Échéance {formatDate(t.date_echeance)} · Versé {formatFCFA(verse)}</p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Badge tone={TONE_TRANCHE[t.statut]}>{LIBELLES_TRANCHE[t.statut]}</Badge>
+                    {verse < t.montant_prevu && (
+                      <Button variant="secondary" onClick={() => ouvrirEncaissement(t)}>Encaisser</Button>
+                    )}
+                  </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <Badge tone={TONE_TRANCHE[t.statut]}>{LIBELLES_TRANCHE[t.statut]}</Badge>
-                  {verse < t.montant_prevu && (
-                    <Button variant="secondary" onClick={() => ouvrirEncaissement(t)}>Encaisser</Button>
-                  )}
-                </div>
+                {t.paiements.length > 0 && (
+                  <ul className="mt-2 space-y-1 border-t border-outline-variant pt-2 text-label-md text-on-surface-variant">
+                    {t.paiements.map((p) => (
+                      <li key={p.id} className="flex items-center gap-2">
+                        <Icon name="check_circle" size={14} className="text-green-600" />
+                        {formatDate(p.date_paiement)} — {formatFCFA(p.montant_paye)} ({LIBELLES_MODE[p.mode]}{p.reference ? ` — réf. ${p.reference}` : ''})
+                      </li>
+                    ))}
+                  </ul>
+                )}
               </div>
-              {t.paiements.length > 0 && (
-                <ul className="mt-2 space-y-1 border-t border-border pt-2 text-xs text-gray-600">
-                  {t.paiements.map((p) => (
-                    <li key={p.id}>
-                      {formatDate(p.date_paiement)} — {formatFCFA(p.montant_paye)} ({LIBELLES_MODE[p.mode]}{p.reference ? ` — réf. ${p.reference}` : ''})
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
+            </li>
           )
         })}
-      </div>
+      </ol>
 
       {encaissement.ouvert && (
-        <div className="mt-4 rounded-md border border-navy bg-surface p-4">
-          <p className="mb-3 text-sm font-semibold text-navy">
+        <div className="mt-4 rounded-md border border-primary bg-surface-container-low p-4">
+          <p className="mb-3 text-body-md font-semibold text-primary">
             Encaissement — tranche {encaissement.tranche.numero_tranche} (reste {formatFCFA(encaissement.tranche.montant_prevu - encaissement.tranche.paiements.reduce((s, p) => s + p.montant_paye, 0))})
           </p>
           <form
@@ -224,6 +246,6 @@ export default function PlanPaiementSection({ pelerinId }: { pelerinId: string }
           </form>
         </div>
       )}
-    </Card>
+    </div>
   )
 }
