@@ -18,10 +18,10 @@ export default function AppLayout() {
   }
   if (profil.role === 'superadmin') return <Navigate to="/superadmin" replace />
   if (!profil.agence_id) return <Navigate to="/onboarding" replace />
-  if (agenceChargement || !agence) {
+  if (agenceChargement) {
     return <div className="flex h-screen items-center justify-center text-navy">Chargement…</div>
   }
-  if (!agence.active) {
+  if (!agence || !agence.active) {
     return (
       <div className="flex h-screen items-center justify-center bg-surface px-4">
         <div className="w-full max-w-md rounded-xl border border-outline-variant bg-surface-container-lowest p-8 text-center shadow-sm">

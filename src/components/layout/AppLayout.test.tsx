@@ -51,6 +51,13 @@ describe('AppLayout', () => {
     expect(await screen.findByText('Agence désactivée')).toBeInTheDocument()
   })
 
+  it("affiche l'écran de blocage quand l'agence n'est pas accessible (désactivée)", async () => {
+    mockUseProfil.mockReturnValue({ data: { role: 'gerant', agence_id: 'a1' }, isLoading: false })
+    mockUseAgence.mockReturnValue({ data: undefined, isLoading: false })
+    renderer('/tableau-de-bord')
+    expect(await screen.findByText('Agence désactivée')).toBeInTheDocument()
+  })
+
   it('redirige vers /onboarding quand aucun agence_id', async () => {
     mockUseProfil.mockReturnValue({ data: { role: 'agent', agence_id: null }, isLoading: false })
     renderer('/tableau-de-bord')
