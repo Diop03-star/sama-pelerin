@@ -81,7 +81,7 @@ describe('SuperAdminGlobal', () => {
       expect(mockSupabase.from.mock.results.length).toBe(2)
     })
     const gte = mockSupabase.from.mock.results[0].value.select().gte
-    const datesAppels = gte.mock.calls.map((c) => c[1])
+    const datesAppels = gte.mock.calls.map((c: unknown[]) => c[1] as string)
     const reel = new Date(datesAppels[1]).getTime()
     expect(Math.abs(reel - debutPeriode('semaine').getTime())).toBeLessThan(2000)
   })
