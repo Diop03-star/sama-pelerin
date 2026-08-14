@@ -1,4 +1,4 @@
-export type Role = 'gerant' | 'agent'
+export type Role = 'superadmin' | 'gerant' | 'agent'
 export type TypeVoyage = 'hajj' | 'omra'
 export type StatutDossier = 'incomplet' | 'complet' | 'valide'
 export type TypeDocument = 'passeport' | 'visa' | 'certificat_vaccination' | 'photo' | 'autre'
@@ -9,7 +9,7 @@ export type StatutRappel = 'en_attente' | 'envoye' | 'echec'
 
 export interface Agence {
   id: string; nom: string; telephone: string; email: string | null
-  adresse: string | null; logo_url: string | null; created_at: string
+  adresse: string | null; logo_url: string | null; created_at: string; active: boolean
 }
 export interface Utilisateur {
   id: string; user_id: string | null; agence_id: string | null
@@ -52,4 +52,13 @@ export interface Invitation {
   id: string; agence_id: string; email: string; role: Role; token: string
   created_by: string | null
   created_at: string; expires_at: string; used_at: string | null
+}
+
+export interface StatsAgence {
+  agence_id: string; agence_nom: string; agence_active: boolean
+  pelerins_total: number; dossiers_valides: number; dossiers_complets: number; dossiers_incomplets: number
+  groupes_total: number; places_restantes: number
+  gerants: number; agents: number
+  encaissements_total: number; encaissements_30j: number
+  tranches_en_retard: number; rappels_attente: number; rappels_echec: number
 }
