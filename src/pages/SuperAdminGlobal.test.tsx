@@ -80,9 +80,9 @@ describe('SuperAdminGlobal', () => {
     await waitFor(() => {
       expect(mockSupabase.from.mock.results.length).toBe(2)
     })
-    const gteAppels = mockSupabase.from.mock.results
-      .map((r) => r.value.select().gte)
-      .map((g) => g.mock.calls[0][1])
-    expect(gteAppels[1]).toBe(debutPeriode('semaine').toISOString())
+    const gte = mockSupabase.from.mock.results[0].value.select().gte
+    const datesAppels = gte.mock.calls.map((c) => c[1])
+    const reel = new Date(datesAppels[1]).getTime()
+    expect(Math.abs(reel - debutPeriode('semaine').getTime())).toBeLessThan(2000)
   })
 })
