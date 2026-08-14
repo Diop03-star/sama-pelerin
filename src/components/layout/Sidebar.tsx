@@ -1,6 +1,6 @@
 import { NavLink, useNavigate } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
-import { useProfil } from '../../hooks/useAgence'
+import { useProfil, useAgence } from '../../hooks/useAgence'
 import Icon from '../ui/Icon'
 
 interface NavItem {
@@ -35,6 +35,7 @@ interface SidebarProps {
 export default function Sidebar({ ouverte, onFermer }: SidebarProps) {
   const navigate = useNavigate()
   const { data: profil } = useProfil()
+  const { data: agence } = useAgence()
   const sections: NavSection[] =
     profil?.role === 'gerant'
       ? [...NAVIGATION, { section: 'Administration', items: [{ to: '/membres', label: 'Membres', icon: 'settings' }] }]
@@ -52,7 +53,7 @@ export default function Sidebar({ ouverte, onFermer }: SidebarProps) {
           <Icon name="mosque" size={20} />
         </div>
         <div>
-          <h1 className="text-headline-sm font-bold text-primary">Stitch Sama Pèlerin</h1>
+          <h1 className="text-headline-sm font-bold text-primary">{agence?.nom ?? 'Stitch Sama Pèlerin'}</h1>
           <p className="text-label-md text-on-surface-variant">Portail Administrateur</p>
         </div>
       </div>
