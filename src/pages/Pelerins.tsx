@@ -35,7 +35,7 @@ export default function Pelerins() {
   const [form, setForm] = useState({ groupe_id: '', nom: '', prenom: '', telephone: '', email: '', sexe: 'M' })
 
   const { data: groupes = [] } = useQuery({
-    queryKey: ['groupes'],
+    queryKey: ['groupes-simple'],
     queryFn: async () => {
       const { data } = await supabase.from('groupes').select('*').order('date_depart', { ascending: false })
       return data as Groupe[]

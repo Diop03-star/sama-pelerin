@@ -21,7 +21,7 @@ export default function RappelSection({ pelerinId }: { pelerinId: string }) {
   const queryClient = useQueryClient()
 
   const { data: pelerin } = useQuery({
-    queryKey: ['pelerin', pelerinId],
+    queryKey: ['pelerin-telephone', pelerinId],
     queryFn: async () => {
       const { data } = await supabase.from('pelerins').select('*').eq('id', pelerinId).single()
       return data as { id: string; prenom: string; nom: string; telephone: string }
