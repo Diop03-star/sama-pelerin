@@ -52,7 +52,7 @@ export default function RappelSection({ pelerinId }: { pelerinId: string }) {
     queryFn: async () => {
       const { data } = await supabase
         .from('rappels')
-        .select('*, tranche:tranches(plan_paiement:plans_paiement(pelerin_id, montant_total)), document:documents(*)')
+        .select('*, tranche:tranches(numero_tranche, montant_prevu, date_echeance, plan_paiement:plans_paiement(pelerin_id, montant_total)), document:documents(*)')
         .order('date_envoi_prevue', { ascending: false })
       const tous = (data as unknown as RappelAvecCible[]) ?? []
       return tous.filter((r) => {
