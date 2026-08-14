@@ -8,6 +8,11 @@ describe('expirantDans', () => {
     expect(expirantDans('2026-10-01', 90, reference)).toBe(true)
   })
 
+  it('vrai si l’expiration tombe exactement sur la borne de la fenêtre (inclusif)', () => {
+    const reference = new Date('2026-08-14T10:00:00')
+    expect(expirantDans('2026-11-12', 90, reference)).toBe(true)
+  })
+
   it('faux si l’expiration dépasse la fenêtre', () => {
     expect(expirantDans('2027-01-01', 90, reference)).toBe(false)
   })

@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState, type FormEvent } from 'react'
+import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { supabase } from '../../lib/supabase'
@@ -17,6 +17,12 @@ export default function Topbar({ onOuvrirMenu }: TopbarProps) {
   const [terme, setTerme] = useState('')
   const [focus, setFocus] = useState(false)
   const timerBlur = useRef<number | null>(null)
+
+  useEffect(() => {
+    return () => {
+      if (timerBlur.current) window.clearTimeout(timerBlur.current)
+    }
+  }, [])
 
   const { data: pelerins = [] } = useQuery({
     queryKey: ['recherche-pelerins'],

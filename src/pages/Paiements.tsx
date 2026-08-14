@@ -35,6 +35,10 @@ export default function Paiements() {
     p.tranches.filter((t) => t.statut === 'en_retard').map((t) => ({ p, t }))
   )
 
+  const tranchesFiltrees = plans
+    .flatMap((p) => p.tranches.map((t) => ({ p, t })))
+    .filter(({ t }) => (statutFiltre === 'en_retard' ? t.statut === 'en_retard' : true))
+
   const totals = plans.reduce(
     (acc, p) => {
       const paye = p.tranches.reduce((s, t) => s + t.paiements.reduce((x, y) => x + y.montant_paye, 0), 0)
@@ -142,12 +146,7 @@ export default function Paiements() {
               </tr>
             </thead>
             <tbody>
-              {plans
-                .flatMap((p) =>
-                  p.tranches.map((t) => ({ p, t }))
-                )
-                .filter(({ t }) => (statutFiltre === 'en_retard' ? t.statut === 'en_retard' : true))
-                .map(({ p, t }) => (
+              {tranchesFiltrees.map(({ p, t }) => (
                   <tr key={t.id} className="border-t border-outline-variant">
                     <td className="px-4 py-4">{p.pelerin.prenom} {p.pelerin.nom}</td>
                     <td className="px-4 py-4">Tranche {t.numero_tranche}</td>
@@ -160,6 +159,7 @@ export default function Paiements() {
                 ))}
             </tbody>
           </table>
+          {tranchesFiltrees.length === 0 && <EmptyState message="Aucune tranche pour ce filtre." />}
         </div>
       </div>
     </div>

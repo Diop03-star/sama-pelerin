@@ -28,7 +28,8 @@ export default function Pelerins() {
   const [params, setParams] = useSearchParams()
   const groupeFiltre = params.get('groupe') ?? ''
   const statutFiltre = params.get('statut') ?? ''
-  const [recherche, setRecherche] = useState(params.get('q') ?? '')
+  const rechercheUrl = params.get('q') ?? ''
+  const [recherche, setRecherche] = useState(rechercheUrl)
   const [modalOuverte, setModalOuverte] = useState(false)
   const [erreur, setErreur] = useState('')
   const [form, setForm] = useState({ groupe_id: '', nom: '', prenom: '', telephone: '', email: '', sexe: 'M' })
@@ -72,7 +73,12 @@ export default function Pelerins() {
   )
 
   useEffect(() => {
+    setRecherche(rechercheUrl)
+  }, [rechercheUrl])
+
+  useEffect(() => {
     if (params.get('nouveau')) {
+      if (groupes.length === 0) return
       setForm((f) => ({ ...f, groupe_id: groupeFiltre ?? groupes[0]?.id ?? '' }))
       setModalOuverte(true)
       setParams((prev) => {

@@ -24,7 +24,7 @@ const ICONES_DOCUMENT: Record<string, string> = {
 
 export default function Documents() {
   const queryClient = useQueryClient()
-  const [params] = useSearchParams()
+  const [params, setParams] = useSearchParams()
   const alerte = params.get('alerte') ?? ''
   const [filtreType, setFiltreType] = useState(alerte ? 'passeport' : '')
   const [filtreStatut, setFiltreStatut] = useState('')
@@ -77,7 +77,20 @@ export default function Documents() {
           <h1 className="text-display-lg text-on-surface">Gestion des documents</h1>
           <p className="text-body-lg mt-1 text-on-surface-variant">Suivez les pièces de vos dossiers</p>
         </div>
-        <select className="input max-w-xs" value={filtreType} onChange={(e) => setFiltreType(e.target.value)}>
+        <select
+          className="input max-w-xs"
+          value={filtreType}
+          onChange={(e) => {
+            setFiltreType(e.target.value)
+            if (alerte && e.target.value !== 'passeport') {
+              setParams((prev) => {
+                const next = new URLSearchParams(prev)
+                next.delete('alerte')
+                return next
+              })
+            }
+          }}
+        >
           <option value="">Tous les types</option>
           {Object.entries(LIBELLES_DOCUMENT).map(([cle, libelle]) => (
             <option key={cle} value={cle}>{libelle}</option>
