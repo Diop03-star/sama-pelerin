@@ -169,6 +169,10 @@ export default function Dashboard() {
         />
       </section>
 
+      <div className="flex justify-end">
+        <FiltrePeriode periode={periode} onChange={setPeriode} />
+      </div>
+
       <section className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <StatCard label="Total Pèlerins" valeur={totalPelerins} icon="group" tendance={{ texte: `${valides} dossiers validés`, positif: true }} grande />
         <StatCard
@@ -178,7 +182,6 @@ export default function Dashboard() {
           tone="gold"
           grande
           monetaire
-          actions={<FiltrePeriode periode={periode} onChange={setPeriode} />}
           tendance={{ texte: nomPeriode(periode), positif: true, suffixe: '' }}
         />
         <StatCard label="Reste global" valeur={formatFCFA(resteGlobal)} icon="account_balance_wallet" tone={resteGlobal > 0 ? 'error' : 'vert'} grande />

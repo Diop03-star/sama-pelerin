@@ -65,6 +65,10 @@ export default function SuperAdminGlobal() {
         <p className="text-body-lg mt-1 text-on-surface-variant">Indicateurs globaux de toutes les agences</p>
       </div>
 
+      <div className="flex justify-end">
+        <FiltrePeriode periode={periode} onChange={setPeriode} />
+      </div>
+
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
         <StatCard label="Pèlerins" valeur={totaux.pelerins} icon="person" tone="primary" />
         <StatCard label="Dossiers valides" valeur={totaux.valides} icon="verified" tone="vert" />
@@ -74,7 +78,6 @@ export default function SuperAdminGlobal() {
           icon="payments"
           tone="gold"
           monetaire
-          actions={<FiltrePeriode periode={periode} onChange={setPeriode} />}
           tendance={{ texte: nomPeriode(periode), positif: true, suffixe: '' }}
         />
         <StatCard label="Rappels en attente" valeur={totaux.rappels} icon="notifications" tone="error" />
