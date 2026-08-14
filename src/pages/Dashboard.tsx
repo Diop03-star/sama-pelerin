@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { supabase } from '../lib/supabase'
@@ -5,6 +6,7 @@ import {
   LIBELLES_DOCUMENT, LIBELLES_RAPPEL, TONE_RAPPEL,
   formatDate, formatFCFA, messageDocument, messageTranche, whatsappUrl,
 } from '../lib/format'
+import { debutPeriode, nomPeriode, type Periode } from '../lib/dates'
 import type { Pelerin, Tranche } from '../lib/types'
 import Badge from '../components/ui/Badge'
 import EmptyState from '../components/ui/EmptyState'
@@ -13,6 +15,7 @@ import WhatsAppIcon from '../components/ui/WhatsAppIcon'
 import StatCard from '../components/ui/StatCard'
 import AlertLink from '../components/ui/AlertLink'
 import ProgressBar from '../components/ui/ProgressBar'
+import FiltrePeriode from '../components/ui/FiltrePeriode'
 
 interface TrancheAvecPelerin extends Tranche {
   plan_paiement: { pelerin: Pelerin }
@@ -88,23 +91,31 @@ export default function Dashboard() {
     },
   })
 
+  const [periode, setPeriode] = useState<Periode>('annee')
+
+  const { data: plans = [] } = useQuery({
+    queryKey: ['dashboard-attendu'],
+    queryFn: async () => {
+      const { data } = await supabase.from('plans_paiement').select('montant_total')
+      return (data ?? []) as { montant_total: number }[]
+    },
+  })
+
   const { data: echeanciers = [] } = useQuery({
-    queryKey: ['dashboard-encaissements'],
+    queryKey: ['dashboard-encaissements', periode],
     queryFn: async () => {
       const { data } = await supabase
-        .from('plans_paiement')
-        .select('montant_total, tranches(paiements(montant_paye))')
-      return data as unknown as { montant_total: number; tranches: { paiements: { montant_paye: number }[] }[] }[]
+        .from('paiements')
+        .select('montant_paye')
+        .gte('date_paiement', debutPeriode(periode).toISOString())
+      return (data ?? []) as { montant_paye: number }[]
     },
   })
 
   const valides = pelerins.filter((p) => p.statut_dossier === 'valide').length
   const totalPelerins = pelerins.length
-  const totalAttendu = echeanciers.reduce((s, p) => s + p.montant_total, 0)
-  const totalPaye = echeanciers.reduce(
-    (s, p) => s + p.tranches.reduce((x, t) => x + t.paiements.reduce((y, pa) => y + pa.montant_paye, 0), 0),
-    0
-  )
+  const totalAttendu = plans.reduce((s, p) => s + p.montant_total, 0)
+  const totalPaye = echeanciers.reduce((s, p) => s + p.montant_paye, 0)
   const resteGlobal = totalAttendu - totalPaye
   const progression = totalAttendu > 0 ? Math.round((totalPaye / totalAttendu) * 100) : 0
 
@@ -160,7 +171,16 @@ export default function Dashboard() {
 
       <section className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <StatCard label="Total Pèlerins" valeur={totalPelerins} icon="group" tendance={{ texte: `${valides} dossiers validés`, positif: true }} grande />
-        <StatCard label="Total encaissé" valeur={formatFCFA(totalPaye)} icon="payments" tone="gold" grande />
+        <StatCard
+          label="Total encaissé"
+          valeur={totalPaye}
+          icon="payments"
+          tone="gold"
+          grande
+          monetaire
+          actions={<FiltrePeriode periode={periode} onChange={setPeriode} />}
+          tendance={{ texte: nomPeriode(periode), positif: true, suffixe: '' }}
+        />
         <StatCard label="Reste global" valeur={formatFCFA(resteGlobal)} icon="account_balance_wallet" tone={resteGlobal > 0 ? 'error' : 'vert'} grande />
       </section>
 
