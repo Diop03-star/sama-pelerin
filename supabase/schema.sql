@@ -129,7 +129,7 @@ returns uuid language sql stable security definer set search_path = public as $$
 $$;
 
 create or replace function public.is_superadmin()
-returns boolean language sql stable set search_path = public as $$
+returns boolean language sql stable security definer set search_path = public as $$
   select exists (select 1 from public.utilisateurs where user_id = auth.uid() and role = 'superadmin')
 $$;
 
@@ -241,7 +241,7 @@ begin
     count(distinct p.id) filter (where p.statut_dossier = 'complet') as dossiers_complets,
     count(distinct p.id) filter (where p.statut_dossier = 'incomplet') as dossiers_incomplets,
     count(distinct g.id) as groupes_total,
-    coalesce(sum(g.nb_places_max - coalesce(gd.nb, 0)), 0) as places_restantes,
+    coalesce(sum(g.nb_places_max - coalesce(gd.nb, 0)), 0)::bigint as places_restantes,
     count(distinct u.id) filter (where u.role = 'gerant') as gerants,
     count(distinct u.id) filter (where u.role = 'agent') as agents,
     coalesce(sum(pa.montant_paye), 0) as encaissements_total,
