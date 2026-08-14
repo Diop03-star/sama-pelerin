@@ -251,44 +251,44 @@ begin
     coalesce(rs.echecs, 0) as rappels_echec
   from public.agences a
   left join (
-    select agence_id,
+    select pel.agence_id,
       count(*) as nb,
-      count(*) filter (where statut_dossier = 'valide') as valides,
-      count(*) filter (where statut_dossier = 'complet') as complets,
-      count(*) filter (where statut_dossier = 'incomplet') as incomplets
-    from public.pelerins group by agence_id
+      count(*) filter (where pel.statut_dossier = 'valide') as valides,
+      count(*) filter (where pel.statut_dossier = 'complet') as complets,
+      count(*) filter (where pel.statut_dossier = 'incomplet') as incomplets
+    from public.pelerins pel group by pel.agence_id
   ) p on p.agence_id = a.id
   left join (
-    select agence_id, count(*) as nb
-    from public.groupes group by agence_id
+    select grp.agence_id, count(*) as nb
+    from public.groupes grp group by grp.agence_id
   ) g on g.agence_id = a.id
   left join (
-    select g.agence_id, sum(g.nb_places_max - coalesce(pg.nb, 0)) as places_libres
-    from public.groupes g
-    left join (select groupe_id, count(*) as nb from public.pelerins group by groupe_id) pg on pg.groupe_id = g.id
-    group by g.agence_id
+    select grp.agence_id, sum(grp.nb_places_max - coalesce(pgn.nb, 0)) as places_libres
+    from public.groupes grp
+    left join (select pgn.groupe_id, count(*) as nb from public.pelerins pgn group by pgn.groupe_id) pgn on pgn.groupe_id = grp.id
+    group by grp.agence_id
   ) gs on gs.agence_id = a.id
   left join (
-    select agence_id,
-      count(*) filter (where role = 'gerant') as gerants,
-      count(*) filter (where role = 'agent') as agents
-    from public.utilisateurs group by agence_id
+    select usr.agence_id,
+      count(*) filter (where usr.role = 'gerant') as gerants,
+      count(*) filter (where usr.role = 'agent') as agents
+    from public.utilisateurs usr group by usr.agence_id
   ) us on us.agence_id = a.id
   left join (
-    select agence_id,
-      coalesce(sum(montant_paye), 0) as total,
-      coalesce(sum(montant_paye) filter (where date_paiement >= now() - interval '30 days'), 0) as total_30j
-    from public.paiements group by agence_id
+    select pay.agence_id,
+      coalesce(sum(pay.montant_paye), 0) as total,
+      coalesce(sum(pay.montant_paye) filter (where pay.date_paiement >= now() - interval '30 days'), 0) as total_30j
+    from public.paiements pay group by pay.agence_id
   ) ps on ps.agence_id = a.id
   left join (
-    select agence_id, count(*) filter (where statut = 'en_retard') as retards
-    from public.tranches group by agence_id
+    select trn.agence_id, count(*) filter (where trn.statut = 'en_retard') as retards
+    from public.tranches trn group by trn.agence_id
   ) ts on ts.agence_id = a.id
   left join (
-    select agence_id,
-      count(*) filter (where statut_envoi = 'en_attente') as attente,
-      count(*) filter (where statut_envoi = 'echec') as echecs
-    from public.rappels group by agence_id
+    select rp.agence_id,
+      count(*) filter (where rp.statut_envoi = 'en_attente') as attente,
+      count(*) filter (where rp.statut_envoi = 'echec') as echecs
+    from public.rappels rp group by rp.agence_id
   ) rs on rs.agence_id = a.id
   order by a.nom;
 end $$;
