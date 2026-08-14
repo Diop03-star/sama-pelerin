@@ -3,9 +3,9 @@ import { Navigate, useNavigate } from 'react-router-dom'
 import { useQueryClient } from '@tanstack/react-query'
 import { supabase } from '../lib/supabase'
 import { useProfil } from '../hooks/useAgence'
-import Card from '../components/ui/Card'
 import { Field, Input } from '../components/ui/Field'
 import Button from '../components/ui/Button'
+import Icon from '../components/ui/Icon'
 
 export default function Onboarding() {
   const navigate = useNavigate()
@@ -51,9 +51,15 @@ export default function Onboarding() {
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-surface px-4">
-      <Card className="w-full max-w-lg p-8">
-        <h1 className="text-headline mb-2 text-navy">Créer votre agence</h1>
-        <p className="mb-6 text-sm text-gray-600">
+      <div className="w-full max-w-lg rounded-xl border border-outline-variant bg-surface-container-lowest p-8 shadow-sm">
+        <div className="mb-6 flex items-center gap-3">
+          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary-container text-on-primary-container">
+            <Icon name="mosque" size={20} />
+          </div>
+          <h1 className="text-headline-sm font-bold text-primary">Stitch Sama Pèlerin</h1>
+        </div>
+        <h2 className="text-headline-md mb-2 text-primary">Créer votre agence</h2>
+        <p className="text-body-md mb-6 text-on-surface-variant">
           Bienvenue {profil.nom}. Renseignez les informations de votre agence pour commencer.
         </p>
         <form onSubmit={onSubmit} className="space-y-4">
@@ -71,7 +77,7 @@ export default function Onboarding() {
             {enCours ? 'Création…' : 'Créer mon agence'}
           </Button>
         </form>
-      </Card>
+      </div>
     </div>
   )
 }
