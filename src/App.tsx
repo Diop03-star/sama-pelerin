@@ -2,6 +2,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider } from './auth/AuthContext'
 import ProtectedRoute from './auth/ProtectedRoute'
+import AppLayout from './components/layout/AppLayout'
 import Login from './pages/Login'
 import Signup from './pages/Signup'
 import Onboarding from './pages/Onboarding'
@@ -25,14 +26,16 @@ export default function App() {
             <Route path="/signup" element={<Signup />} />
             <Route element={<ProtectedRoute />}>
               <Route path="/onboarding" element={<Onboarding />} />
-              <Route path="/membres" element={<Membres />} />
-              <Route path="/liste-des-groupes" element={<Groupes />} />
-              <Route path="/liste-des-pelerins" element={<Pelerins />} />
-              <Route path="/details-du-pelerin/:id" element={<PelerinDetail />} />
-              <Route path="/gestion-des-documents" element={<Documents />} />
-              <Route path="/paiements-echeanciers" element={<Paiements />} />
-              <Route path="/tableau-de-bord" element={<Dashboard />} />
-              <Route path="*" element={<Navigate to="/tableau-de-bord" replace />} />
+              <Route element={<AppLayout />}>
+                <Route path="/membres" element={<Membres />} />
+                <Route path="/liste-des-groupes" element={<Groupes />} />
+                <Route path="/liste-des-pelerins" element={<Pelerins />} />
+                <Route path="/details-du-pelerin/:id" element={<PelerinDetail />} />
+                <Route path="/gestion-des-documents" element={<Documents />} />
+                <Route path="/paiements-echeanciers" element={<Paiements />} />
+                <Route path="/tableau-de-bord" element={<Dashboard />} />
+                <Route path="*" element={<Navigate to="/tableau-de-bord" replace />} />
+              </Route>
             </Route>
           </Routes>
         </AuthProvider>
