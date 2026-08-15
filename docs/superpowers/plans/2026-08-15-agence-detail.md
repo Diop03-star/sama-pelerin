@@ -162,7 +162,7 @@ export default function SuperAdminAgenceDetail() {
         </div>
         <div className="flex items-center gap-3">
           <h1 className="text-display-lg text-on-surface">{agence.nom}</h1>
-          {!agence.active && <Badge tone="rouge">Désactivée</Badge>}
+          {agence.active ? <Badge tone="vert">Active</Badge> : <Badge tone="rouge">Désactivée</Badge>}
         </div>
       </div>
 
