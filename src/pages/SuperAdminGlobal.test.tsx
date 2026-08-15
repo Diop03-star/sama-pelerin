@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import SuperAdminGlobal from './SuperAdminGlobal'
+import { MemoryRouter } from 'react-router-dom'
 import { debutPeriode } from '../lib/dates'
 
 const mockSupabase = vi.hoisted(() => ({
@@ -45,7 +46,9 @@ describe('SuperAdminGlobal', () => {
   it('affiche les indicateurs globaux, le total encaissé et le tableau des agences', async () => {
     render(
       <QueryClientProvider client={queryClient}>
-        <SuperAdminGlobal />
+        <MemoryRouter>
+          <SuperAdminGlobal />
+        </MemoryRouter>
       </QueryClientProvider>
     )
     expect(await screen.findByText('Vue d’ensemble')).toBeInTheDocument()
@@ -63,7 +66,9 @@ describe('SuperAdminGlobal', () => {
     })
     render(
       <QueryClientProvider client={queryClient}>
-        <SuperAdminGlobal />
+        <MemoryRouter>
+          <SuperAdminGlobal />
+        </MemoryRouter>
       </QueryClientProvider>
     )
     expect(await screen.findByText('Désactivée')).toBeInTheDocument()
@@ -72,7 +77,9 @@ describe('SuperAdminGlobal', () => {
   it('relance la requête paiements avec la période sélectionnée', async () => {
     render(
       <QueryClientProvider client={queryClient}>
-        <SuperAdminGlobal />
+        <MemoryRouter>
+          <SuperAdminGlobal />
+        </MemoryRouter>
       </QueryClientProvider>
     )
     await screen.findByText('Vue d’ensemble')

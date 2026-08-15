@@ -1,4 +1,5 @@
 import { useState, type FormEvent } from 'react'
+import { Link } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '../lib/supabase'
 import type { Agence } from '../lib/types'
@@ -109,7 +110,11 @@ export default function SuperAdminAgences() {
             <tbody>
               {agences.map((a) => (
                 <tr key={a.id} className="group border-t border-outline-variant transition-colors hover:bg-surface-container-low">
-                  <td className="px-4 py-4 font-medium text-primary">{a.nom}</td>
+                  <td className="px-4 py-4">
+                    <Link to={`/superadmin/agences/${a.id}`} className="font-medium text-primary underline-offset-2 hover:underline">
+                      {a.nom}
+                    </Link>
+                  </td>
                   <td className="px-4 py-4">{a.telephone || '—'}</td>
                   <td className="px-4 py-4">{a.email ?? '—'}</td>
                   <td className="px-4 py-4">{a.adresse ?? '—'}</td>

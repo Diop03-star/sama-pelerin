@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import SuperAdminAgences from './SuperAdminAgences'
+import { MemoryRouter } from 'react-router-dom'
 
 const mockSupabase = vi.hoisted(() => ({
   from: vi.fn(),
@@ -40,7 +41,9 @@ beforeEach(() => {
 function rendre() {
   return render(
     <QueryClientProvider client={queryClient}>
-      <SuperAdminAgences />
+      <MemoryRouter>
+        <SuperAdminAgences />
+      </MemoryRouter>
     </QueryClientProvider>
   )
 }

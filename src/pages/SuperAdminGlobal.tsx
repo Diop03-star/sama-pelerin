@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { supabase } from '../lib/supabase'
 import type { StatsAgence } from '../lib/types'
@@ -104,7 +105,9 @@ export default function SuperAdminGlobal() {
                 <tr key={s.agence_id} className="group border-t border-outline-variant transition-colors hover:bg-surface-container-low">
                   <td className="px-4 py-4">
                     <div className="flex items-center gap-2">
-                      <span className="font-medium text-primary">{s.agence_nom}</span>
+                      <Link to={`/superadmin/agences/${s.agence_id}`} className="font-medium text-primary underline-offset-2 hover:underline">
+                        {s.agence_nom}
+                      </Link>
                       {!s.agence_active && <Badge tone="rouge">Désactivée</Badge>}
                     </div>
                   </td>
