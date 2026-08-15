@@ -6,6 +6,7 @@ import AppLayout from './components/layout/AppLayout'
 import SuperAdminLayout from './components/layout/SuperAdminLayout'
 import SuperAdminGlobal from './pages/SuperAdminGlobal'
 import SuperAdminAgences from './pages/SuperAdminAgences'
+import SuperAdminAgenceDetail from './pages/SuperAdminAgenceDetail'
 import Login from './pages/Login'
 import Signup from './pages/Signup'
 import Onboarding from './pages/Onboarding'
@@ -32,6 +33,7 @@ export default function App() {
               <Route element={<SuperAdminLayout />}>
                 <Route path="/superadmin" element={<SuperAdminGlobal />} />
                 <Route path="/superadmin/agences" element={<SuperAdminAgences />} />
+                <Route path="/superadmin/agences/:id" element={<SuperAdminAgenceDetail />} />
               </Route>
               <Route element={<AppLayout />}>
                 <Route path="/membres" element={<Membres />} />
