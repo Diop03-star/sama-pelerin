@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { render, screen, fireEvent, act } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { MemoryRouter, Routes, Route } from 'react-router-dom'
 import SuperAdminAgenceDetail from './SuperAdminAgenceDetail'
@@ -30,7 +30,10 @@ function rendre(agence: unknown = agenceFixture, stats: unknown[] = [statsFixtur
   mockSupabase.rpc.mockResolvedValue({ data: stats, error: null })
   mockSupabase.from.mockImplementation((table: string) => {
     if (table === 'agences') {
-      return { select: () => ({ eq: () => ({ single: () => Promise.resolve({ data: agence, error: null }) }) }) }
+      return {
+        select: () => ({ eq: () => ({ single: () => Promise.resolve({ data: agence, error: null }) }) }),
+        update: () => ({ eq: () => Promise.resolve({ data: null, error: null }) }),
+      }
     }
     return { select: () => ({ eq: () => ({ single: () => Promise.resolve({ data: null, error: null }) }) }) }
   })
@@ -67,5 +70,18 @@ describe('SuperAdminAgenceDetail', () => {
   it('affiche « Agence introuvable. » quand l’id ne correspond à aucune agence', async () => {
     rendre(null, [])
     expect(await screen.findByText('Agence introuvable.')).toBeInTheDocument()
+  })
+
+  it('désactive une agence après confirmation', async () => {
+    rendre()
+    fireEvent.click(await screen.findByRole('button', { name: 'Désactiver' }))
+    expect(screen.getByText(/Désactiver « Al Hidjah »/)).toBeInTheDocument()
+    await act(async () => {
+      fireEvent.click(screen.getByText('Confirmer'))
+      await vi.waitFor(() => {
+        const appels = mockSupabase.from.mock.calls
+        expect(appels.some((c) => c[0] === 'agences')).toBe(true)
+      })
+    })
   })
 })
