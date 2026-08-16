@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '../../lib/supabase'
 import { useAgence } from '../../hooks/useAgence'
 import { LIBELLES_DOCUMENT, LIBELLES_DOC_STATUT, formatDate } from '../../lib/format'
+import { validerSansFichier } from '../../lib/documents'
 import type { Document } from '../../lib/types'
 import Button from '../ui/Button'
 import Icon from '../ui/Icon'
@@ -99,6 +100,16 @@ export default function DocumentSection({ pelerinId }: { pelerinId: string }) {
     },
   })
 
+  const majSansFichier = useMutation({
+    mutationFn: async () => {
+      await validerSansFichier(agence!.id, pelerinId, typeChoisi.current)
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['documents', pelerinId] })
+      queryClient.invalidateQueries({ queryKey: ['pelerin', pelerinId] })
+    },
+  })
+
   async function voirFichier(doc: Document) {
     if (!doc.fichier_url) return
     const { data } = await supabase.storage
@@ -142,6 +153,10 @@ export default function DocumentSection({ pelerinId }: { pelerinId: string }) {
         <Button type="button" variant="secondary" disabled={televerser.isPending} onClick={() => inputRef.current?.click()}>
           <Icon name="upload_file" size={18} className="mr-2" />
           {televerser.isPending ? 'Upload…' : 'Téléverser un fichier'}
+        </Button>
+        <Button type="button" variant="secondary" disabled={majSansFichier.isPending} onClick={() => majSansFichier.mutate()}>
+          <Icon name="verified" size={18} className="mr-2" />
+          Valider sans fichier
         </Button>
       </div>
 
