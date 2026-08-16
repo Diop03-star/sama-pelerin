@@ -1,3 +1,5 @@
+import { supabase } from './supabase'
+
 export function expirantDans(dateExpiration: string, jours: number, reference = new Date()): boolean {
   const exp = new Date(dateExpiration)
   if (Number.isNaN(exp.getTime())) return false
@@ -6,4 +8,18 @@ export function expirantDans(dateExpiration: string, jours: number, reference = 
   const fin = new Date(debut)
   fin.setDate(fin.getDate() + jours)
   return exp >= debut && exp <= fin
+}
+
+export async function validerSansFichier(agenceId: string, pelerinId: string, typeDocument: string) {
+  const { error } = await supabase.from('documents').upsert(
+    {
+      agence_id: agenceId,
+      pelerin_id: pelerinId,
+      type_document: typeDocument,
+      statut: 'valide',
+      date_upload: new Date().toISOString(),
+    },
+    { onConflict: 'pelerin_id,type_document' }
+  )
+  if (error) throw error
 }
