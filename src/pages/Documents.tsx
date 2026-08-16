@@ -4,8 +4,11 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '../lib/supabase'
 import { LIBELLES_DOCUMENT, LIBELLES_DOC_STATUT, TONE_DOCUMENT, formatDate } from '../lib/format'
 import { expirantDans } from '../lib/documents'
+import { validerSansFichier } from '../lib/documents'
+import { useAgence } from '../hooks/useAgence'
 import type { Document } from '../lib/types'
 import Icon from '../components/ui/Icon'
+import Button from '../components/ui/Button'
 import StatCard from '../components/ui/StatCard'
 import Badge from '../components/ui/Badge'
 import EmptyState from '../components/ui/EmptyState'
@@ -28,6 +31,9 @@ export default function Documents() {
   const alerte = params.get('alerte') ?? ''
   const [filtreType, setFiltreType] = useState(alerte ? 'passeport' : '')
   const [filtreStatut, setFiltreStatut] = useState('')
+  const [pelerinChoisi, setPelerinChoisi] = useState('')
+  const [typeSansFichier, setTypeSansFichier] = useState('passeport')
+  const { data: agence } = useAgence()
 
   const { data: documents = [] } = useQuery({
     queryKey: ['documents-tous'],
@@ -37,6 +43,14 @@ export default function Documents() {
         .select('*, pelerin:pelerins(id, prenom, nom, telephone)')
         .order('date_upload', { ascending: false })
       return data as unknown as DocumentAvecPelerin[]
+    },
+  })
+
+  const { data: pelerins = [] } = useQuery({
+    queryKey: ['pelerins-options'],
+    queryFn: async () => {
+      const { data } = await supabase.from('pelerins').select('id, prenom, nom').order('nom')
+      return data as Array<{ id: string; prenom: string; nom: string }>
     },
   })
 
@@ -67,6 +81,18 @@ export default function Documents() {
       queryClient.invalidateQueries({ queryKey: ['documents-tous'] })
       queryClient.invalidateQueries({ queryKey: ['pelerins'] })
       queryClient.invalidateQueries({ queryKey: ['pelerin'] })
+    },
+  })
+
+  const validerSansUpload = useMutation({
+    mutationFn: async () => {
+      await validerSansFichier(agence!.id, pelerinChoisi, typeSansFichier)
+    },
+    onSuccess: () => {
+      setPelerinChoisi('')
+      queryClient.invalidateQueries({ queryKey: ['documents-tous'] })
+      queryClient.invalidateQueries({ queryKey: ['pelerins'] })
+      queryClient.invalidateQueries({ queryKey: ['pelerins-options'] })
     },
   })
 
@@ -103,6 +129,39 @@ export default function Documents() {
           <option value="valide">Validé</option>
           <option value="rejete">Rejeté</option>
         </select>
+      </div>
+
+      <div className="flex flex-wrap items-center gap-2 rounded-xl border border-outline-variant bg-surface-container-lowest p-4 shadow-sm">
+        <select
+          className="input max-w-sm"
+          value={pelerinChoisi}
+          onChange={(e) => setPelerinChoisi(e.target.value)}
+          aria-label="Pèlerin"
+        >
+          <option value="">Choisir un pèlerin</option>
+          {pelerins.map((p) => (
+            <option key={p.id} value={p.id}>{p.prenom} {p.nom}</option>
+          ))}
+        </select>
+        <select
+          className="input max-w-xs"
+          value={typeSansFichier}
+          onChange={(e) => setTypeSansFichier(e.target.value)}
+          aria-label="Type de document"
+        >
+          {Object.entries(LIBELLES_DOCUMENT).map(([cle, libelle]) => (
+            <option key={cle} value={cle}>{libelle}</option>
+          ))}
+        </select>
+        <Button
+          type="button"
+          variant="secondary"
+          disabled={!pelerinChoisi || validerSansUpload.isPending}
+          onClick={() => validerSansUpload.mutate()}
+        >
+          <Icon name="verified" size={18} className="mr-2" />
+          Valider sans fichier
+        </Button>
       </div>
 
       <section className="grid grid-cols-1 gap-4 md:grid-cols-3">
