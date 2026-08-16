@@ -59,6 +59,7 @@ create table public.documents (
   type_document text not null check (type_document in ('passeport','visa','certificat_vaccination','photo','autre')),
   fichier_url text,
   date_expiration date,
+  numero_document text,
   statut text not null default 'manquant' check (statut in ('manquant','soumis','valide','rejete')),
   date_upload timestamptz,
   unique (pelerin_id, type_document)

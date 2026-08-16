@@ -1,5 +1,5 @@
 import { describe, expect, it, vi, beforeEach } from 'vitest'
-import { expirantDans, validerSansFichier } from './documents'
+import { expirantDans, majMetadonnees, validerSansFichier } from './documents'
 
 const mockSupabase = vi.hoisted(() => ({ from: vi.fn() }))
 
@@ -57,5 +57,53 @@ describe('validerSansFichier', () => {
   it('propage une erreur Supabase', async () => {
     upsert.mockResolvedValue({ error: new Error('boom') })
     await expect(validerSansFichier('ag1', 'pel1', 'visa')).rejects.toThrow('boom')
+  })
+
+  it('inclut date_expiration et numero_document quand fournis', async () => {
+    await validerSansFichier('ag1', 'pel1', 'passeport', {
+      date_expiration: '2027-06-15',
+      numero_document: 'AB123',
+    })
+    const [ligne] = upsert.mock.calls[0]
+    expect(ligne).toMatchObject({
+      date_expiration: '2027-06-15',
+      numero_document: 'AB123',
+    })
+    expect(ligne.fichier_url).toBeUndefined()
+  })
+
+  it('ne modifie pas le payload sans métadonnées', async () => {
+    await validerSansFichier('ag1', 'pel1', 'visa')
+    const [ligne] = upsert.mock.calls[0]
+    expect(ligne.date_expiration).toBeUndefined()
+    expect(ligne.numero_document).toBeUndefined()
+  })
+})
+
+describe('majMetadonnees', () => {
+  const update = vi.fn()
+  const eq = vi.fn()
+
+  beforeEach(() => {
+    update.mockReset()
+    eq.mockReset()
+    update.mockReturnValue({ eq })
+    eq.mockResolvedValue({ error: null })
+    mockSupabase.from.mockReset()
+    mockSupabase.from.mockReturnValue({ update })
+  })
+
+  it('met à jour les métadonnées du document', async () => {
+    await majMetadonnees('doc1', { date_expiration: '2027-06-15', numero_document: null })
+    expect(mockSupabase.from).toHaveBeenCalledWith('documents')
+    expect(update).toHaveBeenCalledWith({ date_expiration: '2027-06-15', numero_document: null })
+    expect(eq).toHaveBeenCalledWith('id', 'doc1')
+  })
+
+  it('propage une erreur Supabase', async () => {
+    eq.mockResolvedValue({ error: new Error('boom') })
+    await expect(
+      majMetadonnees('doc1', { date_expiration: null, numero_document: null })
+    ).rejects.toThrow('boom')
   })
 })

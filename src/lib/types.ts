@@ -28,7 +28,7 @@ export interface Pelerin {
 }
 export interface Document {
   id: string; agence_id: string; pelerin_id: string; type_document: TypeDocument
-  fichier_url: string | null; date_expiration: string | null
+  fichier_url: string | null; date_expiration: string | null; numero_document: string | null
   statut: StatutDocument; date_upload: string | null
 }
 export interface PlanPaiement {
