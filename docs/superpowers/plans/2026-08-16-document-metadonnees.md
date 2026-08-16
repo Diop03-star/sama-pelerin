@@ -567,7 +567,7 @@ describe('DocumentSection', () => {
 
   it('affiche le numéro du document sur la carte', async () => {
     rendre()
-    expect(await screen.findByText('N° AB123 · Expire le 15/01/2027')).toBeInTheDocument()
+    expect(await screen.findByText(/N° AB123 · Expire le 15\/01\/2027/)).toBeInTheDocument()
   })
 
   it('ouvre la modal d’édition et enregistre les métadonnées', async () => {
