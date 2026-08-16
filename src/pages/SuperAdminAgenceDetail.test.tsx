@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from 'vitest'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, fireEvent, act } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { MemoryRouter, Routes, Route } from 'react-router-dom'
@@ -8,6 +8,8 @@ const mockSupabase = vi.hoisted(() => ({
   rpc: vi.fn(),
   from: vi.fn(),
 }))
+
+const update = vi.fn()
 
 vi.mock('../lib/supabase', () => ({ supabase: mockSupabase }))
 
@@ -22,7 +24,7 @@ const statsFixture = {
 
 const agenceFixture = {
   id: 'a1', nom: 'Al Hidjah', telephone: '771234567', email: 'contact@alhidjah.sn',
-  adresse: 'Dakar', logo_url: null, created_at: '2026-01-01T00:00:00Z', active: true,
+  adresse: 'Dakar', logo_url: null, created_at: '2026-01-01', active: true,
 }
 
 function rendre(agence: unknown = agenceFixture, stats: unknown[] = [statsFixture]) {
@@ -32,7 +34,7 @@ function rendre(agence: unknown = agenceFixture, stats: unknown[] = [statsFixtur
     if (table === 'agences') {
       return {
         select: () => ({ eq: () => ({ single: () => Promise.resolve({ data: agence, error: null }) }) }),
-        update: () => ({ eq: () => Promise.resolve({ data: null, error: null }) }),
+        update,
       }
     }
     return { select: () => ({ eq: () => ({ single: () => Promise.resolve({ data: null, error: null }) }) }) }
@@ -49,6 +51,11 @@ function rendre(agence: unknown = agenceFixture, stats: unknown[] = [statsFixtur
 }
 
 describe('SuperAdminAgenceDetail', () => {
+  beforeEach(() => {
+    update.mockReset()
+    update.mockReturnValue({ eq: () => Promise.resolve({ data: null, error: null }) })
+  })
+
   it('affiche les infos et les stats de l’agence', async () => {
     rendre()
     expect(await screen.findByText('Al Hidjah')).toBeInTheDocument()
@@ -79,8 +86,7 @@ describe('SuperAdminAgenceDetail', () => {
     await act(async () => {
       fireEvent.click(screen.getByText('Confirmer'))
       await vi.waitFor(() => {
-        const appels = mockSupabase.from.mock.calls
-        expect(appels.some((c) => c[0] === 'agences')).toBe(true)
+        expect(update).toHaveBeenCalledWith({ active: false })
       })
     })
   })

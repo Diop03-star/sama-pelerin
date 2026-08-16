@@ -24,7 +24,7 @@ export default function SuperAdminAgenceDetail() {
     },
   })
 
-  const { data: agence } = useQuery({
+  const { data: agence, isLoading: agenceEnChargement } = useQuery({
     queryKey: ['superadmin-agence-infos', id],
     enabled: !!id,
     queryFn: async () => {
@@ -46,7 +46,7 @@ export default function SuperAdminAgenceDetail() {
     },
   })
 
-  if (isLoading) return <div className="text-on-surface">Chargement…</div>
+  if (isLoading || agenceEnChargement) return <div className="text-on-surface">Chargement…</div>
 
   const s = stats?.find((row) => row.agence_id === id)
   if (!agence || !s) return <div className="text-error">Agence introuvable.</div>
