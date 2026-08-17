@@ -3,8 +3,8 @@ import { Link, useSearchParams } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '../lib/supabase'
 import { LIBELLES_DOCUMENT, LIBELLES_DOC_STATUT, TONE_DOCUMENT, formatDate } from '../lib/format'
-import { expirantDans } from '../lib/documents'
-import { validerSansFichier } from '../lib/documents'
+import { expirantDans, validerSansFichier, type MetadonneesDocument } from '../lib/documents'
+import ModifierDocumentModal from '../components/documents/ModifierDocumentModal'
 import { useAgence } from '../hooks/useAgence'
 import type { Document } from '../lib/types'
 import Icon from '../components/ui/Icon'
@@ -33,6 +33,9 @@ export default function Documents() {
   const [filtreStatut, setFiltreStatut] = useState('')
   const [pelerinChoisi, setPelerinChoisi] = useState('')
   const [typeSansFichier, setTypeSansFichier] = useState('passeport')
+  const [dateExpiration, setDateExpiration] = useState('')
+  const [numeroDocument, setNumeroDocument] = useState('')
+  const [docEnEdition, setDocEnEdition] = useState<DocumentAvecPelerin | null>(null)
   const { data: agence } = useAgence()
 
   const { data: documents = [] } = useQuery({
@@ -86,10 +89,15 @@ export default function Documents() {
 
   const validerSansUpload = useMutation({
     mutationFn: async () => {
-      await validerSansFichier(agence!.id, pelerinChoisi, typeSansFichier)
+      const metadonnees: MetadonneesDocument = {}
+      if (dateExpiration) metadonnees.date_expiration = dateExpiration
+      if (numeroDocument) metadonnees.numero_document = numeroDocument
+      await validerSansFichier(agence!.id, pelerinChoisi, typeSansFichier, metadonnees)
     },
     onSuccess: () => {
       setPelerinChoisi('')
+      setDateExpiration('')
+      setNumeroDocument('')
       queryClient.invalidateQueries({ queryKey: ['documents-tous'] })
       queryClient.invalidateQueries({ queryKey: ['pelerins'] })
       queryClient.invalidateQueries({ queryKey: ['pelerins-options'] })
@@ -153,6 +161,21 @@ export default function Documents() {
             <option key={cle} value={cle}>{libelle}</option>
           ))}
         </select>
+        <input
+          type="date"
+          className="input w-auto"
+          aria-label="Date d’expiration"
+          value={dateExpiration}
+          onChange={(e) => setDateExpiration(e.target.value)}
+        />
+        <input
+          type="text"
+          className="input w-44"
+          placeholder="N° de document"
+          aria-label="Numéro de document"
+          value={numeroDocument}
+          onChange={(e) => setNumeroDocument(e.target.value)}
+        />
         <Button
           type="button"
           variant="secondary"
@@ -177,6 +200,7 @@ export default function Documents() {
               <tr className="bg-[#f1f5f9] text-left text-label-md uppercase tracking-wider text-on-surface-variant">
                 <th className="px-4 py-3">Pèlerin</th>
                 <th className="px-4 py-3">Document</th>
+                <th className="px-4 py-3">N° document</th>
                 <th className="px-4 py-3">Statut</th>
                 <th className="px-4 py-3">Expiration</th>
                 <th className="px-4 py-3 text-right">Actions</th>
@@ -197,12 +221,21 @@ export default function Documents() {
                       {LIBELLES_DOCUMENT[d.type_document]}
                     </span>
                   </td>
+                  <td className="px-4 py-4 text-data-mono text-on-surface-variant">{d.numero_document ?? '—'}</td>
                   <td className="px-4 py-4">
                     <Badge tone={TONE_DOCUMENT[d.statut]}>{LIBELLES_DOC_STATUT[d.statut]}</Badge>
                   </td>
                   <td className="px-4 py-4 text-data-mono text-on-surface-variant">{formatDate(d.date_expiration)}</td>
                   <td className="px-4 py-4 text-right">
                     <div className="flex justify-end gap-1 opacity-0 transition-opacity group-hover:opacity-100">
+                      <button
+                        onClick={() => setDocEnEdition(d)}
+                        aria-label="Modifier"
+                        title="Modifier"
+                        className="rounded-lg p-2 text-on-surface-variant hover:bg-surface-container hover:text-primary"
+                      >
+                        <Icon name="edit" size={18} />
+                      </button>
                       {d.statut !== 'valide' && (
                         <button
                           onClick={() => majStatut.mutate({ id: d.id, statut: 'valide' })}
@@ -230,6 +263,18 @@ export default function Documents() {
           {filtres.length === 0 && <EmptyState message="Aucun document pour ce filtre." />}
         </div>
       </div>
+      {docEnEdition && (
+        <ModifierDocumentModal
+          doc={docEnEdition}
+          open
+          onClose={() => setDocEnEdition(null)}
+          onSaved={() => {
+            queryClient.invalidateQueries({ queryKey: ['documents-tous'] })
+            queryClient.invalidateQueries({ queryKey: ['pelerins'] })
+            queryClient.invalidateQueries({ queryKey: ['pelerin'] })
+          }}
+        />
+      )}
     </div>
   )
 }
