@@ -207,6 +207,31 @@ begin
   return coalesce(new, old);
 end $$;
 
+-- Refuse un encaissement qui ferait dépasser le montant total du plan (plan soldé ou montant excédentaire)
+create or replace function public.bloquer_encaissement_excedent()
+returns trigger language plpgsql security definer set search_path = public as $$
+declare
+  v_plan_id uuid; v_plan_total numeric; v_paye numeric;
+begin
+  select t.plan_paiement_id, p.montant_total
+    into v_plan_id, v_plan_total
+    from public.tranches t
+    join public.plans_paiement p on p.id = t.plan_paiement_id
+    where t.id = new.tranche_id;
+  if v_plan_id is null then
+    raise exception 'Tranche inconnue.';
+  end if;
+  select coalesce(sum(pay.montant_paye), 0)
+    into v_paye
+    from public.paiements pay
+    join public.tranches t2 on t2.id = pay.tranche_id
+    where t2.plan_paiement_id = v_plan_id;
+  if v_paye + new.montant_paye > v_plan_total then
+    raise exception 'Encaissement refusé : le plan de paiement est soldé ou le montant dépasse le reste dû.';
+  end if;
+  return new;
+end $$;
+
 -- ---------- TRIGGERS ----------
 create trigger on_auth_user_created
   after insert on auth.users
@@ -215,6 +240,10 @@ create trigger on_auth_user_created
 create trigger trg_paiement_maj_tranche
   after insert or update or delete on public.paiements
   for each row execute function public.trg_maj_statut_tranche();
+
+create trigger bloquer_encaissement_excedent
+  before insert on public.paiements
+  for each row execute function public.bloquer_encaissement_excedent();
 
 create trigger trg_document_maj_dossier
   after insert or update or delete on public.documents
