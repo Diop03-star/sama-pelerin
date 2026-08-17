@@ -1,9 +1,10 @@
-import { useRef, type ChangeEvent } from 'react'
+import { useState, useRef, type ChangeEvent } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '../../lib/supabase'
 import { useAgence } from '../../hooks/useAgence'
 import { LIBELLES_DOCUMENT, LIBELLES_DOC_STATUT, formatDate } from '../../lib/format'
-import { validerSansFichier } from '../../lib/documents'
+import { validerSansFichier, type MetadonneesDocument } from '../../lib/documents'
+import ModifierDocumentModal from './ModifierDocumentModal'
 import type { Document } from '../../lib/types'
 import Button from '../ui/Button'
 import Icon from '../ui/Icon'
@@ -38,6 +39,10 @@ export default function DocumentSection({ pelerinId }: { pelerinId: string }) {
   const queryClient = useQueryClient()
   const inputRef = useRef<HTMLInputElement>(null)
   const typeChoisi = useRef<string>('passeport')
+
+  const [dateExpiration, setDateExpiration] = useState('')
+  const [numeroDocument, setNumeroDocument] = useState('')
+  const [docEnEdition, setDocEnEdition] = useState<Document | null>(null)
 
   const { data: documents = [] } = useQuery({
     queryKey: ['documents', pelerinId],
@@ -102,9 +107,14 @@ export default function DocumentSection({ pelerinId }: { pelerinId: string }) {
 
   const majSansFichier = useMutation({
     mutationFn: async () => {
-      await validerSansFichier(agence!.id, pelerinId, typeChoisi.current)
+      const metadonnees: MetadonneesDocument = {}
+      if (dateExpiration) metadonnees.date_expiration = dateExpiration
+      if (numeroDocument) metadonnees.numero_document = numeroDocument
+      await validerSansFichier(agence!.id, pelerinId, typeChoisi.current, metadonnees)
     },
     onSuccess: () => {
+      setDateExpiration('')
+      setNumeroDocument('')
       queryClient.invalidateQueries({ queryKey: ['documents', pelerinId] })
       queryClient.invalidateQueries({ queryKey: ['pelerin', pelerinId] })
     },
@@ -149,6 +159,21 @@ export default function DocumentSection({ pelerinId }: { pelerinId: string }) {
             <option key={t} value={t}>{LIBELLES_DOCUMENT[t]}</option>
           ))}
         </select>
+        <input
+          type="date"
+          className="input w-auto"
+          aria-label="Date d’expiration"
+          value={dateExpiration}
+          onChange={(e) => setDateExpiration(e.target.value)}
+        />
+        <input
+          type="text"
+          className="input w-44"
+          placeholder="N° de document"
+          aria-label="Numéro de document"
+          value={numeroDocument}
+          onChange={(e) => setNumeroDocument(e.target.value)}
+        />
         <input ref={inputRef} type="file" hidden onChange={onChangeFichier} />
         <Button type="button" variant="secondary" disabled={televerser.isPending} onClick={() => inputRef.current?.click()}>
           <Icon name="upload_file" size={18} className="mr-2" />
@@ -175,7 +200,8 @@ export default function DocumentSection({ pelerinId }: { pelerinId: string }) {
                 </span>
               </div>
               <p className="text-label-md mb-2 text-on-surface-variant">
-                {doc.fichier_url ? 'Fichier joint' : 'Aucun fichier'} · Expire le {formatDate(doc.date_expiration)}
+                {doc.fichier_url ? 'Fichier joint' : 'Aucun fichier'}
+                {doc.numero_document ? ` · N° ${doc.numero_document}` : ''} · Expire le {formatDate(doc.date_expiration)}
               </p>
               <div className="flex flex-wrap items-center gap-1">
                 {doc.fichier_url && (
@@ -193,6 +219,14 @@ export default function DocumentSection({ pelerinId }: { pelerinId: string }) {
                     <Icon name="error" size={14} /> Rejeter
                   </button>
                 )}
+                <button
+                  onClick={() => setDocEnEdition(doc)}
+                  aria-label="Modifier"
+                  title="Modifier"
+                  className="rounded-lg p-1 text-gray-400 hover:text-primary"
+                >
+                  <Icon name="edit" size={16} />
+                </button>
                 <button onClick={() => supprimer.mutate(doc)} title="Supprimer" className="rounded-lg p-1 text-gray-400 hover:text-error">
                   <Icon name="delete" size={16} />
                 </button>
@@ -201,6 +235,17 @@ export default function DocumentSection({ pelerinId }: { pelerinId: string }) {
           </div>
         ))}
       </div>
+      {docEnEdition && (
+        <ModifierDocumentModal
+          doc={docEnEdition}
+          open
+          onClose={() => setDocEnEdition(null)}
+          onSaved={() => {
+            queryClient.invalidateQueries({ queryKey: ['documents', pelerinId] })
+            queryClient.invalidateQueries({ queryKey: ['pelerin', pelerinId] })
+          }}
+        />
+      )}
     </div>
   )
 }
