@@ -78,6 +78,11 @@ export default function PlanPaiementSection({ pelerinId }: { pelerinId: string }
     mutationFn: async () => {
       const montant = parseInt(montantPaiement, 10)
       if (!montant || montant <= 0) throw new Error('Montant invalide')
+      const plafond = Math.min(
+encaissement.tranche.montant_prevu - encaissement.tranche.paiements.reduce((s, p) => s + p.montant_paye, 0),
+        plan!.montant_total - paye
+      )
+      if (montant > plafond) throw new Error('Montant depasse')
       const { data: profil } = await supabase.auth.getUser()
       const { data: utilisateur } = await supabase
         .from('utilisateurs')
@@ -102,7 +107,12 @@ export default function PlanPaiementSection({ pelerinId }: { pelerinId: string }
       queryClient.invalidateQueries({ queryKey: ['echeanciers'] })
       queryClient.invalidateQueries({ queryKey: ['pelerins'] })
     },
-    onError: (e: Error) => setErreur(e.message === 'Montant invalide' ? 'Saisissez un montant positif.' : 'Encaissement impossible.'),
+    onError: (e: Error) => {
+      if (e.message === 'Montant invalide') setErreur('Saisissez un montant positif.')
+      else if (e.message === 'Montant depasse') setErreur('Le montant dépasse le reste dû.')
+      else if (e.message.includes('soldé')) setErreur('Encaissement impossible. Le plan de paiement est soldé ou le montant dépasse le reste dû.')
+      else setErreur('Encaissement impossible.')
+    },
   })
 
   if (isLoading) return <Card className="p-6"><p className="text-sm text-navy">Chargement…</p></Card>
@@ -154,6 +164,14 @@ export default function PlanPaiementSection({ pelerinId }: { pelerinId: string }
     setEncaissement({ tranche, ouvert: true })
   }
 
+  const plafondEncaissement = encaissement.ouvert
+    ? Math.min(
+        encaissement.tranche.montant_prevu - encaissement.tranche.paiements.reduce((s, p) => s + p.montant_paye, 0),
+        reste
+      )
+    : 0
+  const montantSaisi = parseInt(montantPaiement, 10)
+
   return (
     <div className="rounded-xl border border-outline-variant bg-surface-container-lowest p-6 shadow-sm">
       <div className="mb-4 flex items-center gap-2">
@@ -165,6 +183,7 @@ export default function PlanPaiementSection({ pelerinId }: { pelerinId: string }
         <p className="text-on-surface-variant">Total : <span className="font-semibold text-on-surface">{formatFCFA(plan.montant_total)}</span></p>
         <p className="text-on-surface-variant">Payé : <span className="font-semibold text-vert">{formatFCFA(paye)}</span></p>
         <p className="text-on-surface-variant">Reste dû : <span className={`font-semibold ${reste > 0 ? 'text-error' : 'text-vert'}`}>{formatFCFA(reste)}</span></p>
+        {reste <= 0 && <Badge tone="vert">Plan soldé</Badge>}
         <div className="w-48">
           <ProgressBar valeur={progression} tone={progression === 100 ? 'vert' : 'gold'} label={`${progression}%`} />
         </div>
@@ -193,7 +212,7 @@ export default function PlanPaiementSection({ pelerinId }: { pelerinId: string }
                   </div>
                   <div className="flex items-center gap-2">
                     <Badge tone={TONE_TRANCHE[t.statut]}>{LIBELLES_TRANCHE[t.statut]}</Badge>
-                    {verse < t.montant_prevu && (
+                    {verse < t.montant_prevu && reste > 0 && (
                       <Button variant="secondary" onClick={() => ouvrirEncaissement(t)}>Encaisser</Button>
                     )}
                   </div>
@@ -217,14 +236,14 @@ export default function PlanPaiementSection({ pelerinId }: { pelerinId: string }
       {encaissement.ouvert && (
         <div className="mt-4 rounded-md border border-primary bg-surface-container-low p-4">
           <p className="mb-3 text-body-md font-semibold text-primary">
-            Encaissement — tranche {encaissement.tranche.numero_tranche} (reste {formatFCFA(encaissement.tranche.montant_prevu - encaissement.tranche.paiements.reduce((s, p) => s + p.montant_paye, 0))})
+            Encaissement — tranche {encaissement.tranche.numero_tranche} (reste {formatFCFA(plafondEncaissement)})
           </p>
           <form
             onSubmit={(e: FormEvent) => { e.preventDefault(); setErreur(''); encaisser.mutate() }}
             className="grid grid-cols-1 gap-4 md:grid-cols-4"
           >
             <Field label="Montant (FCFA)">
-              <Input required type="number" min={1} value={montantPaiement} onChange={(e) => setMontantPaiement(e.target.value)} />
+              <Input required type="number" min={1} max={plafondEncaissement} aria-label="Montant (FCFA)" value={montantPaiement} onChange={(e) => setMontantPaiement(e.target.value)} />
             </Field>
             <Field label="Mode">
               <Select value={modePaiement} onChange={(e) => setModePaiement(e.target.value)}>
@@ -239,7 +258,7 @@ export default function PlanPaiementSection({ pelerinId }: { pelerinId: string }
               <Input value={reference} onChange={(e) => setReference(e.target.value)} placeholder="ID transaction…" />
             </Field>
             <div className="flex items-end gap-2">
-              <Button type="submit" disabled={encaisser.isPending}>Encaisser</Button>
+              <Button type="submit" disabled={encaisser.isPending || !montantSaisi || montantSaisi <= 0 || montantSaisi > plafondEncaissement}>Encaisser</Button>
               <Button type="button" variant="secondary" onClick={() => setEncaissement({ tranche: null!, ouvert: false })}>Fermer</Button>
             </div>
             {erreur && <p className="text-sm text-error md:col-span-4">{erreur}</p>}
