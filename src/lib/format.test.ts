@@ -3,6 +3,7 @@ import {
   formatFCFA, formatDate, whatsappUrl,
   messageTranche, messageDocument,
   LIBELLES_DOCUMENT, TONE_TRANCHE,
+  LIBELLES_STATUT_PLAN, TONE_STATUT_PLAN,
 } from './format'
 
 describe('formatFCFA', () => {
@@ -57,5 +58,22 @@ describe('libellés et tons', () => {
   it('expose les tons de tranches', () => {
     expect(TONE_TRANCHE.en_retard).toBe('rouge')
     expect(TONE_TRANCHE.payee).toBe('vert')
+  })
+})
+
+describe('libellés statut plan', () => {
+  it('expose les libellés et tons des quatre statuts', () => {
+    expect(LIBELLES_STATUT_PLAN).toMatchObject({
+      acompte_en_attente: 'Acompte en attente',
+      en_cours: 'En cours',
+      en_retard: 'En retard',
+      solde: 'Soldé',
+    })
+    expect(TONE_STATUT_PLAN).toEqual({
+      acompte_en_attente: 'ambre',
+      en_cours: 'neutre',
+      en_retard: 'rouge',
+      solde: 'vert',
+    })
   })
 })

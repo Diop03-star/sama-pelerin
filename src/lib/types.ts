@@ -4,6 +4,8 @@ export type StatutDossier = 'incomplet' | 'complet' | 'valide'
 export type TypeDocument = 'passeport' | 'visa' | 'certificat_vaccination' | 'photo' | 'autre'
 export type StatutDocument = 'manquant' | 'soumis' | 'valide' | 'rejete'
 export type StatutTranche = 'a_venir' | 'payee' | 'partielle' | 'en_retard'
+export type TypePaiement = 'acompte' | 'tranche'
+export type StatutPlan = 'acompte_en_attente' | 'en_cours' | 'en_retard' | 'solde'
 export type ModePaiement = 'especes' | 'wave' | 'orange_money' | 'virement' | 'autre'
 export type StatutRappel = 'en_attente' | 'envoye' | 'echec'
 
@@ -34,14 +36,16 @@ export interface Document {
 export interface PlanPaiement {
   id: string; agence_id: string; pelerin_id: string
   montant_total: number; devise: string; nombre_tranches: number; created_at: string
+  montant_acompte: number; date_limite_solde: string | null; statut: StatutPlan
 }
 export interface Tranche {
   id: string; agence_id: string; plan_paiement_id: string; numero_tranche: number
   montant_prevu: number; date_echeance: string; statut: StatutTranche
 }
 export interface Paiement {
-  id: string; agence_id: string; tranche_id: string; montant_paye: number
+  id: string; agence_id: string; tranche_id: string | null; montant_paye: number
   date_paiement: string; mode: ModePaiement; reference: string | null; enregistre_par: string | null
+  type_paiement: TypePaiement; plan_paiement_id: string | null
 }
 export interface Rappel {
   id: string; agence_id: string; tranche_id: string | null; document_id: string | null

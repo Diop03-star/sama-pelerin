@@ -1,6 +1,13 @@
 import { describe, it, expect } from 'vitest'
-import { genererTranches } from './plan'
-import { statutDossierDepuisDocuments } from './plan'
+import {
+  statutDossierDepuisDocuments,
+  proposerAcompte,
+  proposerDateLimite,
+  genererEcheancier,
+  validerEcheancier,
+  ajouterMois,
+  ajouterJours,
+} from './plan'
 
 describe('statutDossierDepuisDocuments', () => {
   it('retourne valide si tous les documents sont valides', () => {
@@ -15,20 +22,94 @@ describe('statutDossierDepuisDocuments', () => {
   })
 })
 
-describe('genererTranches', () => {
-  it('répartit équitablement et met le reste sur la dernière tranche', () => {
-    const tranches = genererTranches(2500000, 5, '2027-01-15')
-    expect(tranches).toHaveLength(5)
-    expect(tranches[0]).toEqual({ numero_tranche: 1, montant_prevu: 500000, date_echeance: '2027-01-15' })
-    expect(tranches[4].montant_prevu).toBe(500000)
-    expect(tranches.reduce((s, t) => s + t.montant_prevu, 0)).toBe(2500000)
+describe('proposerAcompte', () => {
+  it('propose 60 % du total pour une Omra', () => {
+    expect(proposerAcompte(1000000, 'omra')).toBe(600000)
   })
-  it("met le reste sur la dernière tranche quand le total n'est pas divisible", () => {
-    const tranches = genererTranches(1000, 3, '2026-09-01')
-    expect(tranches.map(t => t.montant_prevu)).toEqual([333, 333, 334])
+
+  it('propose 40 % du total pour un Hajj', () => {
+    expect(proposerAcompte(1000000, 'hajj')).toBe(400000)
   })
-  it('gère une seule tranche', () => {
-    const tranches = genererTranches(800000, 1, '2026-09-01')
-    expect(tranches).toEqual([{ numero_tranche: 1, montant_prevu: 800000, date_echeance: '2026-09-01' }])
+})
+
+describe('proposerDateLimite', () => {
+  it('propose 30 jours avant le départ pour une Omra', () => {
+    expect(proposerDateLimite('2026-06-15', 'omra')).toBe('2026-05-16')
+  })
+
+  it('propose 60 jours avant le départ pour un Hajj', () => {
+    expect(proposerDateLimite('2026-06-15', 'hajj')).toBe('2026-04-16')
+  })
+})
+
+describe('ajouterMois', () => {
+  it('gère les fins de mois', () => {
+    expect(ajouterMois('2026-01-31', 1)).toBe('2026-02-28')
+    expect(ajouterMois('2026-03-31', 1)).toBe('2026-04-30')
+  })
+
+  it('gère le changement d’année', () => {
+    expect(ajouterMois('2026-11-10', 2)).toBe('2027-01-10')
+  })
+})
+
+describe('ajouterJours', () => {
+  it('retranche des jours en traversant les mois', () => {
+    expect(ajouterJours('2026-06-15', -60)).toBe('2026-04-16')
+    expect(ajouterJours('2026-03-01', -1)).toBe('2026-02-28')
+  })
+})
+
+describe('genererEcheancier', () => {
+  it('répartit le reste en tranches égales, dernière ajustée', () => {
+    const tranches = genererEcheancier(1000000, 400000, 3, '2026-02-01', '2026-04-15')
+    expect(tranches.map((t) => t.montant_prevu)).toEqual([200000, 200000, 200000])
+    expect(tranches[2].montant_prevu).toBe(200000)
+  })
+
+  it('génère des dates mensuelles depuis le début', () => {
+    const tranches = genererEcheancier(1000000, 400000, 3, '2026-02-01', '2026-04-15')
+    expect(tranches.map((t) => t.date_echeance)).toEqual(['2026-02-01', '2026-03-01', '2026-04-01'])
+  })
+
+  it('borne la dernière échéance à la date limite', () => {
+    const tranches = genererEcheancier(1000000, 400000, 3, '2026-03-20', '2026-03-31')
+    expect(tranches.map((t) => t.date_echeance)).toEqual(['2026-03-20', '2026-03-31', '2026-03-31'])
+  })
+
+  it('répartit un reste non divisible', () => {
+    const tranches = genererEcheancier(1000000, 100000, 3, '2026-02-01', '2026-04-15')
+    expect(tranches.map((t) => t.montant_prevu)).toEqual([300000, 300000, 300000])
+  })
+
+  it('retourne un échéancier vide si aucun montant à répartir', () => {
+    expect(genererEcheancier(1000000, 1000000, 3, '2026-02-01', '2026-04-15')).toEqual([
+      { numero_tranche: 1, montant_prevu: 0, date_echeance: '2026-02-01' },
+      { numero_tranche: 2, montant_prevu: 0, date_echeance: '2026-03-01' },
+      { numero_tranche: 3, montant_prevu: 0, date_echeance: '2026-04-01' },
+    ])
+  })
+})
+
+describe('validerEcheancier', () => {
+  it('refuse un acompte supérieur au total', () => {
+    expect(validerEcheancier(1000000, 1200000, [], '2026-04-15')).not.toBeNull()
+  })
+
+  it('refuse une somme répartie différente du reste', () => {
+    const tranches = genererEcheancier(1000000, 400000, 3, '2026-02-01', '2026-04-15')
+    tranches[0].montant_prevu = 250000
+    expect(validerEcheancier(1000000, 400000, tranches, '2026-04-15')).toBe('La répartition doit totaliser 600 000 FCFA.')
+  })
+
+  it('refuse une échéance après la date limite', () => {
+    const tranches = genererEcheancier(1000000, 400000, 3, '2026-03-20', '2026-03-31')
+    tranches[1].date_echeance = '2026-04-01'
+    expect(validerEcheancier(1000000, 400000, tranches, '2026-03-31')).toBe('Chaque échéance doit être avant la date limite du solde.')
+  })
+
+  it('accepte un échéancier valide', () => {
+    const tranches = genererEcheancier(1000000, 400000, 3, '2026-02-01', '2026-04-15')
+    expect(validerEcheancier(1000000, 400000, tranches, '2026-04-15')).toBeNull()
   })
 })

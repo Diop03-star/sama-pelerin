@@ -101,6 +101,20 @@ export const TONE_TRANCHE: Record<string, string> = {
   en_retard: 'rouge',
 }
 
+export const LIBELLES_STATUT_PLAN: Record<string, string> = {
+  acompte_en_attente: 'Acompte en attente',
+  en_cours: 'En cours',
+  en_retard: 'En retard',
+  solde: 'Soldé',
+}
+
+export const TONE_STATUT_PLAN: Record<string, string> = {
+  acompte_en_attente: 'ambre',
+  en_cours: 'neutre',
+  en_retard: 'rouge',
+  solde: 'vert',
+}
+
 export const TONE_RAPPEL: Record<string, string> = {
   en_attente: 'ambre',
   envoye: 'vert',
