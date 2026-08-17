@@ -507,7 +507,7 @@ function rendre() {
       return {
         select: () => ({ eq: () => ({ order: () => Promise.resolve({ data: [doc1], error: null }) }) }),
         upsert,
-        update: () => ({ eq: () => Promise.resolve({ data: null, error: null }) }),
+        update,
       }
     }
     return { select: () => Promise.resolve({ data: [], error: null }) }
@@ -648,12 +648,11 @@ Et dans le premier import : `import { useState, useRef, type ChangeEvent } from 
         />
 ```
 
-3e. Ligne d'info de la carte (remplacer la ligne 178) :
+3e. Ligne d'info de la carte (remplacer la ligne 178 — tout sur une seule ligne d'expression, car JSX supprime les espaces en début de ligne) :
 
 ```tsx
                 {doc.fichier_url ? 'Fichier joint' : 'Aucun fichier'}
-                {doc.numero_document ? ` · N° ${doc.numero_document}` : ''}
-                · Expire le {formatDate(doc.date_expiration)}
+                {doc.numero_document ? ` · N° ${doc.numero_document}` : ''} · Expire le {formatDate(doc.date_expiration)}
 ```
 
 3f. Bouton Modifier sur la carte (insérer entre le bouton Rejeter — ligne 195 — et le bouton Supprimer — ligne 196) :
@@ -754,7 +753,7 @@ function rendre() {
       return {
         select: () => ({ order: () => Promise.resolve({ data: [docAvecPelerin], error: null }) }),
         upsert,
-        update: () => ({ eq: () => Promise.resolve({ data: null, error: null }) }),
+        update,
       }
     }
     if (table === 'pelerins') {
