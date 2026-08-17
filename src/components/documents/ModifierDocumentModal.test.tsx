@@ -22,7 +22,7 @@ const doc = {
   numero_document: 'AB123',
   statut: 'valide',
   date_upload: null,
-}
+} as const
 
 beforeEach(() => {
   update.mockReset()
