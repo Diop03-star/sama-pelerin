@@ -42,7 +42,8 @@ begin
     into v_plan_id, v_plan_total
     from public.tranches t
     join public.plans_paiement p on p.id = t.plan_paiement_id
-    where t.id = new.tranche_id;
+    where t.id = new.tranche_id
+    for update of p;
   if v_plan_id is null then
     raise exception 'Tranche inconnue.';
   end if;
