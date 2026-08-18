@@ -156,6 +156,23 @@ describe('PlanPaiementSection', () => {
     expect(screen.getByText('Reste à répartir : 0 FCFA')).toBeInTheDocument()
   })
 
+  it('régénère l’échéancier avec le nouveau nombre de tranches', async () => {
+    rendre(null, { type_voyage: 'hajj', date_depart: '2026-05-15' })
+    fireEvent.click(await screen.findByRole('button', { name: 'Créer un plan' }))
+    fireEvent.change(await screen.findByLabelText('Montant total (FCFA)'), { target: { value: '1000000' } })
+    fireEvent.change(screen.getByLabelText('Acompte (FCFA)'), { target: { value: '400000' } })
+    fireEvent.change(screen.getByLabelText('Nombre de tranches'), { target: { value: '2' } })
+    expect(screen.getAllByLabelText('Montant de la tranche')).toHaveLength(2)
+    fireEvent.click(screen.getByRole('button', { name: 'Créer le plan' }))
+    await waitFor(() => {
+      expect(insertPlan).toHaveBeenCalled()
+    })
+    const [ligne] = insertPlan.mock.calls[0]
+    expect(ligne).toMatchObject({ nombre_tranches: 2 })
+    const [tranches] = insertTranches.mock.calls[0]
+    expect(tranches).toHaveLength(2)
+  })
+
   it('bloque la création quand la répartition est incorrecte', async () => {
     rendre(null, { type_voyage: 'hajj', date_depart: '2026-05-15' })
     fireEvent.click(await screen.findByRole('button', { name: 'Créer un plan' }))

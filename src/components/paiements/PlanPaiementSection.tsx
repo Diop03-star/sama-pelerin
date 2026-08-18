@@ -58,8 +58,7 @@ export default function PlanPaiementSection({ pelerinId, groupe }: { pelerinId: 
     setCreation(true)
   }
 
-  function regenererEcheancier(total: number, debut: string, acompte?: number) {
-    const nombre = parseInt(nombreTranches, 10)
+  function regenererEcheancier(total: number, debut: string, nombre: number, acompte?: number) {
     if (total > 0 && nombre > 0 && dateLimite) {
       setDrafts(genererEcheancier(total, acompte ?? (parseInt(montantAcompte, 10) || 0), nombre, debut || dateLimite, dateLimite))
     }
@@ -73,12 +72,12 @@ export default function PlanPaiementSection({ pelerinId, groupe }: { pelerinId: 
       acompte = total > 0 ? proposerAcompte(total, groupe.type_voyage) : 0
       setMontantAcompte(String(acompte))
     }
-    regenererEcheancier(parseInt(valeur, 10), premiereEcheance, acompte)
+    regenererEcheancier(parseInt(valeur, 10), premiereEcheance, parseInt(nombreTranches, 10), acompte)
   }
 
   function changerNombreTranches(valeur: string) {
     setNombreTranches(valeur)
-    regenererEcheancier(parseInt(montantTotal, 10), premiereEcheance)
+    regenererEcheancier(parseInt(montantTotal, 10), premiereEcheance, parseInt(valeur, 10))
   }
 
   const creerPlan = useMutation({
@@ -199,7 +198,7 @@ encaissement.tranche.montant_prevu - encaissement.tranche.paiements.reduce((s, p
               <Input required aria-label="Nombre de tranches" type="number" min={1} value={nombreTranches} onChange={(e) => changerNombreTranches(e.target.value)} />
             </Field>
             <Field label="Première échéance">
-              <Input aria-label="Première échéance" type="date" value={premiereEcheance} onChange={(e) => { setPremiereEcheance(e.target.value); regenererEcheancier(parseInt(montantTotal, 10), e.target.value) }} />
+              <Input aria-label="Première échéance" type="date" value={premiereEcheance} onChange={(e) => { setPremiereEcheance(e.target.value); regenererEcheancier(parseInt(montantTotal, 10), e.target.value, parseInt(nombreTranches, 10)) }} />
             </Field>
             {drafts.length > 0 && (
               <div className="md:col-span-3">
