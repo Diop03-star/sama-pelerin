@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '../../lib/supabase'
 import { useAgence } from '../../hooks/useAgence'
 import { genererEcheancier, proposerAcompte, proposerDateLimite, validerEcheancier, type TrancheDraft } from '../../lib/plan'
-import { LIBELLES_MODE, LIBELLES_TRANCHE, TONE_TRANCHE, formatDate, formatFCFA } from '../../lib/format'
+import { LIBELLES_MODE, LIBELLES_TRANCHE, LIBELLES_STATUT_PLAN, TONE_TRANCHE, TONE_STATUT_PLAN, formatDate, formatFCFA } from '../../lib/format'
 import type { Paiement, PlanPaiement, Tranche, TypeVoyage } from '../../lib/types'
 import Card from '../ui/Card'
 import Icon from '../ui/Icon'
@@ -14,6 +14,7 @@ import Badge from '../ui/Badge'
 
 interface PlanAvecDonnees extends PlanPaiement {
   tranches: (Tranche & { paiements: Paiement[] })[]
+  acomptes: Paiement[]
 }
 
 export default function PlanPaiementSection({ pelerinId, groupe }: { pelerinId: string; groupe?: { type_voyage: TypeVoyage; date_depart: string } | null }) {
@@ -27,7 +28,7 @@ export default function PlanPaiementSection({ pelerinId, groupe }: { pelerinId: 
   const [nombreTranches, setNombreTranches] = useState('3')
   const [drafts, setDrafts] = useState<TrancheDraft[]>([])
   const [premiereEcheance, setPremiereEcheance] = useState('')
-  const [encaissement, setEncaissement] = useState<{ tranche: Tranche & { paiements: Paiement[] }; ouvert: boolean }>({ tranche: null!, ouvert: false })
+  const [encaissement, setEncaissement] = useState<{ type: 'acompte' | 'tranche'; tranche: (Tranche & { paiements: Paiement[] }) | null; ouvert: boolean }>({ type: 'tranche', tranche: null!, ouvert: false })
   const [montantPaiement, setMontantPaiement] = useState('')
   const [modePaiement, setModePaiement] = useState('especes')
   const [reference, setReference] = useState('')
@@ -39,7 +40,7 @@ export default function PlanPaiementSection({ pelerinId, groupe }: { pelerinId: 
     queryFn: async () => {
       const { data } = await supabase
         .from('plans_paiement')
-        .select('*, tranches(*, paiements(*))')
+        .select('*, tranches(*, paiements(*)), acomptes:paiements!plan_paiement_id(*)')
         .eq('pelerin_id', pelerinId)
         .maybeSingle()
       return data as PlanAvecDonnees | null
@@ -134,10 +135,12 @@ export default function PlanPaiementSection({ pelerinId, groupe }: { pelerinId: 
     mutationFn: async () => {
       const montant = parseInt(montantPaiement, 10)
       if (!montant || montant <= 0) throw new Error('Montant invalide')
-      const plafond = Math.min(
-encaissement.tranche.montant_prevu - encaissement.tranche.paiements.reduce((s, p) => s + p.montant_paye, 0),
-        plan!.montant_total - paye
-      )
+      const plafond = encaissement.type === 'acompte'
+        ? Math.min(resteAcompte, reste)
+        : Math.min(
+            encaissement.tranche!.montant_prevu - encaissement.tranche!.paiements.reduce((s, p) => s + p.montant_paye, 0),
+            reste
+          )
       if (montant > plafond) throw new Error('Montant depasse')
       const { data: profil } = await supabase.auth.getUser()
       const { data: utilisateur } = await supabase
@@ -145,18 +148,32 @@ encaissement.tranche.montant_prevu - encaissement.tranche.paiements.reduce((s, p
         .select('id')
         .eq('user_id', profil.user!.id)
         .maybeSingle()
-      const { error } = await supabase.from('paiements').insert({
-        agence_id: agence!.id,
-        tranche_id: encaissement.tranche.id,
-        montant_paye: montant,
-        mode: modePaiement,
-        reference: reference || null,
-        enregistre_par: utilisateur?.id ?? null,
-      })
+      const { error } = await supabase.from('paiements').insert(
+        encaissement.type === 'acompte'
+          ? {
+              agence_id: agence!.id,
+              tranche_id: null,
+              plan_paiement_id: plan!.id,
+              montant_paye: montant,
+              type_paiement: 'acompte',
+              mode: modePaiement,
+              reference: reference || null,
+              enregistre_par: utilisateur?.id ?? null,
+            }
+          : {
+              agence_id: agence!.id,
+              tranche_id: encaissement.tranche!.id,
+              montant_paye: montant,
+              type_paiement: 'tranche',
+              mode: modePaiement,
+              reference: reference || null,
+              enregistre_par: utilisateur?.id ?? null,
+            }
+      )
       if (error) throw error
     },
     onSuccess: () => {
-      setEncaissement({ tranche: null!, ouvert: false })
+      setEncaissement({ type: 'tranche', tranche: null!, ouvert: false })
       setMontantPaiement('')
       setReference('')
       queryClient.invalidateQueries({ queryKey: ['plan', pelerinId] })
@@ -249,21 +266,32 @@ encaissement.tranche.montant_prevu - encaissement.tranche.paiements.reduce((s, p
     )
   }
 
-  const paye = plan.tranches.reduce((s, t) => s + t.paiements.reduce((x, p) => x + p.montant_paye, 0), 0)
+  const payeTranches = plan.tranches.reduce((s, t) => s + t.paiements.reduce((x, p) => x + p.montant_paye, 0), 0)
+  const payeAcompte = plan.acomptes.reduce((s, p) => s + p.montant_paye, 0)
+  const paye = payeTranches + payeAcompte
   const reste = plan.montant_total - paye
+  const resteAcompte = Math.max(plan.montant_acompte - payeAcompte, 0)
   const progression = plan.montant_total > 0 ? Math.round((paye / plan.montant_total) * 100) : 0
 
   function ouvrirEncaissement(tranche: Tranche & { paiements: Paiement[] }) {
     setMontantPaiement('')
     setReference('')
-    setEncaissement({ tranche, ouvert: true })
+    setEncaissement({ type: 'tranche', tranche, ouvert: true })
+  }
+
+  function ouvrirAcompte() {
+    setMontantPaiement('')
+    setReference('')
+    setEncaissement({ type: 'acompte', tranche: null, ouvert: true })
   }
 
   const plafondEncaissement = encaissement.ouvert
-    ? Math.min(
-        encaissement.tranche.montant_prevu - encaissement.tranche.paiements.reduce((s, p) => s + p.montant_paye, 0),
-        reste
-      )
+    ? encaissement.type === 'acompte'
+      ? Math.min(resteAcompte, reste)
+      : Math.min(
+          encaissement.tranche!.montant_prevu - encaissement.tranche!.paiements.reduce((s, p) => s + p.montant_paye, 0),
+          reste
+        )
     : 0
   const montantSaisi = parseInt(montantPaiement, 10)
 
@@ -278,10 +306,22 @@ encaissement.tranche.montant_prevu - encaissement.tranche.paiements.reduce((s, p
         <p className="text-on-surface-variant">Total : <span className="font-semibold text-on-surface">{formatFCFA(plan.montant_total)}</span></p>
         <p className="text-on-surface-variant">Payé : <span className="font-semibold text-vert">{formatFCFA(paye)}</span></p>
         <p className="text-on-surface-variant">Reste dû : <span className={`font-semibold ${reste > 0 ? 'text-error' : 'text-vert'}`}>{formatFCFA(reste)}</span></p>
-        {reste <= 0 && <Badge tone="vert">Plan soldé</Badge>}
+        {plan.montant_acompte > 0 && (
+          <p className="text-on-surface-variant">Acompte : <span className={`font-semibold ${resteAcompte > 0 ? 'text-error' : 'text-vert'}`}>{formatFCFA(payeAcompte)} / {formatFCFA(plan.montant_acompte)}</span></p>
+        )}
+        {plan.date_limite_solde && (
+          <p className="text-on-surface-variant">Solde à régler avant le <span className="font-semibold text-on-surface">{formatDate(plan.date_limite_solde)}</span></p>
+        )}
+        <Badge tone={TONE_STATUT_PLAN[plan.statut]}>{LIBELLES_STATUT_PLAN[plan.statut]}</Badge>
         <div className="w-48">
           <ProgressBar valeur={progression} tone={progression === 100 ? 'vert' : 'gold'} label={`${progression}%`} />
         </div>
+        {resteAcompte > 0 && (
+          <Button variant="secondary" onClick={ouvrirAcompte}>
+            <Icon name="payments" size={16} className="mr-1" />
+            Encaisser l’acompte
+          </Button>
+        )}
       </div>
 
       <ol className="relative space-y-6 border-l-2 border-outline-variant pl-6">
@@ -331,7 +371,9 @@ encaissement.tranche.montant_prevu - encaissement.tranche.paiements.reduce((s, p
       {encaissement.ouvert && (
         <div className="mt-4 rounded-md border border-primary bg-surface-container-low p-4">
           <p className="mb-3 text-body-md font-semibold text-primary">
-            Encaissement — tranche {encaissement.tranche.numero_tranche} (reste {formatFCFA(plafondEncaissement)})
+            {encaissement.type === 'acompte'
+              ? `Encaissement — acompte (reste ${formatFCFA(plafondEncaissement)})`
+              : `Encaissement — tranche ${encaissement.tranche!.numero_tranche} (reste ${formatFCFA(plafondEncaissement)})`}
           </p>
           <form
             onSubmit={(e: FormEvent) => { e.preventDefault(); setErreur(''); encaisser.mutate() }}
@@ -354,7 +396,7 @@ encaissement.tranche.montant_prevu - encaissement.tranche.paiements.reduce((s, p
             </Field>
             <div className="flex items-end gap-2">
               <Button type="submit" disabled={encaisser.isPending || !montantSaisi || montantSaisi <= 0 || montantSaisi > plafondEncaissement}>Encaisser</Button>
-              <Button type="button" variant="secondary" onClick={() => setEncaissement({ tranche: null!, ouvert: false })}>Fermer</Button>
+              <Button type="button" variant="secondary" onClick={() => setEncaissement({ type: 'tranche', tranche: null!, ouvert: false })}>Fermer</Button>
             </div>
             {erreur && <p className="text-sm text-error md:col-span-4">{erreur}</p>}
           </form>

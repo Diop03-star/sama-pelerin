@@ -20,11 +20,15 @@ const planSolde = {
   agence_id: 'ag1',
   pelerin_id: 'pel1',
   montant_total: 1000000,
+  montant_acompte: 400000,
+  date_limite_solde: '2026-03-16',
+  statut: 'solde',
   nombre_tranches: 2,
   created_at: '2026-01-01T00:00:00Z',
+  acomptes: [{ id: 'ac1', tranche_id: null, plan_paiement_id: 'plan1', montant_paye: 400000, date_paiement: '2026-01-15T10:00:00Z', mode: 'especes', reference: null, type_paiement: 'acompte', agence_id: 'ag1' }],
   tranches: [
-    { id: 't1', plan_paiement_id: 'plan1', numero_tranche: 1, montant_prevu: 500000, date_echeance: '2026-02-01', statut: 'payee', paiements: [{ id: 'p1', tranche_id: 't1', montant_paye: 500000, mode: 'especes', reference: null, date_paiement: '2026-01-15T10:00:00Z' }] },
-    { id: 't2', plan_paiement_id: 'plan1', numero_tranche: 2, montant_prevu: 500000, date_echeance: '2026-03-01', statut: 'payee', paiements: [{ id: 'p2', tranche_id: 't2', montant_paye: 500000, mode: 'especes', reference: null, date_paiement: '2026-02-15T10:00:00Z' }] },
+    { id: 't1', plan_paiement_id: 'plan1', numero_tranche: 1, montant_prevu: 500000, date_echeance: '2026-02-01', statut: 'payee', paiements: [{ id: 'p1', tranche_id: 't1', montant_paye: 500000, mode: 'especes', reference: null, date_paiement: '2026-01-15T10:00:00Z', type_paiement: 'tranche', plan_paiement_id: 'plan1', agence_id: 'ag1' }] },
+    { id: 't2', plan_paiement_id: 'plan1', numero_tranche: 2, montant_prevu: 500000, date_echeance: '2026-03-01', statut: 'payee', paiements: [{ id: 'p2', tranche_id: 't2', montant_paye: 500000, mode: 'especes', reference: null, date_paiement: '2026-02-15T10:00:00Z', type_paiement: 'tranche', plan_paiement_id: 'plan1', agence_id: 'ag1' }] },
   ],
 }
 
@@ -33,10 +37,14 @@ const planNonSolde = {
   agence_id: 'ag1',
   pelerin_id: 'pel1',
   montant_total: 1000000,
+  montant_acompte: 400000,
+  date_limite_solde: '2026-03-16',
+  statut: 'en_cours',
   nombre_tranches: 2,
   created_at: '2026-01-01T00:00:00Z',
+  acomptes: [],
   tranches: [
-    { id: 't1', plan_paiement_id: 'plan1', numero_tranche: 1, montant_prevu: 500000, date_echeance: '2026-02-01', statut: 'payee', paiements: [{ id: 'p1', tranche_id: 't1', montant_paye: 500000, mode: 'especes', reference: null, date_paiement: '2026-01-15T10:00:00Z' }] },
+    { id: 't1', plan_paiement_id: 'plan1', numero_tranche: 1, montant_prevu: 500000, date_echeance: '2026-02-01', statut: 'payee', paiements: [{ id: 'p1', tranche_id: 't1', montant_paye: 500000, mode: 'especes', reference: null, date_paiement: '2026-01-15T10:00:00Z', type_paiement: 'tranche', plan_paiement_id: 'plan1', agence_id: 'ag1' }] },
     { id: 't2', plan_paiement_id: 'plan1', numero_tranche: 2, montant_prevu: 500000, date_echeance: '2026-03-01', statut: 'a_venir', paiements: [] },
   ],
 }
@@ -77,9 +85,9 @@ beforeEach(() => {
 })
 
 describe('PlanPaiementSection', () => {
-  it('affiche le badge « Plan soldé » et aucun bouton Encaisser quand le plan est soldé', async () => {
+  it('affiche le badge « Soldé » et aucun bouton Encaisser quand le plan est soldé', async () => {
     rendre(planSolde)
-    expect(await screen.findByText('Plan soldé')).toBeInTheDocument()
+    expect(await screen.findByText('Soldé')).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Encaisser' })).not.toBeInTheDocument()
   })
 
@@ -126,6 +134,60 @@ describe('PlanPaiementSection', () => {
     fireEvent.change(await screen.findByLabelText('Montant (FCFA)'), { target: { value: '200000' } })
     fireEvent.click(screen.getAllByRole('button', { name: 'Encaisser' })[1])
     expect(await screen.findByText('Encaissement impossible. Le plan de paiement est soldé ou le montant dépasse le reste dû.')).toBeInTheDocument()
+  })
+
+  it('affiche le badge statut du plan et la date limite du solde', async () => {
+    rendre({ ...planNonSolde, statut: 'en_retard', date_limite_solde: '2026-01-01' })
+    expect(await screen.findByText('En retard')).toBeInTheDocument()
+    expect(screen.getByText((_, node) => node?.textContent === 'Solde à régler avant le 01/01/2026')).toBeInTheDocument()
+  })
+
+  it('affiche le badge « Acompte en attente » quand l’acompte n’est pas payé', async () => {
+    rendre({ ...planNonSolde, statut: 'acompte_en_attente', montant_acompte: 400000 })
+    expect(await screen.findByText('Acompte en attente')).toBeInTheDocument()
+  })
+
+  it('encaissement de l’acompte : payload avec type_paiement acompte et tranche_id null', async () => {
+    rendre({ ...planNonSolde, montant_acompte: 400000 })
+    fireEvent.click(await screen.findByRole('button', { name: 'Encaisser l’acompte' }))
+    const champ = await screen.findByLabelText('Montant (FCFA)')
+    expect(champ).toHaveAttribute('max', '400000')
+    fireEvent.change(champ, { target: { value: '400000' } })
+    fireEvent.click(screen.getAllByRole('button', { name: 'Encaisser' })[1])
+    await waitFor(() => {
+      expect(insertPaiement).toHaveBeenCalled()
+    })
+    const [ligne] = insertPaiement.mock.calls[0]
+    expect(ligne).toMatchObject({
+      agence_id: 'ag1',
+      tranche_id: null,
+      plan_paiement_id: 'plan1',
+      montant_paye: 400000,
+      type_paiement: 'acompte',
+    })
+  })
+
+  it('le payé inclut l’acompte : plan soldé avec acompte + tranches payées', async () => {
+    rendre({
+      ...planNonSolde,
+      statut: 'solde',
+      montant_acompte: 400000,
+      acomptes: [{ id: 'ac1', tranche_id: null, plan_paiement_id: 'plan1', montant_paye: 400000, date_paiement: '2026-01-15T10:00:00Z', mode: 'especes', reference: null, type_paiement: 'acompte', agence_id: 'ag1' }],
+      tranches: [
+        planNonSolde.tranches[0],
+        { ...planNonSolde.tranches[1], paiements: [{ id: 'p3', tranche_id: 't2', montant_paye: 100000, mode: 'especes', reference: null, date_paiement: '2026-02-01T10:00:00Z', type_paiement: 'tranche', plan_paiement_id: 'plan1', agence_id: 'ag1' }] },
+      ],
+    })
+    expect(await screen.findByText('Soldé')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Encaisser' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Encaisser l’acompte' })).not.toBeInTheDocument()
+  })
+
+  it('plafonne l’encaissement de tranche au reste du plan incluant l’acompte', async () => {
+    rendre({ ...planNonSolde, montant_acompte: 400000 })
+    fireEvent.click((await screen.findAllByRole('button', { name: 'Encaisser' }))[0])
+    const champ = await screen.findByLabelText('Montant (FCFA)')
+    expect(champ).toHaveAttribute('max', '500000')
   })
 
   it('pré-remplit l’acompte et la date limite selon le groupe (Hajj)', async () => {
