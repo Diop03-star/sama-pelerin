@@ -70,6 +70,9 @@ create table public.plans_paiement (
   agence_id uuid not null references public.agences(id) on delete cascade,
   pelerin_id uuid not null unique references public.pelerins(id) on delete cascade,
   montant_total numeric(12,0) not null check (montant_total >= 0),
+  montant_acompte numeric(12,0) not null default 0 check (montant_acompte >= 0),
+  date_limite_solde date,
+  statut text not null default 'en_cours' check (statut in ('acompte_en_attente','en_cours','en_retard','solde')),
   devise text not null default 'FCFA',
   nombre_tranches int not null default 1,
   created_at timestamptz not null default now()
@@ -89,9 +92,11 @@ create table public.tranches (
 create table public.paiements (
   id uuid primary key default gen_random_uuid(),
   agence_id uuid not null references public.agences(id) on delete cascade,
-  tranche_id uuid not null references public.tranches(id) on delete cascade,
+  tranche_id uuid references public.tranches(id) on delete cascade,
+  plan_paiement_id uuid references public.plans_paiement(id) on delete cascade,
   montant_paye numeric(12,0) not null check (montant_paye >= 0),
   date_paiement timestamptz not null default now(),
+  type_paiement text not null default 'tranche' check (type_paiement in ('acompte','tranche')),
   mode text not null default 'especes' check (mode in ('especes','wave','orange_money','virement','autre')),
   reference text,
   enregistre_par uuid references public.utilisateurs(id)
@@ -171,6 +176,9 @@ returns trigger language plpgsql security definer set search_path = public as $$
 declare
   v_id uuid; v_verse numeric; v_prevu numeric; v_echeance date; v_statut text;
 begin
+  if coalesce(new.type_paiement, old.type_paiement) = 'acompte' then
+    return coalesce(new, old);
+  end if;
   v_id := coalesce(new.tranche_id, old.tranche_id);
   select coalesce(sum(p.montant_paye), 0), t.montant_prevu, t.date_echeance
     into v_verse, v_prevu, v_echeance
@@ -207,26 +215,73 @@ begin
   return coalesce(new, old);
 end $$;
 
+-- Recalcule le statut du plan de paiement après modification des paiements
+create or replace function public.trg_maj_statut_plan()
+returns trigger language plpgsql security definer set search_path = public as $$
+declare
+  v_plan_id uuid;
+  v_acompte numeric; v_acompte_paye numeric; v_total numeric; v_paye numeric;
+  v_limite date; v_statut text;
+begin
+  if tg_table_name = 'plans_paiement' then
+    v_plan_id := new.id;
+  elsif coalesce(new.type_paiement, old.type_paiement) = 'acompte' then
+    v_plan_id := coalesce(new.plan_paiement_id, old.plan_paiement_id);
+  else
+    select t.plan_paiement_id into v_plan_id from public.tranches t where t.id = coalesce(new.tranche_id, old.tranche_id);
+  end if;
+  if v_plan_id is null then
+    return coalesce(new, old);
+  end if;
+  select p.montant_acompte, p.montant_total, p.date_limite_solde
+    into v_acompte, v_total, v_limite
+    from public.plans_paiement p where p.id = v_plan_id;
+  select coalesce(sum(pay.montant_paye), 0)
+    into v_acompte_paye
+    from public.paiements pay
+    where pay.type_paiement = 'acompte' and pay.plan_paiement_id = v_plan_id;
+  select coalesce(sum(pay.montant_paye), 0)
+    into v_paye
+    from public.paiements pay
+    where pay.type_paiement = 'acompte' and pay.plan_paiement_id = v_plan_id
+       or pay.tranche_id in (select id from public.tranches where plan_paiement_id = v_plan_id);
+  if v_acompte > 0 and v_acompte_paye < v_acompte then v_statut := 'acompte_en_attente';
+  elsif v_paye >= v_total then v_statut := 'solde';
+  elsif v_limite is not null and v_limite < current_date then v_statut := 'en_retard';
+  else v_statut := 'en_cours';
+  end if;
+  update public.plans_paiement set statut = v_statut where id = v_plan_id;
+  return coalesce(new, old);
+end $$;
+
 -- Refuse un encaissement qui ferait dépasser le montant total du plan (plan soldé ou montant excédentaire)
 create or replace function public.bloquer_encaissement_excedent()
 returns trigger language plpgsql security definer set search_path = public as $$
 declare
   v_plan_id uuid; v_plan_total numeric; v_paye numeric;
 begin
-  select t.plan_paiement_id, p.montant_total
-    into v_plan_id, v_plan_total
-    from public.tranches t
-    join public.plans_paiement p on p.id = t.plan_paiement_id
-    where t.id = new.tranche_id
-    for update of p;
+  if coalesce(new.type_paiement, old.type_paiement) = 'acompte' then
+    select p.id, p.montant_total
+      into v_plan_id, v_plan_total
+      from public.plans_paiement p
+      where p.id = new.plan_paiement_id
+      for update of p;
+  else
+    select t.plan_paiement_id, p.montant_total
+      into v_plan_id, v_plan_total
+      from public.tranches t
+      join public.plans_paiement p on p.id = t.plan_paiement_id
+      where t.id = new.tranche_id
+      for update of p;
+  end if;
   if v_plan_id is null then
     raise exception 'Tranche inconnue.';
   end if;
   select coalesce(sum(pay.montant_paye), 0)
     into v_paye
     from public.paiements pay
-    join public.tranches t2 on t2.id = pay.tranche_id
-    where t2.plan_paiement_id = v_plan_id;
+    where pay.type_paiement = 'acompte' and pay.plan_paiement_id = v_plan_id
+       or pay.tranche_id in (select id from public.tranches where plan_paiement_id = v_plan_id);
   if v_paye + new.montant_paye > v_plan_total then
     raise exception 'Encaissement refusé : le plan de paiement est soldé ou le montant dépasse le reste dû.';
   end if;
@@ -245,6 +300,14 @@ create trigger trg_paiement_maj_tranche
 create trigger bloquer_encaissement_excedent
   before insert on public.paiements
   for each row execute function public.bloquer_encaissement_excedent();
+
+create trigger trg_paiement_maj_plan
+  after insert or update or delete on public.paiements
+  for each row execute function public.trg_maj_statut_plan();
+
+create trigger trg_plan_maj_plan
+  after insert on public.plans_paiement
+  for each row execute function public.trg_maj_statut_plan();
 
 create trigger trg_document_maj_dossier
   after insert or update or delete on public.documents

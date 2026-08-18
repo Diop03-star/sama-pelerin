@@ -528,12 +528,20 @@ returns trigger language plpgsql security definer set search_path = public as $$
 declare
   v_plan_id uuid; v_plan_total numeric; v_paye numeric;
 begin
-  select t.plan_paiement_id, p.montant_total
-    into v_plan_id, v_plan_total
-    from public.tranches t
-    join public.plans_paiement p on p.id = t.plan_paiement_id
-    where t.id = new.tranche_id
-    for update of p;
+  if coalesce(new.type_paiement, old.type_paiement) = 'acompte' then
+    select p.id, p.montant_total
+      into v_plan_id, v_plan_total
+      from public.plans_paiement p
+      where p.id = new.plan_paiement_id
+      for update of p;
+  else
+    select t.plan_paiement_id, p.montant_total
+      into v_plan_id, v_plan_total
+      from public.tranches t
+      join public.plans_paiement p on p.id = t.plan_paiement_id
+      where t.id = new.tranche_id
+      for update of p;
+  end if;
   if v_plan_id is null then
     raise exception 'Tranche inconnue.';
   end if;
