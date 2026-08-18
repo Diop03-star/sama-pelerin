@@ -79,9 +79,9 @@ export interface Tutos {
 
 ```sql
 insert into public.tutos (id, titre, description, url_youtube, ordre, actif) values
-  ('a0000000-0000-4000-8000-000000000001', 'Créer un plan de paiement', 'Ajoutez un plan échelonné à un pèlerin en quelques clics.', 'https://www.youtube.com/watch?v=dQw4w9WgXcQ', 1, true),
-  ('a0000000-0000-4000-8000-000000000002', 'Encaisser un versement', 'Enregistrez un acompte ou une tranche, en espèces ou mobile money.', 'https://youtu.be/dQw4w9WgXcQ', 2, true),
-  ('a0000000-0000-4000-8000-000000000003', 'Gérer les documents', 'Suivez passeports, visas et certificats de vaccination.', 'https://www.youtube.com/watch?v=dQw4w9WgXcQ', 3, false);
+  ('a0000000-0000-4000-8000-000000000001', 'Creer un plan de paiement', 'Ajoutez un plan echelonne a un pelerin en quelques clics.', 'https://www.youtube.com/watch?v=dQw4w9WgXcQ', 1, true),
+  ('a0000000-0000-4000-8000-000000000002', 'Encaisser un versement', 'Enregistrez un acompte ou une tranche, en especes ou mobile money.', 'https://youtu.be/dQw4w9WgXcQ', 2, true),
+  ('a0000000-0000-4000-8000-000000000003', 'Gerer les documents', 'Suivez passeports, visas et certificats de vaccination.', 'https://www.youtube.com/watch?v=dQw4w9WgXcQ', 3, false);
 ```
 
 - [ ] **Step 5: Vérifier par grep**
