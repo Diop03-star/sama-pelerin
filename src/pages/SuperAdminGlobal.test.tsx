@@ -27,6 +27,7 @@ const paiements = [
   { montant_paye: 400000, tranche: { plan_paiement: { pelerin: { agence_id: 'a1' } } } },
   { montant_paye: 100000, tranche: { plan_paiement: { pelerin: { agence_id: 'a1' } } } },
   { montant_paye: 50000, tranche: { plan_paiement: { pelerin: { agence_id: 'a2' } } } },
+  { montant_paye: 300000, tranche: null, acompte: { pelerin: { agence_id: 'a1' } } },
 ]
 
 const queryClient = new QueryClient()
@@ -53,10 +54,22 @@ describe('SuperAdminGlobal', () => {
     )
     expect(await screen.findByText('Vue d’ensemble')).toBeInTheDocument()
     expect(screen.getAllByText('12').length).toBeGreaterThan(0)
-    expect(screen.getByText('550 000')).toBeInTheDocument()
-    expect(screen.getByText('500 000 FCFA')).toBeInTheDocument()
+    expect(screen.getByText('850 000')).toBeInTheDocument()
+    expect(screen.getByText('800 000 FCFA')).toBeInTheDocument()
     expect(screen.getByText('Al Hidjah')).toBeInTheDocument()
     expect(screen.getByText((_, el) => el?.textContent === '2 attente / 1 échec')).toBeInTheDocument()
+  })
+
+  it('compte les acomptes dans les encaissements par agence', async () => {
+    render(
+      <QueryClientProvider client={queryClient}>
+        <MemoryRouter>
+          <SuperAdminGlobal />
+        </MemoryRouter>
+      </QueryClientProvider>
+    )
+    await screen.findByText('Vue d’ensemble')
+    expect(screen.getByText('850 000')).toBeInTheDocument()
   })
 
   it("affiche un badge Désactivée pour une agence inactive", async () => {

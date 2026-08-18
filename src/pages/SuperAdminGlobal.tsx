@@ -13,6 +13,7 @@ import FiltrePeriode from '../components/ui/FiltrePeriode'
 interface PaiementAgence {
   montant_paye: number
   tranche: { plan_paiement: { pelerin: { agence_id: string } | null } | null } | null
+  acompte: { pelerin: { agence_id: string } | null } | null
 }
 
 export default function SuperAdminGlobal() {
@@ -32,7 +33,7 @@ export default function SuperAdminGlobal() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('paiements')
-        .select('montant_paye, tranche:tranches(plan_paiement:plans_paiement(pelerin:pelerins(agence_id)))')
+        .select('montant_paye, tranche:tranches(plan_paiement:plans_paiement(pelerin:pelerins(agence_id))), acompte:plans_paiement!plan_paiement_id(pelerin:pelerins(agence_id))')
         .gte('date_paiement', debutPeriode(periode).toISOString())
       if (error) throw error
       return (data ?? []) as unknown as PaiementAgence[]
@@ -41,7 +42,7 @@ export default function SuperAdminGlobal() {
 
   const encaissesParAgence = new Map<string, number>()
   for (const p of paiements) {
-    const agenceId = p.tranche?.plan_paiement?.pelerin?.agence_id
+    const agenceId = p.tranche?.plan_paiement?.pelerin?.agence_id ?? p.acompte?.pelerin?.agence_id
     if (!agenceId) continue
     encaissesParAgence.set(agenceId, (encaissesParAgence.get(agenceId) ?? 0) + p.montant_paye)
   }
