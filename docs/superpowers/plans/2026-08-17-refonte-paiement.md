@@ -523,6 +523,7 @@ begin
   return coalesce(new, old);
 end $$;
 
+-- Refuse un encaissement qui ferait dépasser le montant total du plan (plan soldé ou montant excédentaire)
 create or replace function public.bloquer_encaissement_excedent()
 returns trigger language plpgsql security definer set search_path = public as $$
 declare
@@ -601,6 +602,10 @@ create trigger trg_paiement_maj_plan
 create trigger trg_plan_maj_plan
   after insert on public.plans_paiement
   for each row execute function public.trg_maj_statut_plan();
+
+-- (optionnel) backfill des plans déjà soldés
+update public.plans_paiement p set statut = 'solde'
+where coalesce((select sum(pay.montant_paye) from public.paiements pay where pay.type_paiement = 'acompte' and pay.plan_paiement_id = p.id or pay.tranche_id in (select id from public.tranches where plan_paiement_id = p.id)), 0) >= p.montant_total;
 ```
 
 **Cas de test manuel (base live) :** créer un plan avec `montant_acompte > 0` → statut `acompte_en_attente` ; encaisser l'acompte intégralement → `en_cours` (si date limite future) ; solder toutes les tranches → `solde` ; passer la date limite avec un reste → `en_retard` (déclencher en testant une date passée).
@@ -1281,7 +1286,7 @@ describe('Paiements', () => {
   it('affiche le badge statut du plan et l’encart « solde à régler »', async () => {
     rendre()
     expect(await screen.findByText('En retard')).toBeInTheDocument()
-    expect(screen.getByText('1 plan(s) à solde à régler')).toBeInTheDocument()
+    expect(screen.getByText('1 plan(s) dont le solde est à régler')).toBeInTheDocument()
   })
 
   it('les totaux incluent les acomptes', async () => {
@@ -1335,7 +1340,7 @@ et dans le corps de `plans.map` (ligne 97) :
 ```tsx
       {plans.some((p) => p.statut === 'en_retard') && (
         <div className="rounded-r-lg border-l-4 border-error bg-error-container/20 p-4">
-          <p className="text-headline-sm text-error">{plans.filter((p) => p.statut === 'en_retard').length} plan(s) à solde à régler</p>
+          <p className="text-headline-sm text-error">{plans.filter((p) => p.statut === 'en_retard').length} plan(s) dont le solde est à régler</p>
           <ul className="text-body-md mt-1 text-on-surface-variant">
             {plans.filter((p) => p.statut === 'en_retard').map((p) => (
               <li key={p.id}>

@@ -43,12 +43,30 @@ const planSansAcompte = {
   acomptes: [],
 }
 
-function rendre() {
+const planDateLimitePassee = {
+  id: 'plan3',
+  agence_id: 'ag1',
+  pelerin_id: 'pel3',
+  montant_total: 800000,
+  montant_acompte: 200000,
+  date_limite_solde: '2026-01-01',
+  statut: 'en_cours',
+  nombre_tranches: 2,
+  created_at: '2026-01-01T00:00:00Z',
+  pelerin: { id: 'pel3', prenom: 'Moussa', nom: 'Diop', telephone: '770000001' },
+  tranches: [
+    { id: 't4', plan_paiement_id: 'plan3', numero_tranche: 1, montant_prevu: 300000, date_echeance: '2026-02-01', statut: 'a_venir', paiements: [] },
+    { id: 't5', plan_paiement_id: 'plan3', numero_tranche: 2, montant_prevu: 300000, date_echeance: '2026-03-01', statut: 'a_venir', paiements: [] },
+  ],
+  acomptes: [{ id: 'ac2', tranche_id: null, plan_paiement_id: 'plan3', montant_paye: 200000, date_paiement: '2026-01-10T10:00:00Z', mode: 'especes', reference: null, type_paiement: 'acompte', agence_id: 'ag1' }],
+}
+
+function rendre(plans: unknown[] = [planAvecAcompte, planSansAcompte]) {
   const queryClient = new QueryClient()
   mockSupabase.from.mockImplementation((table: string) => {
     if (table === 'plans_paiement') {
       return {
-        select: () => ({ order: () => Promise.resolve({ data: [planAvecAcompte, planSansAcompte], error: null }) }),
+        select: () => ({ order: () => Promise.resolve({ data: plans, error: null }) }),
       }
     }
     return { select: () => Promise.resolve({ data: [], error: null }) }
@@ -74,5 +92,11 @@ describe('Paiements', () => {
     expect(await screen.findByText('1 500 000 FCFA')).toBeInTheDocument()
     expect(screen.getByText('Total encaissé').nextElementSibling?.textContent).toBe('500 000 FCFA')
     expect(screen.getByText('1 000 000 FCFA')).toBeInTheDocument()
+  })
+
+  it('l’encart « solde à régler » inclut les plans à date limite passée même en statut en_cours', async () => {
+    rendre([planAvecAcompte, planSansAcompte, planDateLimitePassee])
+    expect(await screen.findByText('2 plan(s) dont le solde est à régler')).toBeInTheDocument()
+    expect(screen.getByText('Moussa Diop — reste 600 000 FCFA, limite le 01/01/2026.')).toBeInTheDocument()
   })
 })

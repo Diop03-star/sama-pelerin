@@ -40,6 +40,15 @@ export default function Paiements() {
     .flatMap((p) => p.tranches.map((t) => ({ p, t })))
     .filter(({ t }) => (statutFiltre === 'en_retard' ? t.statut === 'en_retard' : true))
 
+  const aujourdhui = new Date().toISOString().slice(0, 10)
+
+  const plansSoldeARegler = plans.filter((p) => {
+    const paye = p.tranches.reduce((s, t) => s + t.paiements.reduce((x, y) => x + y.montant_paye, 0), 0)
+      + p.acomptes.reduce((s, a) => s + a.montant_paye, 0)
+    const reste = p.montant_total - paye
+    return p.statut === 'en_retard' || (p.date_limite_solde !== null && p.date_limite_solde < aujourdhui && reste > 0)
+  })
+
   const totals = plans.reduce(
     (acc, p) => {
       const paye = p.tranches.reduce((s, t) => s + t.paiements.reduce((x, y) => x + y.montant_paye, 0), 0)
@@ -81,11 +90,11 @@ export default function Paiements() {
         </div>
       )}
 
-      {plans.some((p) => p.statut === 'en_retard') && (
+      {plansSoldeARegler.length > 0 && (
         <div className="rounded-r-lg border-l-4 border-error bg-error-container/20 p-4">
-          <p className="text-headline-sm text-error">{plans.filter((p) => p.statut === 'en_retard').length} plan(s) dont le solde est à régler</p>
+          <p className="text-headline-sm text-error">{plansSoldeARegler.length} plan(s) dont le solde est à régler</p>
           <ul className="text-body-md mt-1 text-on-surface-variant">
-            {plans.filter((p) => p.statut === 'en_retard').map((p) => (
+            {plansSoldeARegler.map((p) => (
               <li key={p.id}>
                 {p.pelerin.prenom} {p.pelerin.nom} — reste {formatFCFA(p.montant_total - (p.tranches.reduce((s, t) => s + t.paiements.reduce((x, y) => x + y.montant_paye, 0), 0) + p.acomptes.reduce((s, a) => s + a.montant_paye, 0)))}, limite le {formatDate(p.date_limite_solde)}.
               </li>

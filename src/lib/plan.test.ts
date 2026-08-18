@@ -78,8 +78,8 @@ describe('genererEcheancier', () => {
   })
 
   it('répartit un reste non divisible', () => {
-    const tranches = genererEcheancier(1000000, 100000, 3, '2026-02-01', '2026-04-15')
-    expect(tranches.map((t) => t.montant_prevu)).toEqual([300000, 300000, 300000])
+    const tranches = genererEcheancier(1000000, 200000, 3, '2026-02-01', '2026-04-15')
+    expect(tranches.map((t) => t.montant_prevu)).toEqual([266666, 266666, 266668])
   })
 
   it('retourne un échéancier vide si aucun montant à répartir', () => {
