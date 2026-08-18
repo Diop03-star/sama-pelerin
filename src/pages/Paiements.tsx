@@ -1,7 +1,7 @@
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { supabase } from '../lib/supabase'
-import { LIBELLES_TRANCHE, TONE_TRANCHE, formatDate, formatFCFA } from '../lib/format'
+import { LIBELLES_STATUT_PLAN, LIBELLES_TRANCHE, TONE_STATUT_PLAN, TONE_TRANCHE, formatDate, formatFCFA } from '../lib/format'
 import type { Paiement, PlanPaiement, Tranche } from '../lib/types'
 import Icon from '../components/ui/Icon'
 import StatCard from '../components/ui/StatCard'
@@ -13,6 +13,7 @@ import EmptyState from '../components/ui/EmptyState'
 interface PlanEcheancier extends PlanPaiement {
   pelerin: { id: string; prenom: string; nom: string; telephone: string }
   tranches: (Tranche & { paiements: Paiement[] })[]
+  acomptes: Paiement[]
 }
 
 export default function Paiements() {
@@ -25,7 +26,7 @@ export default function Paiements() {
     queryFn: async () => {
       const { data } = await supabase
         .from('plans_paiement')
-        .select('*, pelerin:pelerins(id, prenom, nom, telephone), tranches(*, paiements(*))')
+        .select('*, pelerin:pelerins(id, prenom, nom, telephone), tranches(*, paiements(*)), acomptes:paiements!plan_paiement_id(*)')
         .order('created_at', { ascending: false })
       return data as unknown as PlanEcheancier[]
     },
@@ -42,6 +43,7 @@ export default function Paiements() {
   const totals = plans.reduce(
     (acc, p) => {
       const paye = p.tranches.reduce((s, t) => s + t.paiements.reduce((x, y) => x + y.montant_paye, 0), 0)
+        + p.acomptes.reduce((s, a) => s + a.montant_paye, 0)
       return { total: acc.total + p.montant_total, paye: acc.paye + paye }
     },
     { total: 0, paye: 0 }
@@ -79,6 +81,19 @@ export default function Paiements() {
         </div>
       )}
 
+      {plans.some((p) => p.statut === 'en_retard') && (
+        <div className="rounded-r-lg border-l-4 border-error bg-error-container/20 p-4">
+          <p className="text-headline-sm text-error">{plans.filter((p) => p.statut === 'en_retard').length} plan(s) dont le solde est à régler</p>
+          <ul className="text-body-md mt-1 text-on-surface-variant">
+            {plans.filter((p) => p.statut === 'en_retard').map((p) => (
+              <li key={p.id}>
+                {p.pelerin.prenom} {p.pelerin.nom} — reste {formatFCFA(p.montant_total - (p.tranches.reduce((s, t) => s + t.paiements.reduce((x, y) => x + y.montant_paye, 0), 0) + p.acomptes.reduce((s, a) => s + a.montant_paye, 0)))}, limite le {formatDate(p.date_limite_solde)}.
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
       <div className="overflow-hidden rounded-xl border border-outline-variant bg-surface-container-lowest shadow-sm">
         <div className="overflow-x-auto">
           <table className="w-full text-body-md">
@@ -95,6 +110,7 @@ export default function Paiements() {
             <tbody>
               {plans.map((p) => {
                 const paye = p.tranches.reduce((s, t) => s + t.paiements.reduce((x, y) => x + y.montant_paye, 0), 0)
+                  + p.acomptes.reduce((s, a) => s + a.montant_paye, 0)
                 const reste = p.montant_total - paye
                 const progression = p.montant_total > 0 ? Math.round((paye / p.montant_total) * 100) : 0
                 const retard = p.tranches.filter((t) => t.statut === 'en_retard').length
@@ -118,7 +134,10 @@ export default function Paiements() {
                       </div>
                     </td>
                     <td className="px-4 py-4 text-right">
-                      {retard > 0 && <Badge tone="rouge">{retard} en retard</Badge>}
+                      <div className="flex items-center justify-end gap-2">
+                        <Badge tone={TONE_STATUT_PLAN[p.statut]}>{LIBELLES_STATUT_PLAN[p.statut]}</Badge>
+                        {retard > 0 && <Badge tone="rouge">{retard} en retard</Badge>}
+                      </div>
                     </td>
                   </tr>
                 )
