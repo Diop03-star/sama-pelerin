@@ -276,6 +276,9 @@ begin
   return coalesce(new, old);
 end $$;
 
+-- drop obligatoire : create or replace ne peut pas changer le type de retour
+-- (returns table) d'une fonction existante (erreur 42P13)
+drop function if exists public.stats_globales();
 create or replace function public.stats_globales()
 returns table (
   agence_id uuid, agence_nom text, agence_active boolean,
@@ -816,6 +819,9 @@ begin
   return coalesce(new, old);
 end $$;
 
+-- drop obligatoire : create or replace ne peut pas changer le type de retour
+-- (returns table) d'une fonction existante (erreur 42P13)
+drop function if exists public.stats_globales();
 create or replace function public.stats_globales()
 returns table (
   agence_id uuid, agence_nom text, agence_active boolean,
