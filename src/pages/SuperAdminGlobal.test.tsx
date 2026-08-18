@@ -15,7 +15,7 @@ vi.mock('../lib/supabase', () => ({ supabase: mockSupabase }))
 const fixture: Array<Record<string, unknown>> = [
   {
     agence_id: 'a1', agence_nom: 'Al Hidjah', agence_active: true,
-    pelerins_total: 12, dossiers_valides: 4, dossiers_complets: 3, dossiers_incomplets: 5,
+    pelerins_total: 12, dossiers_valides: 4, dossiers_incomplets: 5,
     groupes_total: 2, places_restantes: 8,
     gerants: 1, agents: 2,
     encaissements_total: 1500000, encaissements_30j: 400000,

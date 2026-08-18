@@ -158,7 +158,6 @@ export default function Pelerins() {
         <Select value={statutFiltre} onChange={(e) => setParams(e.target.value ? { statut: e.target.value } : {})} className="max-w-xs">
           <option value="">Tous les statuts</option>
           <option value="valide">Validé</option>
-          <option value="complet">Complet</option>
           <option value="incomplet">Incomplet</option>
         </Select>
       </div>

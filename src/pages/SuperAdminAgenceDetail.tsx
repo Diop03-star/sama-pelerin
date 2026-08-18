@@ -100,8 +100,6 @@ export default function SuperAdminAgenceDetail() {
             <span className="text-body-md text-on-surface">
               <span className="text-vert">{s.dossiers_valides} valides</span>
               <span className="text-on-surface-variant"> · </span>
-              <span className="text-ambre">{s.dossiers_complets} complets</span>
-              <span className="text-on-surface-variant"> · </span>
               {s.dossiers_incomplets} incomplets
             </span>
           }

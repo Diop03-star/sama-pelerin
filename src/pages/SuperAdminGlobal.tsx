@@ -115,8 +115,6 @@ export default function SuperAdminGlobal() {
                   <td className="px-4 py-4">{s.pelerins_total}</td>
                   <td className="px-4 py-4">
                     <span className="text-vert">{s.dossiers_valides} valides</span>
-                    <span className="text-on-surface-variant"> · </span>
-                    <span className="text-ambre">{s.dossiers_complets} complets</span>
                     <span className="text-on-surface-variant"> · {s.dossiers_incomplets} incomplets</span>
                   </td>
                   <td className="px-4 py-4">{s.groupes_total} groupes · {s.places_restantes} places libres</td>

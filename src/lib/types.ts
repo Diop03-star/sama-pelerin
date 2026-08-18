@@ -60,7 +60,7 @@ export interface Invitation {
 
 export interface StatsAgence {
   agence_id: string; agence_nom: string; agence_active: boolean
-  pelerins_total: number; dossiers_valides: number; dossiers_complets: number; dossiers_incomplets: number
+  pelerins_total: number; dossiers_valides: number; dossiers_incomplets: number
   groupes_total: number; places_restantes: number
   gerants: number; agents: number
   encaissements_total: number; encaissements_30j: number
