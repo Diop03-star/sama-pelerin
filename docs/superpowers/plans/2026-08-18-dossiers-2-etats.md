@@ -242,6 +242,19 @@ end $$;
 ## SQL live à exécuter (SQL editor Supabase)
 
 ```sql
+-- backfill d'abord : les dossiers « complet » existants (produits par l'ancien trigger)
+-- feraient échouer l'ajout de contrainte (validation immédiate sur les lignes présentes).
+-- Le backfill n'écrit que 'valide'/'incomplet', légaux sous l'ancienne contrainte,
+-- et le trigger ne se déclenche que sur documents (pas pelerins), donc aucune interférence.
+update public.pelerins pel set statut_dossier = case
+  when (select count(distinct type_document)
+        from public.documents d
+        where d.pelerin_id = pel.id
+          and d.type_document in ('passeport','visa','certificat_vaccination','photo')
+          and d.statut = 'valide') = 4
+  then 'valide' else 'incomplet'
+end;
+
 alter table public.pelerins drop constraint if exists pelerins_statut_dossier_check;
 alter table public.pelerins add constraint pelerins_statut_dossier_check check (statut_dossier in ('incomplet','valide'));
 
@@ -769,6 +782,19 @@ Annoncer que le bloc « SQL live à exécuter » (section dédiée de ce plan) d
 ## SQL live à exécuter (SQL editor Supabase)
 
 ```sql
+-- backfill d'abord : les dossiers « complet » existants (produits par l'ancien trigger)
+-- feraient échouer l'ajout de contrainte (validation immédiate sur les lignes présentes).
+-- Le backfill n'écrit que 'valide'/'incomplet', légaux sous l'ancienne contrainte,
+-- et le trigger ne se déclenche que sur documents (pas pelerins), donc aucune interférence.
+update public.pelerins pel set statut_dossier = case
+  when (select count(distinct type_document)
+        from public.documents d
+        where d.pelerin_id = pel.id
+          and d.type_document in ('passeport','visa','certificat_vaccination','photo')
+          and d.statut = 'valide') = 4
+  then 'valide' else 'incomplet'
+end;
+
 alter table public.pelerins drop constraint if exists pelerins_statut_dossier_check;
 alter table public.pelerins add constraint pelerins_statut_dossier_check check (statut_dossier in ('incomplet','valide'));
 
@@ -860,14 +886,4 @@ begin
   ) rs on rs.agence_id = a.id
   order by a.nom;
 end $$;
-
--- backfill des dossiers existants (le statut « complet » disparaît)
-update public.pelerins pel set statut_dossier = case
-  when (select count(distinct type_document)
-        from public.documents d
-        where d.pelerin_id = pel.id
-          and d.type_document in ('passeport','visa','certificat_vaccination','photo')
-          and d.statut = 'valide') = 4
-  then 'valide' else 'incomplet'
-end;
 ```
