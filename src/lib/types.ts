@@ -1,6 +1,6 @@
 export type Role = 'superadmin' | 'gerant' | 'agent'
 export type TypeVoyage = 'hajj' | 'omra'
-export type StatutDossier = 'incomplet' | 'complet' | 'valide'
+export type StatutDossier = 'incomplet' | 'valide'
 export type TypeDocument = 'passeport' | 'visa' | 'certificat_vaccination' | 'photo' | 'autre'
 export type StatutDocument = 'manquant' | 'soumis' | 'valide' | 'rejete'
 export type StatutTranche = 'a_venir' | 'payee' | 'partielle' | 'en_retard'

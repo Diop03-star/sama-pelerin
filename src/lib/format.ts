@@ -46,7 +46,6 @@ export const LIBELLES_DOC_STATUT: Record<string, string> = {
 
 export const LIBELLES_DOSSIER: Record<string, string> = {
   incomplet: 'Incomplet',
-  complet: 'Complet',
   valide: 'Validé',
 }
 
@@ -90,7 +89,6 @@ export const TONE_DOCUMENT: Record<string, string> = {
 
 export const TONE_DOSSIER: Record<string, string> = {
   incomplet: 'rouge',
-  complet: 'ambre',
   valide: 'vert',
 }
 

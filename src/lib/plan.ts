@@ -7,11 +7,24 @@ export interface TrancheDraft {
   date_echeance: string
 }
 
-export function statutDossierDepuisDocuments(statuts: string[]): 'incomplet' | 'complet' | 'valide' {
-  if (statuts.length === 0) return 'incomplet'
-  if (statuts.every((s) => s === 'valide')) return 'valide'
-  if (statuts.every((s) => s === 'soumis' || s === 'valide')) return 'complet'
-  return 'incomplet'
+export const TYPES_DOCUMENT_REQUIS = ['passeport', 'visa', 'certificat_vaccination', 'photo'] as const
+
+export function statutDossierDepuisDocuments(
+  documents: Array<{ type_document: string; statut: string }>
+): 'incomplet' | 'valide' {
+  const valides = new Set(
+    documents.filter((d) => d.statut === 'valide').map((d) => d.type_document)
+  )
+  return TYPES_DOCUMENT_REQUIS.every((t) => valides.has(t)) ? 'valide' : 'incomplet'
+}
+
+export function statutDocumentParType(
+  documents: Array<{ type_document: string; statut: string }>,
+  type: string
+): 'valide' | 'manquant' {
+  return documents.some((d) => d.type_document === type && d.statut === 'valide')
+    ? 'valide'
+    : 'manquant'
 }
 
 function joursDansMois(annee: number, mois: number): number {

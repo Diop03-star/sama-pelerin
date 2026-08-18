@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import {
   statutDossierDepuisDocuments,
+  statutDocumentParType,
   proposerAcompte,
   proposerDateLimite,
   genererEcheancier,
@@ -10,15 +11,56 @@ import {
 } from './plan'
 
 describe('statutDossierDepuisDocuments', () => {
-  it('retourne valide si tous les documents sont valides', () => {
-    expect(statutDossierDepuisDocuments(['valide', 'valide'])).toBe('valide')
+  const docs = (arr: Array<[string, string]>) =>
+    arr.map(([type_document, statut]) => ({ type_document, statut }))
+
+  it('retourne valide si les 4 types requis sont validés', () => {
+    expect(statutDossierDepuisDocuments(docs([
+      ['passeport', 'valide'], ['visa', 'valide'],
+      ['certificat_vaccination', 'valide'], ['photo', 'valide'],
+    ]))).toBe('valide')
   })
-  it('retourne complet si tous sont soumis ou valides', () => {
-    expect(statutDossierDepuisDocuments(['soumis', 'valide'])).toBe('complet')
+
+  it('retourne valide même si un document « autre » n’est pas validé', () => {
+    expect(statutDossierDepuisDocuments(docs([
+      ['passeport', 'valide'], ['visa', 'valide'],
+      ['certificat_vaccination', 'valide'], ['photo', 'valide'],
+      ['autre', 'manquant'],
+    ]))).toBe('valide')
   })
-  it('retourne incomplet sinon', () => {
-    expect(statutDossierDepuisDocuments(['manquant', 'valide'])).toBe('incomplet')
+
+  it('retourne incomplet si un type requis manque ou n’est pas validé', () => {
+    expect(statutDossierDepuisDocuments(docs([
+      ['passeport', 'valide'], ['visa', 'soumis'],
+      ['certificat_vaccination', 'valide'], ['photo', 'valide'],
+    ]))).toBe('incomplet')
+    expect(statutDossierDepuisDocuments(docs([
+      ['passeport', 'valide'], ['visa', 'valide'],
+    ]))).toBe('incomplet')
+  })
+
+  it('retourne incomplet sans aucun document', () => {
     expect(statutDossierDepuisDocuments([])).toBe('incomplet')
+  })
+})
+
+describe('statutDocumentParType', () => {
+  const docs = (arr: Array<[string, string]>) =>
+    arr.map(([type_document, statut]) => ({ type_document, statut }))
+
+  it('retourne valide si le type a un document validé', () => {
+    expect(statutDocumentParType(docs([
+      ['passeport', 'valide'], ['visa', 'soumis'],
+    ]), 'passeport')).toBe('valide')
+  })
+
+  it('retourne manquant si le type n’est pas validé ou absent', () => {
+    expect(statutDocumentParType(docs([
+      ['passeport', 'valide'], ['visa', 'soumis'],
+    ]), 'visa')).toBe('manquant')
+    expect(statutDocumentParType(docs([
+      ['passeport', 'valide'],
+    ]), 'photo')).toBe('manquant')
   })
 })
 
