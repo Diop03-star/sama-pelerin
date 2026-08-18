@@ -66,3 +66,8 @@ insert into public.paiements (id, agence_id, tranche_id, montant_paye, mode, ref
 insert into public.rappels (id, agence_id, tranche_id, document_id, canal, date_envoi_prevue, statut_envoi) values
   ('90000000-0000-4000-8000-000000000001', '10000000-0000-4000-8000-000000000001', '70000000-0000-4000-8000-000000000001', null, 'whatsapp', now() - interval '1 day', 'en_attente'),
   ('90000000-0000-4000-8000-000000000002', '10000000-0000-4000-8000-000000000002', null, '50000000-0000-4000-8000-000000000007', 'whatsapp', now(), 'en_attente');
+
+insert into public.tutos (id, titre, description, url_youtube, ordre, actif) values
+  ('a0000000-0000-4000-8000-000000000001', 'Créer un plan de paiement', 'Ajoutez un plan échelonné à un pèlerin en quelques clics.', 'https://www.youtube.com/watch?v=dQw4w9WgXcQ', 1, true),
+  ('a0000000-0000-4000-8000-000000000002', 'Encaisser un versement', 'Enregistrez un acompte ou une tranche, en espèces ou mobile money.', 'https://youtu.be/dQw4w9WgXcQ', 2, true),
+  ('a0000000-0000-4000-8000-000000000003', 'Gérer les documents', 'Suivez passeports, visas et certificats de vaccination.', 'https://www.youtube.com/watch?v=dQw4w9WgXcQ', 3, false);

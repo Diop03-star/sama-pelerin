@@ -66,3 +66,7 @@ export interface StatsAgence {
   encaissements_total: number; encaissements_30j: number
   tranches_en_retard: number; rappels_attente: number; rappels_echec: number
 }
+export interface Tutos {
+  id: string; titre: string; description: string | null
+  url_youtube: string; ordre: number; actif: boolean; created_at: string
+}

@@ -125,6 +125,16 @@ create table public.invitations (
   used_at timestamptz
 );
 
+create table public.tutos (
+  id uuid primary key default gen_random_uuid(),
+  titre text not null,
+  description text,
+  url_youtube text not null,
+  ordre int not null default 0,
+  actif boolean not null default true,
+  created_at timestamptz not null default now()
+);
+
 -- ---------- FONCTIONS ----------
 create or replace function public.current_agence_id()
 returns uuid language sql stable security definer set search_path = public as $$
@@ -400,6 +410,12 @@ alter table public.tranches enable row level security;
 alter table public.paiements enable row level security;
 alter table public.rappels enable row level security;
 alter table public.invitations enable row level security;
+alter table public.tutos enable row level security;
+
+create policy tutos_select on public.tutos for select using (true);
+create policy tutos_insert on public.tutos for insert with check (public.is_superadmin());
+create policy tutos_update on public.tutos for update using (public.is_superadmin());
+create policy tutos_delete on public.tutos for delete using (public.is_superadmin());
 
 create policy agences_select on public.agences for select
   using (id = public.current_agence_id() or public.is_superadmin());
