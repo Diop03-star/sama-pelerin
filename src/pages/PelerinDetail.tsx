@@ -13,7 +13,7 @@ import DocumentSection from '../components/documents/DocumentSection'
 import PlanPaiementSection from '../components/paiements/PlanPaiementSection'
 import RappelSection from '../components/rappels/RappelSection'
 
-type PelerinAvecGroupe = Pelerin & { groupe: { nom: string } | null }
+type PelerinAvecGroupe = Pelerin & { groupe: { nom: string; type_voyage: 'hajj' | 'omra'; date_depart: string } | null }
 
 export default function PelerinDetail() {
   const { id } = useParams<{ id: string }>()
@@ -26,7 +26,7 @@ export default function PelerinDetail() {
     queryKey: ['pelerin', id],
     enabled: !!id,
     queryFn: async () => {
-      const { data } = await supabase.from('pelerins').select('*, groupe:groupes(nom)').eq('id', id!).single()
+      const { data } = await supabase.from('pelerins').select('*, groupe:groupes(nom, type_voyage, date_depart)').eq('id', id!).single()
       return data as PelerinAvecGroupe
     },
   })
@@ -198,7 +198,7 @@ export default function PelerinDetail() {
 
         <div className="flex flex-col gap-6 lg:col-span-8">
           <DocumentSection pelerinId={pelerin.id} />
-          <PlanPaiementSection pelerinId={pelerin.id} />
+          <PlanPaiementSection pelerinId={pelerin.id} groupe={pelerin.groupe} />
           <RappelSection pelerinId={pelerin.id} />
         </div>
       </div>

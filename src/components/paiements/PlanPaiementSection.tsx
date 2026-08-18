@@ -2,9 +2,9 @@ import { useState, type FormEvent } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '../../lib/supabase'
 import { useAgence } from '../../hooks/useAgence'
-import { genererTranches } from '../../lib/plan'
+import { genererEcheancier, proposerAcompte, proposerDateLimite, validerEcheancier, type TrancheDraft } from '../../lib/plan'
 import { LIBELLES_MODE, LIBELLES_TRANCHE, TONE_TRANCHE, formatDate, formatFCFA } from '../../lib/format'
-import type { Paiement, PlanPaiement, Tranche } from '../../lib/types'
+import type { Paiement, PlanPaiement, Tranche, TypeVoyage } from '../../lib/types'
 import Card from '../ui/Card'
 import Icon from '../ui/Icon'
 import ProgressBar from '../ui/ProgressBar'
@@ -16,12 +16,16 @@ interface PlanAvecDonnees extends PlanPaiement {
   tranches: (Tranche & { paiements: Paiement[] })[]
 }
 
-export default function PlanPaiementSection({ pelerinId }: { pelerinId: string }) {
+export default function PlanPaiementSection({ pelerinId, groupe }: { pelerinId: string; groupe?: { type_voyage: TypeVoyage; date_depart: string } | null }) {
   const { data: agence } = useAgence()
   const queryClient = useQueryClient()
   const [creation, setCreation] = useState(false)
   const [montantTotal, setMontantTotal] = useState('')
+  const [montantAcompte, setMontantAcompte] = useState('')
+  const [acompteTouche, setAcompteTouche] = useState(false)
+  const [dateLimite, setDateLimite] = useState('')
   const [nombreTranches, setNombreTranches] = useState('3')
+  const [drafts, setDrafts] = useState<TrancheDraft[]>([])
   const [premiereEcheance, setPremiereEcheance] = useState('')
   const [encaissement, setEncaissement] = useState<{ tranche: Tranche & { paiements: Paiement[] }; ouvert: boolean }>({ tranche: null!, ouvert: false })
   const [montantPaiement, setMontantPaiement] = useState('')
@@ -42,23 +46,69 @@ export default function PlanPaiementSection({ pelerinId }: { pelerinId: string }
     },
   })
 
+  function ouvrirCreation() {
+    setMontantTotal('')
+    setMontantAcompte(groupe ? String(proposerAcompte(0, groupe.type_voyage)) : '')
+    setAcompteTouche(false)
+    setDateLimite(groupe ? proposerDateLimite(groupe.date_depart, groupe.type_voyage) : '')
+    setNombreTranches('3')
+    setPremiereEcheance('')
+    setDrafts([])
+    setErreur('')
+    setCreation(true)
+  }
+
+  function regenererEcheancier(total: number, debut: string, acompte?: number) {
+    const nombre = parseInt(nombreTranches, 10)
+    if (total > 0 && nombre > 0 && dateLimite) {
+      setDrafts(genererEcheancier(total, acompte ?? (parseInt(montantAcompte, 10) || 0), nombre, debut || dateLimite, dateLimite))
+    }
+  }
+
+  function changerMontantTotal(valeur: string) {
+    setMontantTotal(valeur)
+    let acompte = parseInt(montantAcompte, 10) || 0
+    if (groupe && !acompteTouche) {
+      const total = parseInt(valeur, 10)
+      acompte = total > 0 ? proposerAcompte(total, groupe.type_voyage) : 0
+      setMontantAcompte(String(acompte))
+    }
+    regenererEcheancier(parseInt(valeur, 10), premiereEcheance, acompte)
+  }
+
+  function changerNombreTranches(valeur: string) {
+    setNombreTranches(valeur)
+    regenererEcheancier(parseInt(montantTotal, 10), premiereEcheance)
+  }
+
   const creerPlan = useMutation({
     mutationFn: async () => {
       const total = parseInt(montantTotal, 10)
+      const acompte = parseInt(montantAcompte, 10) || 0
       const nombre = parseInt(nombreTranches, 10)
-      if (!total || total <= 0 || !nombre || nombre <= 0 || !premiereEcheance) {
-        throw new Error('Champs invalides')
-      }
+      if (!total || total <= 0 || !nombre || nombre <= 0) throw new Error('Champs invalides')
+      if (!dateLimite) throw new Error('Champs invalides')
+      const erreur = validerEcheancier(total, acompte, drafts, dateLimite)
+      if (erreur) throw new Error('Echeancier invalide')
       const { data: nouveauPlan, error: e1 } = await supabase
         .from('plans_paiement')
-        .insert({ agence_id: agence!.id, pelerin_id: pelerinId, montant_total: total, nombre_tranches: nombre })
+        .insert({
+          agence_id: agence!.id,
+          pelerin_id: pelerinId,
+          montant_total: total,
+          montant_acompte: acompte,
+          date_limite_solde: dateLimite,
+          nombre_tranches: nombre,
+        })
         .select('id')
         .single()
       if (e1 || !nouveauPlan) throw e1
-      const tranches = genererTranches(total, nombre, premiereEcheance).map((t) => ({
+      const tranches = drafts.map((d, i) => ({
         agence_id: agence!.id,
         plan_paiement_id: nouveauPlan.id,
-        ...t,
+        numero_tranche: i + 1,
+        montant_prevu: d.montant_prevu,
+        date_echeance: d.date_echeance,
       }))
       const { error: e2 } = await supabase.from('tranches').insert(tranches)
       if (e2) throw e2
@@ -66,12 +116,19 @@ export default function PlanPaiementSection({ pelerinId }: { pelerinId: string }
     onSuccess: () => {
       setCreation(false)
       setMontantTotal('')
+      setMontantAcompte('')
+      setDateLimite('')
       setPremiereEcheance('')
+      setDrafts([])
       queryClient.invalidateQueries({ queryKey: ['plan', pelerinId] })
       queryClient.invalidateQueries({ queryKey: ['echeanciers'] })
       queryClient.invalidateQueries({ queryKey: ['pelerins'] })
     },
-    onError: (e: Error) => setErreur(e.message === 'Champs invalides' ? 'Renseignez un montant, un nombre de tranches et une première échéance.' : 'Impossible de créer le plan.'),
+    onError: (e: Error) => {
+      if (e.message === 'Champs invalides') setErreur('Renseignez le montant total, l’acompte, la date limite et le nombre de tranches.')
+      else if (e.message === 'Echeancier invalide') setErreur(validerEcheancier(parseInt(montantTotal, 10), parseInt(montantAcompte, 10) || 0, drafts, dateLimite) ?? '')
+      else setErreur('Impossible de créer le plan.')
+    },
   })
 
   const encaisser = useMutation({
@@ -130,14 +187,53 @@ encaissement.tranche.montant_prevu - encaissement.tranche.paiements.reduce((s, p
             className="grid grid-cols-1 gap-4 md:grid-cols-3"
           >
             <Field label="Montant total (FCFA)">
-              <Input required type="number" min={1} value={montantTotal} onChange={(e) => setMontantTotal(e.target.value)} />
+              <Input required aria-label="Montant total (FCFA)" type="number" min={1} value={montantTotal} onChange={(e) => changerMontantTotal(e.target.value)} />
+            </Field>
+            <Field label="Acompte (FCFA)">
+              <Input required aria-label="Acompte (FCFA)" type="number" min={0} value={montantAcompte} onChange={(e) => { setAcompteTouche(true); setMontantAcompte(e.target.value) }} />
+            </Field>
+            <Field label="Date limite du solde">
+              <Input required aria-label="Date limite du solde" type="date" value={dateLimite} onChange={(e) => setDateLimite(e.target.value)} />
             </Field>
             <Field label="Nombre de tranches">
-              <Input required type="number" min={1} value={nombreTranches} onChange={(e) => setNombreTranches(e.target.value)} />
+              <Input required aria-label="Nombre de tranches" type="number" min={1} value={nombreTranches} onChange={(e) => changerNombreTranches(e.target.value)} />
             </Field>
             <Field label="Première échéance">
-              <Input required type="date" value={premiereEcheance} onChange={(e) => setPremiereEcheance(e.target.value)} />
+              <Input aria-label="Première échéance" type="date" value={premiereEcheance} onChange={(e) => { setPremiereEcheance(e.target.value); regenererEcheancier(parseInt(montantTotal, 10), e.target.value) }} />
             </Field>
+            {drafts.length > 0 && (
+              <div className="md:col-span-3">
+                <table className="w-full text-body-md">
+                  <thead>
+                    <tr className="bg-[#f1f5f9] text-left text-label-md uppercase tracking-wider text-on-surface-variant">
+                      <th className="px-4 py-2">Tranche</th>
+                      <th className="px-4 py-2">Montant (FCFA)</th>
+                      <th className="px-4 py-2">Échéance</th>
+                      <th className="px-4 py-2" />
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {drafts.map((d, i) => (
+                      <tr key={d.numero_tranche} className="border-t border-outline-variant">
+                        <td className="px-4 py-2">Tranche {d.numero_tranche}</td>
+                        <td className="px-4 py-2">
+                          <Input aria-label="Montant de la tranche" type="number" min={1} value={d.montant_prevu} onChange={(e) => setDrafts((prev) => prev.map((x, j) => (j === i ? { ...x, montant_prevu: parseInt(e.target.value, 10) || 0 } : x)))} />
+                        </td>
+                        <td className="px-4 py-2">
+                          <Input aria-label="Échéance de la tranche" type="date" value={d.date_echeance} onChange={(e) => setDrafts((prev) => prev.map((x, j) => (j === i ? { ...x, date_echeance: e.target.value } : x)))} />
+                        </td>
+                        <td className="px-4 py-2">
+                          <Button type="button" variant="secondary" onClick={() => setDrafts((prev) => prev.filter((_, j) => j !== i))}>Retirer</Button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+                <p className="mt-2 text-label-md text-on-surface-variant">
+                  Reste à répartir : {formatFCFA((parseInt(montantTotal, 10) || 0) - (parseInt(montantAcompte, 10) || 0) - drafts.reduce((s, d) => s + d.montant_prevu, 0))}
+                </p>
+              </div>
+            )}
             {erreur && <p className="text-sm text-error md:col-span-3">{erreur}</p>}
             <div className="flex gap-3 md:col-span-3">
               <Button type="submit" disabled={creerPlan.isPending}>Créer le plan</Button>
@@ -147,7 +243,7 @@ encaissement.tranche.montant_prevu - encaissement.tranche.paiements.reduce((s, p
         ) : (
           <div className="flex items-center justify-between">
             <p className="text-sm text-gray-600">Aucun plan de paiement pour ce pèlerin.</p>
-            <Button variant="secondary" onClick={() => setCreation(true)}>Créer un plan</Button>
+            <Button variant="secondary" onClick={ouvrirCreation}>Créer un plan</Button>
           </div>
         )}
       </div>
