@@ -48,7 +48,7 @@ create table public.pelerins (
   sexe text check (sexe in ('M','F')),
   contact_urgence_nom text,
   contact_urgence_telephone text,
-  statut_dossier text not null default 'incomplet' check (statut_dossier in ('incomplet','complet','valide')),
+  statut_dossier text not null default 'incomplet' check (statut_dossier in ('incomplet','valide')),
   date_inscription timestamptz not null default now()
 );
 
@@ -198,7 +198,6 @@ begin
   return coalesce(new, old);
 end $$;
 
--- Recalcule le statut du dossier d'un pèlerin après modification des documents
 create or replace function public.trg_maj_statut_dossier()
 returns trigger language plpgsql security definer set search_path = public as $$
 declare
@@ -206,11 +205,13 @@ declare
 begin
   v_pelerin := coalesce(new.pelerin_id, old.pelerin_id);
   select case
-    when count(*) = 0 then 'incomplet'
-    when bool_and(statut = 'valide') then 'valide'
-    when bool_and(statut in ('soumis','valide')) then 'complet'
+    when count(distinct type_document) = 4 then 'valide'
     else 'incomplet'
-  end into v_statut from public.documents where pelerin_id = v_pelerin;
+  end into v_statut
+  from public.documents
+  where pelerin_id = v_pelerin
+    and type_document in ('passeport','visa','certificat_vaccination','photo')
+    and statut = 'valide';
   update public.pelerins set statut_dossier = v_statut where id = v_pelerin;
   return coalesce(new, old);
 end $$;
@@ -317,7 +318,7 @@ create trigger trg_document_maj_dossier
 create or replace function public.stats_globales()
 returns table (
   agence_id uuid, agence_nom text, agence_active boolean,
-  pelerins_total bigint, dossiers_valides bigint, dossiers_complets bigint, dossiers_incomplets bigint,
+  pelerins_total bigint, dossiers_valides bigint, dossiers_incomplets bigint,
   groupes_total bigint, places_restantes bigint,
   gerants bigint, agents bigint,
   encaissements_total numeric, encaissements_30j numeric,
@@ -332,7 +333,6 @@ begin
     a.id, a.nom, a.active,
     coalesce(p.nb, 0) as pelerins_total,
     coalesce(p.valides, 0) as dossiers_valides,
-    coalesce(p.complets, 0) as dossiers_complets,
     coalesce(p.incomplets, 0) as dossiers_incomplets,
     coalesce(g.nb, 0) as groupes_total,
     coalesce(gs.places_libres, 0)::bigint as places_restantes,
@@ -348,7 +348,6 @@ begin
     select pel.agence_id,
       count(*) as nb,
       count(*) filter (where pel.statut_dossier = 'valide') as valides,
-      count(*) filter (where pel.statut_dossier = 'complet') as complets,
       count(*) filter (where pel.statut_dossier = 'incomplet') as incomplets
     from public.pelerins pel group by pel.agence_id
   ) p on p.agence_id = a.id
