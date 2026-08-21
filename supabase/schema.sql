@@ -180,6 +180,23 @@ begin
   return new;
 end $$;
 
+-- Création d'agence en self-service : insère l'agence et rattache l'utilisateur courant comme gérant
+create or replace function public.creer_agence(p_nom text, p_telephone text, p_adresse text)
+returns uuid language plpgsql security definer set search_path = public as $$
+declare
+  v_id uuid;
+begin
+  insert into public.agences (nom, telephone, adresse)
+  values (p_nom, coalesce(p_telephone, ''), p_adresse)
+  returning id into v_id;
+  update public.utilisateurs set agence_id = v_id, role = 'gerant'
+    where user_id = auth.uid();
+  if not found then
+    raise exception 'utilisateur introuvable';
+  end if;
+  return v_id;
+end $$;
+
 -- Recalcule le statut d'une tranche après modification des paiements
 create or replace function public.trg_maj_statut_tranche()
 returns trigger language plpgsql security definer set search_path = public as $$

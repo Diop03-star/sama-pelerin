@@ -25,23 +25,14 @@ export default function Onboarding() {
     e.preventDefault()
     setEnCours(true)
     setErreur('')
-    const { data: agence, error: e1 } = await supabase
-      .from('agences')
-      .insert({ nom, telephone, adresse })
-      .select('id')
-      .single()
-    if (e1 || !agence) {
+    const { error: e1 } = await supabase.rpc('creer_agence', {
+      p_nom: nom,
+      p_telephone: telephone,
+      p_adresse: adresse,
+    })
+    if (e1) {
       setErreur('Impossible de créer l’agence.')
       setEnCours(false)
-      return
-    }
-    const { error: e2 } = await supabase
-      .from('utilisateurs')
-      .update({ agence_id: agence.id, role: 'gerant' })
-      .eq('user_id', profil!.user_id)
-    setEnCours(false)
-    if (e2) {
-      setErreur('Agence créée mais rattachement impossible. Rechargez la page.')
       return
     }
     await queryClient.invalidateQueries({ queryKey: ['profil'] })
