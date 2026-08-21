@@ -1,4 +1,4 @@
-# Stitch Sama Pèlerin — SaaS de gestion Hajj & Omra
+# SamaPèlerin — SaaS de gestion Hajj & Omra
 
 Gestion d'agences de voyage (Hajj/Omra) : groupes, pèlerins, documents, paiements
 échelonnés FCFA et rappels WhatsApp. Stack : Supabase (Postgres + Auth + Storage + RLS)

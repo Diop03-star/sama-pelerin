@@ -1,5 +1,5 @@
 -- ============================================================
--- SCHÉMA « Stitch Sama Pèlerin » — appliquer via SQL Editor
+-- SCHÉMA « SamaPèlerin » — appliquer via SQL Editor
 -- ============================================================
 
 -- ---------- TABLES ----------

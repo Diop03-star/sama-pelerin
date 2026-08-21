@@ -1,5 +1,5 @@
 -- ============================================================
--- SEED « Stitch Sama Pèlerin » — données de démonstration
+-- SEED « SamaPèlerin » — données de démonstration
 -- Appliquer après schema.sql. Comptes auth créés ensuite par
 -- scripts/seed-auth.mjs (le trigger les relie aux emails).
 -- ============================================================
