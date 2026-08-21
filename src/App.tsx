@@ -17,6 +17,9 @@ import PelerinDetail from './pages/PelerinDetail'
 import Documents from './pages/Documents'
 import Paiements from './pages/Paiements'
 import Dashboard from './pages/Dashboard'
+import PublicLayout from './components/layout/PublicLayout'
+import Landing from './pages/Landing'
+import Tutoriels from './pages/Tutoriels'
 
 const queryClient = new QueryClient()
 
@@ -26,6 +29,10 @@ export default function App() {
       <BrowserRouter>
         <AuthProvider>
           <Routes>
+            <Route element={<PublicLayout />}>
+              <Route path="/" element={<Landing />} />
+              <Route path="/tutoriels" element={<Tutoriels />} />
+            </Route>
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
             <Route element={<ProtectedRoute />}>
