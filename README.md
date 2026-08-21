@@ -21,12 +21,15 @@ Comptes de démo (mot de passe `Hajj2027!`) :
 - `omar@albarakah.sn` (gérant, Voyages Al-Barakah)
 - `aissatou@albarakah.sn` (agent, Voyages Al-Barakah)
 
-## Déploiement (Vercel)
+## Déploiement (Cloudflare Pages)
+
+Le routing SPA est géré par `public/_redirects` (`/* /index.html 200`).
 
 1. Pousser le dépôt sur GitHub.
-2. https://vercel.com → New Project → importer le dépôt (framework détecté : Vite).
-3. Environment Variables : `VITE_SUPABASE_URL` et `VITE_SUPABASE_ANON_KEY`.
-4. Deploy. Chaque push déploie automatiquement.
+2. https://dash.cloudflare.com → Workers & Pages → Create → Pages → Connect to Git.
+3. Build command : `npm run build` — Output directory : `dist`.
+4. Environment Variables (Production) : `VITE_SUPABASE_URL` et `VITE_SUPABASE_ANON_KEY`.
+5. Deploy. Chaque push déploie automatiquement.
 
 ## Tests
 
