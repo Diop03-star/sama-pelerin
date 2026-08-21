@@ -7,6 +7,7 @@ import Icon from '../ui/Icon'
 const NAVIGATION = [
   { to: '/superadmin', label: 'Vue d’ensemble', icon: 'dashboard' },
   { to: '/superadmin/agences', label: 'Agences', icon: 'business' },
+  { to: '/superadmin/tutos', label: 'Tutoriels', icon: 'play_circle' },
 ]
 
 export default function SuperAdminLayout() {
