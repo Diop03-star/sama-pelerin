@@ -34,3 +34,9 @@ Le routing SPA est géré par `public/_redirects` (`/* /index.html 200`).
 ## Tests
 
 `npm run test` — logique métier (format, tranches, statuts) en Vitest.
+
+## Crédits images
+
+- `src/assets/mecca.jpg` : « The Kaaba during Hajj - edited » par Adli Wahid (modifications par Basile Morin),
+  [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:The_Kaaba_during_Hajj_-_edited.jpg), licence
+  [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/).

@@ -7,7 +7,7 @@ import Icon from '../components/ui/Icon'
 import CarteTuto from '../components/vitrine/CarteTuto'
 import WhatsAppIcon from '../components/ui/WhatsAppIcon'
 import { whatsappDemoUrl } from '../lib/vitrine'
-import heroImage from '../assets/hero.png'
+import heroImage from '../assets/mecca.jpg'
 
 const AVANTAGES = [
   { icon: 'payments', titre: 'Paiements échelonnés en FCFA', texte: 'Plans de paiement, tranches avec échéances et calcul automatique du reste dû.' },
@@ -74,7 +74,7 @@ export default function Landing() {
             )}
           </div>
         </div>
-        <img src={heroImage} alt="Aperçu de SamaPèlerin" className="w-full rounded-card border border-outline-variant shadow-sm" />
+        <img src={heroImage} alt="La Mecque — Masjid al-Haram" className="w-full rounded-card border border-outline-variant shadow-sm" />
       </section>
 
       <section id="avantages" className="bg-surface-container-low py-16">
