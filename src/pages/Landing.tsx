@@ -18,19 +18,16 @@ const AVANTAGES = [
   { icon: 'group_add', titre: 'Multi-utilisateur', texte: 'Gérant et agents travaillent ensemble, chacun avec son rôle.' },
 ]
 
-const TARIFS = [
-  {
-    nom: 'Base', prix: '15 000 FCFA', detail: '/mois', accent: false,
-    traits: ['Dossiers pèlerins centralisés', 'Suivi des paiements échelonnés', '2 comptes utilisateurs'],
-  },
-  {
-    nom: 'Avancé', prix: '35 000 FCFA', detail: '/mois', accent: true,
-    traits: ['Tout du plan Base', 'Rappels WhatsApp automatiques', '5 comptes utilisateurs'],
-  },
-  {
-    nom: 'Premium', prix: '75 000 FCFA', detail: '/mois', accent: false,
-    traits: ['Tout du plan Avancé', 'Utilisateurs illimités', 'Accompagnement dédié'],
-  },
+const PALIERS = [
+  { seuil: 'Dès 100 pèlerins', prix: '1 000 FCFA' },
+  { seuil: 'Dès 300 pèlerins', prix: '750 FCFA' },
+]
+
+const TRAITS_TARIF = [
+  'Sans abonnement mensuel — vous payez selon votre activité',
+  'Facturation par campagne (Hajj ou Omra) : rien entre deux saisons',
+  'Rappels WhatsApp automatiques inclus',
+  'Vos données restent accessibles hors période facturée',
 ]
 
 const TEMOIGNAGES = [
@@ -101,34 +98,36 @@ export default function Landing() {
         <div className="mx-auto w-full max-w-6xl px-4">
           <h2 className="text-headline-md font-bold text-primary">Tarifs simples et adaptés</h2>
           <p className="mt-2 text-body-lg text-on-surface-variant">
-            Abonnement mensuel, sans engagement. Annuel : 2 mois offerts.
+            Payez selon votre activité : 1 500 FCFA par pèlerin inscrit. Sans abonnement mensuel.
           </p>
-          <div className="mt-10 grid gap-6 md:grid-cols-3">
-            {TARIFS.map((t) => (
-              <div
-                key={t.nom}
-                className={`flex flex-col rounded-card border p-6 shadow-sm ${
-                  t.accent ? 'border-secondary-fixed-dim bg-secondary-container/40' : 'border-outline-variant bg-surface-container-lowest'
-                }`}
-              >
-                <h3 className="text-headline-sm font-bold text-primary">{t.nom}</h3>
-                <p className="mt-3 text-display-lg font-bold text-primary">
-                  {t.prix}
-                  <span className="text-body-md font-normal text-on-surface-variant">{t.detail}</span>
-                </p>
-                <ul className="mt-6 flex-1 space-y-3 text-body-md text-on-surface-variant">
-                  {t.traits.map((trait) => (
-                    <li key={trait} className="flex items-start gap-2">
-                      <Icon name="check_circle" size={18} className="mt-0.5 text-vert" />
-                      {trait}
-                    </li>
-                  ))}
-                </ul>
-                <a href={whatsappDemoUrl()} target="_blank" rel="noreferrer" className="btn-primary mt-8 px-4 py-2.5 text-center">
-                  Demander une démo
-                </a>
+          <div className="mx-auto mt-10 max-w-xl">
+            <div className="flex flex-col rounded-card border border-secondary-fixed-dim bg-secondary-container/40 p-6 shadow-sm">
+              <h3 className="text-headline-sm font-bold text-primary">À l’usage</h3>
+              <p className="mt-3 text-display-lg font-bold text-primary">
+                1 500 FCFA
+                <span className="text-body-md font-normal text-on-surface-variant"> /pèlerin inscrit</span>
+              </p>
+              <ul className="mt-6 flex-1 space-y-3 text-body-md text-on-surface-variant">
+                {TRAITS_TARIF.map((trait) => (
+                  <li key={trait} className="flex items-start gap-2">
+                    <Icon name="check_circle" size={18} className="mt-0.5 text-vert" />
+                    {trait}
+                  </li>
+                ))}
+              </ul>
+              <div className="mt-6 rounded-lg border border-outline-variant bg-surface-container-lowest p-4">
+                <p className="text-label-md font-semibold text-primary">Tarif dégressif</p>
+                {PALIERS.map((p) => (
+                  <p key={p.seuil} className="mt-1 flex justify-between text-body-md text-on-surface-variant">
+                    <span>{p.seuil}</span>
+                    <span className="font-semibold text-on-surface">{p.prix}</span>
+                  </p>
+                ))}
               </div>
-            ))}
+              <a href={whatsappDemoUrl()} target="_blank" rel="noreferrer" className="btn-primary mt-8 px-4 py-2.5 text-center">
+                Demander une démo
+              </a>
+            </div>
           </div>
         </div>
       </section>

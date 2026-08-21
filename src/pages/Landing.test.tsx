@@ -57,7 +57,9 @@ describe('Landing', () => {
     rendre()
     expect(screen.getByText('Paiements échelonnés en FCFA')).toBeInTheDocument()
     expect(screen.getAllByText('Rappels WhatsApp automatiques').length).toBeGreaterThanOrEqual(1)
-    expect(screen.getByText('35 000 FCFA')).toBeInTheDocument()
+    expect(screen.getByText('1 500 FCFA')).toBeInTheDocument()
+    expect(screen.getByText('1 000 FCFA')).toBeInTheDocument()
+    expect(screen.getByText('750 FCFA')).toBeInTheDocument()
   })
 
   it('affiche l’aperçu des tutoriels avec le lien vers la galerie', async () => {
