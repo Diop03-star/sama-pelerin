@@ -18,10 +18,10 @@ export default function PublicLayout() {
             <span className="text-headline-sm font-bold text-primary">SamaPèlerin</span>
           </Link>
           <nav className="hidden items-center gap-6 text-label-md text-on-surface-variant md:flex">
-            <Link to="/#avantages" className="hover:text-primary">Avantages</Link>
-            <Link to="/#tarifs" className="hover:text-primary">Tarifs</Link>
+            <a href="/#avantages" className="hover:text-primary">Avantages</a>
+            <a href="/#tarifs" className="hover:text-primary">Tarifs</a>
             <Link to="/tutoriels" className="hover:text-primary">Tutoriels</Link>
-            <Link to="/#contact" className="hover:text-primary">Contact</Link>
+            <a href="/#contact" className="hover:text-primary">Contact</a>
           </nav>
           <div className="flex items-center gap-2">
             {session ? (
@@ -45,8 +45,8 @@ export default function PublicLayout() {
             </p>
           </div>
           <div className="flex flex-col gap-2 text-label-md text-on-surface-variant">
-            <Link to="/#avantages" className="hover:text-primary">Avantages</Link>
-            <Link to="/#tarifs" className="hover:text-primary">Tarifs</Link>
+            <a href="/#avantages" className="hover:text-primary">Avantages</a>
+            <a href="/#tarifs" className="hover:text-primary">Tarifs</a>
             <Link to="/tutoriels" className="hover:text-primary">Tutoriels</Link>
             <a href={whatsappDemoUrl()} target="_blank" rel="noreferrer" className="hover:text-primary">Nous contacter</a>
           </div>
