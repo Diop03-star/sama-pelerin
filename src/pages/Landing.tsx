@@ -62,7 +62,7 @@ export default function Landing() {
             Gérez vos pèlerins, leurs paiements et leurs dossiers — simplement.
           </h1>
           <p className="mt-4 text-body-lg text-on-surface-variant">
-            Stitch Sama Pèlerin est l’outil des agences de Hajj & Omra : dossiers administratifs,
+            SamaPèlerin est l’outil des agences de Hajj & Omra : dossiers administratifs,
             paiements échelonnés en FCFA et rappels WhatsApp, sans Excel ni cahier.
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
@@ -74,12 +74,12 @@ export default function Landing() {
             )}
           </div>
         </div>
-        <img src={heroImage} alt="Aperçu de Stitch Sama Pèlerin" className="w-full rounded-card border border-outline-variant shadow-sm" />
+        <img src={heroImage} alt="Aperçu de SamaPèlerin" className="w-full rounded-card border border-outline-variant shadow-sm" />
       </section>
 
       <section id="avantages" className="bg-surface-container-low py-16">
         <div className="mx-auto w-full max-w-6xl px-4">
-          <h2 className="text-headline-md font-bold text-primary">Pourquoi Stitch Sama Pèlerin ?</h2>
+          <h2 className="text-headline-md font-bold text-primary">Pourquoi SamaPèlerin ?</h2>
           <p className="mt-2 text-body-lg text-on-surface-variant">
             Tout ce qu’une agence de pèlerinage doit suivre, réuni dans un seul outil pensé pour le Sénégal.
           </p>

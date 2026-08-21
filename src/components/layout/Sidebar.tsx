@@ -53,7 +53,7 @@ export default function Sidebar({ ouverte, onFermer }: SidebarProps) {
           <Icon name="mosque" size={20} />
         </div>
         <div>
-          <h1 className="text-headline-sm font-bold text-primary">{agence?.nom ?? 'Stitch Sama Pèlerin'}</h1>
+          <h1 className="text-headline-sm font-bold text-primary">{agence?.nom ?? 'SamaPèlerin'}</h1>
           <p className="text-label-md text-on-surface-variant">Portail Administrateur</p>
         </div>
       </div>

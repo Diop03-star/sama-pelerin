@@ -15,7 +15,7 @@ export default function PublicLayout() {
             <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary-container text-on-primary-container">
               <Icon name="mosque" size={18} />
             </div>
-            <span className="text-headline-sm font-bold text-primary">Stitch Sama Pèlerin</span>
+            <span className="text-headline-sm font-bold text-primary">SamaPèlerin</span>
           </Link>
           <nav className="hidden items-center gap-6 text-label-md text-on-surface-variant md:flex">
             <a href="#avantages" className="hover:text-primary">Avantages</a>
@@ -39,7 +39,7 @@ export default function PublicLayout() {
       <footer className="border-t border-outline-variant bg-surface-container-lowest">
         <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-4 py-10 md:flex-row md:justify-between">
           <div>
-            <p className="text-headline-sm font-bold text-primary">Stitch Sama Pèlerin</p>
+            <p className="text-headline-sm font-bold text-primary">SamaPèlerin</p>
             <p className="mt-1 text-body-md text-on-surface-variant">
               La gestion des agences de Hajj & Omra, sans Excel ni cahier.
             </p>
@@ -63,7 +63,7 @@ export default function PublicLayout() {
           </div>
         </div>
         <p className="border-t border-outline-variant px-4 py-4 text-center text-label-md text-on-surface-variant">
-          © {new Date().getFullYear()} Stitch Sama Pèlerin — Dakar, Sénégal
+          © {new Date().getFullYear()} SamaPèlerin — Dakar, Sénégal
         </p>
       </footer>
     </div>

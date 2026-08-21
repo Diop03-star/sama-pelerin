@@ -56,7 +56,7 @@ export default function Onboarding() {
           <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary-container text-on-primary-container">
             <Icon name="mosque" size={20} />
           </div>
-          <h1 className="text-headline-sm font-bold text-primary">Stitch Sama Pèlerin</h1>
+          <h1 className="text-headline-sm font-bold text-primary">SamaPèlerin</h1>
         </div>
         <h2 className="text-headline-md mb-2 text-primary">Créer votre agence</h2>
         <p className="text-body-md mb-6 text-on-surface-variant">

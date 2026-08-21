@@ -21,7 +21,7 @@ export default function Tutoriels() {
     <div className="mx-auto w-full max-w-6xl px-4 py-12">
       <h1 className="text-display-lg text-primary">Tutoriels</h1>
       <p className="mt-2 text-body-lg text-on-surface-variant">
-        Apprenez à utiliser Stitch Sama Pèlerin, étape par étape.
+        Apprenez à utiliser SamaPèlerin, étape par étape.
       </p>
       {tutos.length === 0 ? (
         <div className="mt-8 rounded-xl border border-outline-variant bg-surface-container-lowest p-8">

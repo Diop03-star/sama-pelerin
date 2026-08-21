@@ -81,7 +81,7 @@ export default function Topbar({ onOuvrirMenu }: TopbarProps) {
         >
           <Icon name="menu" size={20} />
         </button>
-        <h2 className="text-headline-sm font-bold text-primary">{agence?.nom ?? 'Stitch Sama Pèlerin'}</h2>
+        <h2 className="text-headline-sm font-bold text-primary">{agence?.nom ?? 'SamaPèlerin'}</h2>
       </div>
 
       <div className="relative mx-6 hidden max-w-md flex-1 sm:block">
