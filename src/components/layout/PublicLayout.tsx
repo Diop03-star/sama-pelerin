@@ -1,4 +1,5 @@
-import { Link, Outlet } from 'react-router-dom'
+import { useEffect } from 'react'
+import { Link, Outlet, useLocation } from 'react-router-dom'
 import { useAuth } from '../../auth/AuthContext'
 import Icon from '../ui/Icon'
 import WhatsAppIcon from '../ui/WhatsAppIcon'
@@ -6,6 +7,13 @@ import { whatsappDemoUrl } from '../../lib/vitrine'
 
 export default function PublicLayout() {
   const { session } = useAuth()
+  const { hash } = useLocation()
+
+  useEffect(() => {
+    if (!hash) return
+    const element = document.getElementById(hash.slice(1))
+    if (element) element.scrollIntoView()
+  }, [hash])
 
   return (
     <div className="flex min-h-screen flex-col bg-surface">
@@ -18,10 +26,10 @@ export default function PublicLayout() {
             <span className="text-headline-sm font-bold text-primary">SamaPèlerin</span>
           </Link>
           <nav className="hidden items-center gap-6 text-label-md text-on-surface-variant md:flex">
-            <a href="/#avantages" className="hover:text-primary">Avantages</a>
-            <a href="/#tarifs" className="hover:text-primary">Tarifs</a>
+            <Link to="/#avantages" className="hover:text-primary">Avantages</Link>
+            <Link to="/#tarifs" className="hover:text-primary">Tarifs</Link>
             <Link to="/tutoriels" className="hover:text-primary">Tutoriels</Link>
-            <a href="/#contact" className="hover:text-primary">Contact</a>
+            <Link to="/#contact" className="hover:text-primary">Contact</Link>
           </nav>
           <div className="flex items-center gap-2">
             {session ? (
@@ -45,8 +53,8 @@ export default function PublicLayout() {
             </p>
           </div>
           <div className="flex flex-col gap-2 text-label-md text-on-surface-variant">
-            <a href="/#avantages" className="hover:text-primary">Avantages</a>
-            <a href="/#tarifs" className="hover:text-primary">Tarifs</a>
+            <Link to="/#avantages" className="hover:text-primary">Avantages</Link>
+            <Link to="/#tarifs" className="hover:text-primary">Tarifs</Link>
             <Link to="/tutoriels" className="hover:text-primary">Tutoriels</Link>
             <a href={whatsappDemoUrl()} target="_blank" rel="noreferrer" className="hover:text-primary">Nous contacter</a>
           </div>

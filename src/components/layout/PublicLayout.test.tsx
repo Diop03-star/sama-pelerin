@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { render, screen, fireEvent } from '@testing-library/react'
 import { MemoryRouter, Routes, Route } from 'react-router-dom'
 import PublicLayout from './PublicLayout'
 
@@ -35,5 +35,22 @@ describe('PublicLayout', () => {
     const liens = screen.getAllByRole('link').filter((l) => l.textContent === 'Tutoriels')
     expect(liens.length).toBeGreaterThanOrEqual(1)
     liens.forEach((l) => expect(l).toHaveAttribute('href', '/tutoriels'))
+  })
+
+  it('scrolle vers la section ciblée après navigation par ancre', () => {
+    const scroll = vi.fn()
+    Element.prototype.scrollIntoView = scroll
+    render(
+      <MemoryRouter initialEntries={['/tutoriels']}>
+        <Routes>
+          <Route element={<PublicLayout />}>
+            <Route path="/" element={<div id="avantages">Section avantages</div>} />
+            <Route path="/tutoriels" element={<div>Tutoriels</div>} />
+          </Route>
+        </Routes>
+      </MemoryRouter>,
+    )
+    fireEvent.click(screen.getAllByText('Avantages')[0])
+    expect(scroll).toHaveBeenCalled()
   })
 })
