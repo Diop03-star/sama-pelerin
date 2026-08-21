@@ -1,4 +1,4 @@
-export const NUMERO_WHATSAPP = '221770000000'
+export const NUMERO_WHATSAPP = '221773788392'
 export const MESSAGE_DEMO = 'Bonjour, je souhaite une démo de SamaPèlerin.'
 
 export function whatsappDemoUrl(): string {
