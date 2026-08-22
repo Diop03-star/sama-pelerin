@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import { render, screen, fireEvent, waitFor, within } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import PlanPaiementSection from './PlanPaiementSection'
 import { proposerDateLimite } from '../../lib/plan'
@@ -212,7 +212,7 @@ describe('PlanPaiementSection', () => {
     fireEvent.change(await screen.findByLabelText('Montant total (FCFA)'), { target: { value: '1000000' } })
     fireEvent.change(screen.getByLabelText('Acompte (FCFA)'), { target: { value: '400000' } })
     fireEvent.change(screen.getByLabelText('Nombre de tranches'), { target: { value: '3' } })
-    const montants = screen.getAllByLabelText('Montant de la tranche')
+    const montants = within(screen.getByRole('table')).getAllByLabelText('Montant de la tranche')
     expect(montants).toHaveLength(3)
     expect(montants[0]).toHaveValue(200000)
     expect(screen.getByText('Reste à répartir : 0 FCFA')).toBeInTheDocument()
@@ -224,7 +224,7 @@ describe('PlanPaiementSection', () => {
     fireEvent.change(await screen.findByLabelText('Montant total (FCFA)'), { target: { value: '1000000' } })
     fireEvent.change(screen.getByLabelText('Acompte (FCFA)'), { target: { value: '400000' } })
     fireEvent.change(screen.getByLabelText('Nombre de tranches'), { target: { value: '2' } })
-    expect(screen.getAllByLabelText('Montant de la tranche')).toHaveLength(2)
+    expect(within(screen.getByRole('table')).getAllByLabelText('Montant de la tranche')).toHaveLength(2)
     fireEvent.click(screen.getByRole('button', { name: 'Créer le plan' }))
     await waitFor(() => {
       expect(insertPlan).toHaveBeenCalled()
@@ -270,5 +270,41 @@ describe('PlanPaiementSection', () => {
     const [tranches] = insertTranches.mock.calls[0]
     expect(tranches).toHaveLength(3)
     expect(tranches[0]).toMatchObject({ plan_paiement_id: 'plan1', numero_tranche: 1, montant_prevu: 200000, date_echeance: '2026-02-01' })
+  })
+
+  it('affiche les tranches en cartes mobiles avec icône poubelle discrète', async () => {
+    rendre(null, { type_voyage: 'hajj', date_depart: '2026-05-15' })
+    fireEvent.click(await screen.findByRole('button', { name: 'Créer un plan' }))
+    fireEvent.change(await screen.findByLabelText('Montant total (FCFA)'), { target: { value: '1000000' } })
+    fireEvent.change(screen.getByLabelText('Acompte (FCFA)'), { target: { value: '400000' } })
+    fireEvent.change(screen.getByLabelText('Nombre de tranches'), { target: { value: '3' } })
+    const cartes = within(screen.getByTestId('cartes-tranches'))
+    expect(cartes.getAllByLabelText('Montant de la tranche')).toHaveLength(3)
+    expect(cartes.getByText('Tranche 1')).toBeInTheDocument()
+    expect(screen.getByLabelText('Retirer la tranche 1')).toBeInTheDocument()
+  })
+
+  it('retire une tranche depuis la carte mobile avec la poubelle', async () => {
+    rendre(null, { type_voyage: 'hajj', date_depart: '2026-05-15' })
+    fireEvent.click(await screen.findByRole('button', { name: 'Créer un plan' }))
+    fireEvent.change(await screen.findByLabelText('Montant total (FCFA)'), { target: { value: '1000000' } })
+    fireEvent.change(screen.getByLabelText('Acompte (FCFA)'), { target: { value: '400000' } })
+    fireEvent.change(screen.getByLabelText('Nombre de tranches'), { target: { value: '3' } })
+    fireEvent.click(screen.getByLabelText('Retirer la tranche 1'))
+    const cartes = within(screen.getByTestId('cartes-tranches'))
+    expect(cartes.getAllByLabelText('Montant de la tranche')).toHaveLength(2)
+  })
+
+  it('affiche le bandeau « Reste à répartir » vert à l’équilibre puis orange sinon', async () => {
+    rendre(null, { type_voyage: 'hajj', date_depart: '2026-05-15' })
+    fireEvent.click(await screen.findByRole('button', { name: 'Créer un plan' }))
+    fireEvent.change(await screen.findByLabelText('Montant total (FCFA)'), { target: { value: '1000000' } })
+    fireEvent.change(screen.getByLabelText('Acompte (FCFA)'), { target: { value: '400000' } })
+    fireEvent.change(screen.getByLabelText('Nombre de tranches'), { target: { value: '3' } })
+    const bandeauEquilibre = screen.getByText('Reste à répartir : 0 FCFA').closest('div')
+    expect(bandeauEquilibre).toHaveClass('bg-green-50')
+    fireEvent.change(screen.getAllByLabelText('Montant de la tranche')[0], { target: { value: '100000' } })
+    const bandeauOrange = screen.getByText('Reste à répartir : 100 000 FCFA').closest('div')
+    expect(bandeauOrange).toHaveClass('bg-amber-50')
   })
 })

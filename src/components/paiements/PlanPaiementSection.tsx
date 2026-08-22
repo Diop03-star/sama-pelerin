@@ -191,6 +191,7 @@ export default function PlanPaiementSection({ pelerinId, groupe }: { pelerinId: 
   if (isLoading) return <Card className="p-6"><p className="text-sm text-navy">Chargement…</p></Card>
 
   if (!plan) {
+    const resteARepartir = (parseInt(montantTotal, 10) || 0) - (parseInt(montantAcompte, 10) || 0) - drafts.reduce((s, d) => s + d.montant_prevu, 0)
     return (
       <div className="rounded-xl border border-outline-variant bg-surface-container-lowest p-6 shadow-sm">
         <div className="mb-4 flex items-center gap-2">
@@ -209,48 +210,84 @@ export default function PlanPaiementSection({ pelerinId, groupe }: { pelerinId: 
               <Input required aria-label="Acompte (FCFA)" type="number" min={0} value={montantAcompte} onChange={(e) => { setAcompteTouche(true); setMontantAcompte(e.target.value) }} />
             </Field>
             <Field label="Date limite du solde">
-              <Input required aria-label="Date limite du solde" type="date" value={dateLimite} onChange={(e) => setDateLimite(e.target.value)} />
+              <Input required aria-label="Date limite du solde" type="date" className="min-h-11" value={dateLimite} onChange={(e) => setDateLimite(e.target.value)} />
             </Field>
             <Field label="Nombre de tranches">
               <Input required aria-label="Nombre de tranches" type="number" min={1} value={nombreTranches} onChange={(e) => changerNombreTranches(e.target.value)} />
             </Field>
             <Field label="Première échéance">
-              <Input aria-label="Première échéance" type="date" value={premiereEcheance} onChange={(e) => { setPremiereEcheance(e.target.value); regenererEcheancier(parseInt(montantTotal, 10), e.target.value, parseInt(nombreTranches, 10)) }} />
+              <Input aria-label="Première échéance" type="date" className="min-h-11" value={premiereEcheance} onChange={(e) => { setPremiereEcheance(e.target.value); regenererEcheancier(parseInt(montantTotal, 10), e.target.value, parseInt(nombreTranches, 10)) }} />
             </Field>
             {drafts.length > 0 && (
               <div className="md:col-span-3">
-                <table className="w-full text-body-md">
-                  <thead>
-                    <tr className="bg-[#f1f5f9] text-left text-label-md uppercase tracking-wider text-on-surface-variant">
-                      <th className="px-4 py-2">Tranche</th>
-                      <th className="px-4 py-2">Montant (FCFA)</th>
-                      <th className="px-4 py-2">Échéance</th>
-                      <th className="px-4 py-2" />
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {drafts.map((d, i) => (
-                      <tr key={d.numero_tranche} className="border-t border-outline-variant">
-                        <td className="px-4 py-2">Tranche {d.numero_tranche}</td>
-                        <td className="px-4 py-2">
-                          <Input aria-label="Montant de la tranche" type="number" min={1} value={d.montant_prevu} onChange={(e) => setDrafts((prev) => prev.map((x, j) => (j === i ? { ...x, montant_prevu: parseInt(e.target.value, 10) || 0 } : x)))} />
-                        </td>
-                        <td className="px-4 py-2">
-                          <Input aria-label="Échéance de la tranche" type="date" value={d.date_echeance} onChange={(e) => setDrafts((prev) => prev.map((x, j) => (j === i ? { ...x, date_echeance: e.target.value } : x)))} />
-                        </td>
-                        <td className="px-4 py-2">
-                          <Button type="button" variant="secondary" onClick={() => setDrafts((prev) => prev.filter((_, j) => j !== i))}>Retirer</Button>
-                        </td>
+                <div className="hidden md:block">
+                  <table className="w-full text-body-md">
+                    <thead>
+                      <tr className="bg-[#f1f5f9] text-left text-label-md uppercase tracking-wider text-on-surface-variant">
+                        <th className="px-4 py-2">Tranche</th>
+                        <th className="px-4 py-2">Montant (FCFA)</th>
+                        <th className="px-4 py-2">Échéance</th>
+                        <th className="px-4 py-2" />
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-                <p className="mt-2 text-label-md text-on-surface-variant">
-                  Reste à répartir : {formatFCFA((parseInt(montantTotal, 10) || 0) - (parseInt(montantAcompte, 10) || 0) - drafts.reduce((s, d) => s + d.montant_prevu, 0))}
-                </p>
+                    </thead>
+                    <tbody>
+                      {drafts.map((d, i) => (
+                        <tr key={d.numero_tranche} className="border-t border-outline-variant">
+                          <td className="px-4 py-2">Tranche {d.numero_tranche}</td>
+                          <td className="px-4 py-2">
+                            <Input aria-label="Montant de la tranche" type="number" min={1} className="min-h-11" value={d.montant_prevu} onChange={(e) => setDrafts((prev) => prev.map((x, j) => (j === i ? { ...x, montant_prevu: parseInt(e.target.value, 10) || 0 } : x)))} />
+                          </td>
+                          <td className="px-4 py-2">
+                            <Input aria-label="Échéance de la tranche" type="date" className="min-h-11" value={d.date_echeance} onChange={(e) => setDrafts((prev) => prev.map((x, j) => (j === i ? { ...x, date_echeance: e.target.value } : x)))} />
+                          </td>
+                          <td className="px-4 py-2">
+                            <Button type="button" variant="secondary" onClick={() => setDrafts((prev) => prev.filter((_, j) => j !== i))}>Retirer</Button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+                <div className="space-y-4 md:hidden" data-testid="cartes-tranches">
+                  {drafts.map((d, i) => (
+                    <div key={d.numero_tranche} className="relative rounded-lg border border-outline-variant p-4">
+                      <button
+                        type="button"
+                        onClick={() => setDrafts((prev) => prev.filter((_, j) => j !== i))}
+                        aria-label={`Retirer la tranche ${d.numero_tranche}`}
+                        className="absolute right-2 top-2 flex h-11 w-11 items-center justify-center rounded-md text-on-surface-variant hover:bg-surface-container hover:text-error"
+                      >
+                        <Icon name="delete" size={18} />
+                      </button>
+                      <p className="flex items-center gap-2 text-body-md font-bold text-primary">
+                        <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary-container text-label-md text-on-primary-container">
+                          {d.numero_tranche}
+                        </span>
+                        Tranche {d.numero_tranche}
+                      </p>
+                      <div className="mt-3 space-y-3">
+                        <Field label="Montant (FCFA)">
+                          <Input aria-label="Montant de la tranche" type="number" min={1} className="min-h-11" value={d.montant_prevu} onChange={(e) => setDrafts((prev) => prev.map((x, j) => (j === i ? { ...x, montant_prevu: parseInt(e.target.value, 10) || 0 } : x)))} />
+                        </Field>
+                        <Field label="Échéance">
+                          <Input aria-label="Échéance de la tranche" type="date" className="min-h-11" value={d.date_echeance} onChange={(e) => setDrafts((prev) => prev.map((x, j) => (j === i ? { ...x, date_echeance: e.target.value } : x)))} />
+                        </Field>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
             {erreur && <p className="text-sm text-error md:col-span-3">{erreur}</p>}
+            {drafts.length > 0 && (
+              <div
+                className={`md:col-span-3 rounded-md border px-4 py-3 text-body-md font-semibold ${
+                  resteARepartir === 0 ? 'border-green-200 bg-green-50 text-vert' : 'border-amber-200 bg-amber-50 text-amber-800'
+                }`}
+              >
+                Reste à répartir : {formatFCFA(resteARepartir)}
+              </div>
+            )}
             <div className="flex gap-3 md:col-span-3">
               <Button type="submit" disabled={creerPlan.isPending}>Créer le plan</Button>
               <Button type="button" variant="secondary" onClick={() => setCreation(false)}>Annuler</Button>
