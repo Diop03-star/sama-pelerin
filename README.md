@@ -10,7 +10,7 @@ Gestion d'agences de voyage (Hajj/Omra) : groupes, pèlerins, documents, paiemen
 2. Copier `.env.example` vers `.env` et renseigner `VITE_SUPABASE_URL` et
    `VITE_SUPABASE_ANON_KEY` ; copier la clé `service_role` dans `.env.local`
    (jamais commitée).
-3. Authentication → Email : désactiver « Confirm email ».
+3. Authentication → Email : **activer « Confirm email »** (obligatoire pour la production).
 4. SQL Editor : exécuter `supabase/schema.sql` puis `supabase/seed.sql`.
 5. `npm install` puis `npm run seed:auth` (créé les comptes de démo).
 6. `npm run dev`.

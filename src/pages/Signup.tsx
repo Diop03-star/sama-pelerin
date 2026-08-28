@@ -29,7 +29,7 @@ export default function Signup() {
       setErreur(error.message)
       return
     }
-    setMessage('Compte créé. Vous pouvez vous connecter.')
+    setMessage('Compte créé. Confirmez votre email pour activer votre compte, puis connectez-vous.')
   }
 
   return (
