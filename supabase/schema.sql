@@ -186,6 +186,11 @@ returns uuid language plpgsql security definer set search_path = public as $$
 declare
   v_id uuid;
 begin
+  if exists (select 1 from public.utilisateurs
+             where user_id = auth.uid()
+               and (agence_id is not null or role = 'superadmin')) then
+    raise exception 'Déjà rattaché à une agence';
+  end if;
   insert into public.agences (nom, telephone, adresse)
   values (p_nom, coalesce(p_telephone, ''), p_adresse)
   returning id into v_id;
@@ -437,9 +442,11 @@ create policy tutos_delete on public.tutos for delete using (public.is_superadmi
 create policy agences_select on public.agences for select
   using (id = public.current_agence_id() or public.is_superadmin());
 create policy agences_insert on public.agences for insert
-  with check (true);
+  with check (public.is_superadmin());
 create policy agences_update on public.agences for update
-  using (id = public.current_agence_id() or public.is_superadmin());
+  using (id = public.current_agence_id() or public.is_superadmin())
+  with check (public.is_superadmin()
+    or (id = public.current_agence_id() and new.active = true));
 
 create policy utilisateurs_select on public.utilisateurs for select
   using (agence_id = public.current_agence_id() or user_id = auth.uid() or public.is_superadmin());
@@ -449,11 +456,24 @@ create policy utilisateurs_update on public.utilisateurs for update
   using (user_id = auth.uid()
     or (agence_id = public.current_agence_id()
         and exists (select 1 from public.utilisateurs u
-                    where u.user_id = auth.uid() and u.role = 'gerant')));
+                    where u.user_id = auth.uid() and u.role = 'gerant')))
+  with check (
+    (user_id = auth.uid()
+     and new.role = (select u.role from public.utilisateurs u where u.user_id = auth.uid())
+     and new.agence_id = (select u.agence_id from public.utilisateurs u where u.user_id = auth.uid()))
+    or
+    (agence_id = public.current_agence_id()
+     and exists (select 1 from public.utilisateurs u
+                 where u.user_id = auth.uid() and u.role = 'gerant')
+     and new.role in ('gerant','agent')
+     and new.agence_id = public.current_agence_id()
+     and new.user_id <> auth.uid())
+  );
 create policy utilisateurs_delete on public.utilisateurs for delete
   using (agence_id = public.current_agence_id()
     and exists (select 1 from public.utilisateurs u
-                where u.user_id = auth.uid() and u.role = 'gerant'));
+                where u.user_id = auth.uid() and u.role = 'gerant')
+    and user_id <> auth.uid());
 
 create policy invitations_select on public.invitations for select
   using (agence_id = public.current_agence_id());
