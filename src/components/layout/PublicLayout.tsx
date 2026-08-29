@@ -23,7 +23,7 @@ export default function PublicLayout() {
             <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary-container text-on-primary-container">
               <Icon name="mosque" size={18} />
             </div>
-            <span className="text-headline-sm font-bold text-primary">SamaPèlerin</span>
+            <span className="hidden text-headline-sm font-bold text-primary sm:inline">SamaPèlerin</span>
           </Link>
           <nav className="hidden items-center gap-6 text-label-md text-on-surface-variant md:flex">
             <Link to="/#avantages" className="hover:text-primary">Avantages</Link>
@@ -37,7 +37,7 @@ export default function PublicLayout() {
             ) : (
               <>
                 <Link to="/login" className="btn-secondary px-4 py-2 text-sm">Se connecter</Link>
-                <Link to="/signup" className="btn-primary px-4 py-2 text-sm">Essayer gratuitement</Link>
+                <Link to="/signup" className="btn-primary px-4 py-2 text-sm"><span className="sm:hidden">Essayer</span><span className="hidden sm:inline">Essayer gratuitement</span></Link>
               </>
             )}
           </div>
