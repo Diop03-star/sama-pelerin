@@ -125,4 +125,12 @@ describe('NotifPanel', () => {
     fireEvent.mouseDown(document.body)
     expect(screen.queryByText('Awa Ndiaye')).not.toBeInTheDocument()
   })
+
+  it('plafonne la largeur du panneau à la taille de l’écran (mobile)', async () => {
+    mockRappels([rappelTranche])
+    rendre()
+    fireEvent.click(screen.getByLabelText('Notifications'))
+    const panneau = (await screen.findByText('Notifications')).parentElement
+    expect(panneau?.className).toContain('max-w-[calc(100vw-2rem)]')
+  })
 })
