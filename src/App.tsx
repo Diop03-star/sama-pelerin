@@ -18,6 +18,7 @@ import PelerinDetail from './pages/PelerinDetail'
 import Documents from './pages/Documents'
 import Paiements from './pages/Paiements'
 import Dashboard from './pages/Dashboard'
+import Profil from './pages/Profil'
 import PublicLayout from './components/layout/PublicLayout'
 import Landing from './pages/Landing'
 import Tutoriels from './pages/Tutoriels'
@@ -52,6 +53,7 @@ export default function App() {
                 <Route path="/gestion-des-documents" element={<Documents />} />
                 <Route path="/paiements-echeanciers" element={<Paiements />} />
                 <Route path="/tableau-de-bord" element={<Dashboard />} />
+                <Route path="/profil" element={<Profil />} />
                 <Route path="*" element={<Navigate to="/tableau-de-bord" replace />} />
               </Route>
             </Route>

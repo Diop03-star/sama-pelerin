@@ -1,10 +1,12 @@
 import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { supabase } from '../../lib/supabase'
 import { useAgence, useProfil } from '../../hooks/useAgence'
 import { filtrerRecherche } from '../../lib/recherche'
 import Icon from '../ui/Icon'
+import NotifPanel from './NotifPanel'
+import ProfilMenu from './ProfilMenu'
 
 interface TopbarProps {
   onOuvrirMenu: () => void
@@ -130,21 +132,20 @@ export default function Topbar({ onOuvrirMenu }: TopbarProps) {
       </div>
 
       <div className="flex items-center gap-2">
-        <button type="button" aria-label="Notifications" className="relative rounded-lg p-2 text-on-surface-variant hover:bg-surface-container-low">
-          <Icon name="notifications" size={20} />
-          <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-error" />
-        </button>
-        <button type="button" aria-label="Aide" className="hidden rounded-lg p-2 text-on-surface-variant hover:bg-surface-container-low md:block">
+        <NotifPanel />
+        <Link
+          to="/tutoriels"
+          aria-label="Aide"
+          className="hidden rounded-lg p-2 text-on-surface-variant hover:bg-surface-container-low md:block"
+        >
           <Icon name="help_outline" size={20} />
-        </button>
+        </Link>
         <div className="ml-2 flex items-center gap-3 border-l border-outline-variant pl-4">
           <div className="hidden text-right lg:block">
             <p className="text-label-md text-on-surface">{profil?.role === 'gerant' ? 'Gérant' : 'Agent'}</p>
             <p className="text-[10px] text-on-surface-variant">{agence?.nom}</p>
           </div>
-          <div className="flex h-8 w-8 items-center justify-center rounded-full border border-outline-variant bg-primary-container text-label-md font-bold text-on-primary-container">
-            {profil?.nom?.charAt(0).toUpperCase() ?? '?'}
-          </div>
+          <ProfilMenu />
         </div>
       </div>
     </header>
