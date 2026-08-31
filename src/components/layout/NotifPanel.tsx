@@ -57,7 +57,7 @@ export default function NotifPanel() {
         )}
       </button>
       {ouvert && (
-        <div className="absolute right-0 top-full z-30 mt-2 w-80 max-w-[calc(100vw-2rem)] overflow-hidden rounded-lg border border-outline-variant bg-surface-container-lowest shadow-md">
+        <div className="fixed right-6 top-[68px] z-30 w-80 max-w-[calc(100vw-2rem)] overflow-hidden rounded-lg border border-outline-variant bg-surface-container-lowest shadow-md md:absolute md:right-0 md:top-full md:mt-2">
           <p className="border-b border-outline-variant px-4 py-2 text-label-md font-bold text-primary">Notifications</p>
           {error ? (
             <EmptyState message="Impossible de charger les notifications" />
