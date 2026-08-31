@@ -45,4 +45,11 @@ describe('Profil', () => {
     render(<Profil />)
     expect(screen.getByText('Profil introuvable.')).toBeInTheDocument()
   })
+
+  it("n'affiche pas le message d'introuvable pendant le chargement", () => {
+    mockUseProfil.mockReturnValue({ data: undefined, isLoading: true })
+    mockUseAgence.mockReturnValue({ data: undefined, isLoading: true })
+    render(<Profil />)
+    expect(screen.queryByText('Profil introuvable.')).not.toBeInTheDocument()
+  })
 })

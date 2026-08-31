@@ -2,8 +2,12 @@ import { useAgence, useProfil } from '../hooks/useAgence'
 import { formatDate } from '../lib/format'
 
 export default function Profil() {
-  const { data: profil } = useProfil()
+  const { data: profil, isLoading } = useProfil()
   const { data: agence } = useAgence()
+
+  if (isLoading) {
+    return <div className="flex h-screen items-center justify-center text-navy">Chargement…</div>
+  }
 
   if (!profil) {
     return <div className="flex h-screen items-center justify-center text-error">Profil introuvable.</div>
