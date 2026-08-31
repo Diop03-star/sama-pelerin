@@ -136,7 +136,7 @@ export default function Topbar({ onOuvrirMenu }: TopbarProps) {
         <Link
           to="/tutoriels"
           aria-label="Aide"
-          className="hidden rounded-lg p-2 text-on-surface-variant hover:bg-surface-container-low md:block"
+          className="rounded-lg p-2 text-on-surface-variant hover:bg-surface-container-low"
         >
           <Icon name="help_outline" size={20} />
         </Link>

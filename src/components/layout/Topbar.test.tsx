@@ -51,4 +51,15 @@ describe('Topbar', () => {
     )
     expect(screen.getByRole('link', { name: 'Aide' })).toHaveAttribute('href', '/tutoriels')
   })
+
+  it("affiche l'icône Aide sur mobile (pas de classe hidden)", () => {
+    render(
+      <QueryClientProvider client={queryClient}>
+        <MemoryRouter>
+          <Topbar onOuvrirMenu={() => {}} />
+        </MemoryRouter>
+      </QueryClientProvider>,
+    )
+    expect(screen.getByRole('link', { name: 'Aide' }).className).not.toContain('hidden')
+  })
 })
