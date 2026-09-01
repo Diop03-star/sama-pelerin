@@ -128,7 +128,7 @@ export default function Membres() {
         )}
       </div>
 
-      <div className="overflow-hidden rounded-xl border border-outline-variant bg-surface-container-lowest shadow-sm">
+      <div className="hidden overflow-hidden rounded-xl border border-outline-variant bg-surface-container-lowest shadow-sm md:block">
         <div className="overflow-x-auto">
           <table className="w-full text-body-md">
             <thead>
@@ -168,8 +168,33 @@ export default function Membres() {
         </div>
       </div>
 
+      <div className="space-y-4 md:hidden">
+        {membres.map((m) => (
+          <div key={m.id} className="rounded-xl border border-outline-variant bg-surface-container-lowest p-4 shadow-sm">
+            <div className="flex items-start justify-between gap-3">
+              <p className="font-semibold text-primary">{m.nom}</p>
+              <Badge tone={m.role === 'gerant' ? 'ambre' : 'neutre'}>{m.role === 'gerant' ? 'Gérant' : 'Agent'}</Badge>
+            </div>
+            <p className="mt-0.5 text-body-md text-on-surface-variant">{m.email}</p>
+            {m.user_id !== profil?.user_id && (
+              <div className="mt-3">
+                <button
+                  onClick={() => supprimer.mutate(m.id)}
+                  title="Retirer"
+                  className="rounded-lg p-2 text-on-surface-variant hover:bg-surface-container hover:text-error"
+                >
+                  <Icon name="delete" size={18} />
+                </button>
+              </div>
+            )}
+          </div>
+        ))}
+        {membres.length === 0 && <EmptyState message="Aucun membre pour le moment." />}
+      </div>
+
       {invitations.filter((i) => !i.used_at).length > 0 && (
-        <div className="overflow-hidden rounded-xl border border-outline-variant bg-surface-container-lowest shadow-sm">
+        <>
+          <div className="hidden overflow-hidden rounded-xl border border-outline-variant bg-surface-container-lowest shadow-sm md:block">
           <div className="overflow-x-auto">
             <table className="w-full text-body-md">
               <thead>
@@ -203,6 +228,27 @@ export default function Membres() {
             </table>
           </div>
         </div>
+        <div className="space-y-4 md:hidden">
+          {invitations.filter((i) => !i.used_at).map((i) => (
+            <div key={i.id} className="rounded-xl border border-outline-variant bg-surface-container-lowest p-4 shadow-sm">
+              <div className="flex items-start justify-between gap-3">
+                <p className="font-semibold text-primary">{i.email}</p>
+                <Badge tone={i.role === 'gerant' ? 'ambre' : 'neutre'}>{i.role === 'gerant' ? 'Gérant' : 'Agent'}</Badge>
+              </div>
+              <p className="mt-0.5 text-body-md text-on-surface-variant">{`Expire le : ${new Date(i.expires_at).toLocaleDateString('fr-FR')}`}</p>
+              <div className="mt-3">
+                <button
+                  onClick={() => supprimerInvitation.mutate(i.id)}
+                  title="Annuler"
+                  className="rounded-lg p-2 text-on-surface-variant hover:bg-surface-container hover:text-error"
+                >
+                  <Icon name="close" size={18} />
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+        </>
       )}
     </div>
   )
