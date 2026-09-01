@@ -33,11 +33,12 @@ export default function Dashboard() {
   const { data: rappels = [] } = useQuery({
     queryKey: ['dashboard-rappels'],
     queryFn: async () => {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from('rappels')
         .select('id, statut_envoi, date_envoi_prevue, tranche:tranches(numero_tranche, montant_prevu, date_echeance, plan_paiement:plans_paiement(pelerin:pelerins(*))), document:documents(type_document, statut, pelerin:pelerins(*))')
-        .eq('statut_envoi', 'en_attente')
+        .in('statut_envoi', ['en_attente', 'echec'])
         .order('date_envoi_prevue', { ascending: true })
+      if (error) throw error
       return data as unknown as RappelAvecCible[]
     },
   })
@@ -209,7 +210,7 @@ export default function Dashboard() {
             <Icon name="notifications_active" size={20} className="text-secondary" />
             <h3 className="text-headline-sm text-primary">Rappels à envoyer</h3>
           </div>
-          {rappels.length === 0 && <EmptyState message="Aucun rappel en attente." />}
+          {rappels.length === 0 && <EmptyState message="Aucun rappel à envoyer." />}
           <ul className="space-y-3">
             {rappels.map((r) => {
               const cible = r.tranche
