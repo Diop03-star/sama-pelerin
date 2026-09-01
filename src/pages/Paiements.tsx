@@ -103,7 +103,7 @@ export default function Paiements() {
         </div>
       )}
 
-      <div className="overflow-hidden rounded-xl border border-outline-variant bg-surface-container-lowest shadow-sm">
+      <div className="hidden overflow-hidden rounded-xl border border-outline-variant bg-surface-container-lowest shadow-sm md:block">
         <div className="overflow-x-auto">
           <table className="w-full text-body-md">
             <thead>
@@ -157,7 +157,46 @@ export default function Paiements() {
         </div>
       </div>
 
-      <div className="overflow-hidden rounded-xl border border-outline-variant bg-surface-container-lowest shadow-sm">
+      <div className="space-y-4 md:hidden">
+        {plans.map((p) => {
+          const paye = p.tranches.reduce((s, t) => s + t.paiements.reduce((x, y) => x + y.montant_paye, 0), 0)
+            + p.acomptes.reduce((s, a) => s + a.montant_paye, 0)
+          const reste = p.montant_total - paye
+          const progression = p.montant_total > 0 ? Math.round((paye / p.montant_total) * 100) : 0
+          const retard = p.tranches.filter((t) => t.statut === 'en_retard').length
+          return (
+            <div key={p.id} className="rounded-xl border border-outline-variant bg-surface-container-lowest p-4 shadow-sm">
+              <div className="flex items-start justify-between gap-3">
+                <Link to={`/details-du-pelerin/${p.pelerin.id}`} className="font-semibold text-primary">
+                  {p.pelerin.prenom} {p.pelerin.nom}
+                </Link>
+                <Badge tone={TONE_STATUT_PLAN[p.statut]}>{LIBELLES_STATUT_PLAN[p.statut]}</Badge>
+              </div>
+              <p className="mt-0.5 text-body-md text-on-surface-variant">{p.pelerin.telephone}</p>
+              <div className="mt-3 space-y-1 text-body-md text-on-surface-variant">
+                <p>{`Plan : ${formatFCFA(p.montant_total)} · ${p.nombre_tranches} tranches`}</p>
+                <p className="text-vert">{`Payé : ${formatFCFA(paye)}`}</p>
+                <p className={reste > 0 ? 'font-medium text-error' : 'text-vert'}>{`Reste : ${formatFCFA(reste)}`}</p>
+              </div>
+              <div className="mt-3 flex items-center gap-3">
+                <div className="w-32">
+                  <ProgressBar valeur={progression} tone={progression === 100 ? 'vert' : 'gold'} />
+                </div>
+                <span className="text-data-mono text-on-surface-variant">{progression}%</span>
+              </div>
+              <div className="mt-3 flex items-center justify-between gap-2">
+                <Link to={`/details-du-pelerin/${p.pelerin.id}`} className="btn-secondary px-3 py-1.5 text-sm">
+                  Voir
+                </Link>
+                {retard > 0 && <Badge tone="rouge">{`${retard} en retard`}</Badge>}
+              </div>
+            </div>
+          )
+        })}
+        {plans.length === 0 && <EmptyState message="Aucun plan de paiement." />}
+      </div>
+
+      <div className="hidden overflow-hidden rounded-xl border border-outline-variant bg-surface-container-lowest shadow-sm md:block">
         <div className="flex items-center gap-2 px-6 pt-5">
           <Icon name="event_note" size={20} className="text-primary" />
           <h2 className="text-headline-sm text-primary">Détail des tranches</h2>
@@ -189,6 +228,22 @@ export default function Paiements() {
           </table>
           {tranchesFiltrees.length === 0 && <EmptyState message="Aucune tranche pour ce filtre." />}
         </div>
+      </div>
+
+      <div className="space-y-4 md:hidden">
+        {tranchesFiltrees.map(({ p, t }) => (
+          <div key={t.id} className="rounded-xl border border-outline-variant bg-surface-container-lowest p-4 shadow-sm">
+            <div className="flex items-start justify-between gap-3">
+              <p className="font-semibold text-primary">{p.pelerin.prenom} {p.pelerin.nom}</p>
+              <Badge tone={TONE_TRANCHE[t.statut]}>{LIBELLES_TRANCHE[t.statut]}</Badge>
+            </div>
+            <div className="mt-3 space-y-1 text-body-md text-on-surface-variant">
+              <p>{`Tranche ${t.numero_tranche} · ${formatFCFA(t.montant_prevu)}`}</p>
+              <p>{`Échéance : ${formatDate(t.date_echeance)}`}</p>
+            </div>
+          </div>
+        ))}
+        {tranchesFiltrees.length === 0 && <EmptyState message="Aucune tranche pour ce filtre." />}
       </div>
     </div>
   )

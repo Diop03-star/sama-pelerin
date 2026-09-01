@@ -83,7 +83,7 @@ function rendre(plans: unknown[] = [planAvecAcompte, planSansAcompte]) {
 describe('Paiements', () => {
   it('affiche le badge statut du plan et l’encart « solde à régler »', async () => {
     rendre()
-    expect(await screen.findByText('En retard')).toBeInTheDocument()
+    expect((await screen.findAllByText('En retard')).length).toBeGreaterThanOrEqual(1)
     expect(screen.getByText('1 plan(s) dont le solde est à régler')).toBeInTheDocument()
   })
 
@@ -98,5 +98,15 @@ describe('Paiements', () => {
     rendre([planAvecAcompte, planSansAcompte, planDateLimitePassee])
     expect(await screen.findByText('2 plan(s) dont le solde est à régler')).toBeInTheDocument()
     expect(screen.getByText('Moussa Diop — reste 600 000 FCFA, limite le 01/01/2026.')).toBeInTheDocument()
+  })
+
+  it('affiche les cartes mobiles avec plan, payé, reste et tranches', async () => {
+    rendre()
+    expect((await screen.findAllByText(/Plan : 1 000 000 FCFA · 2 tranches/)).length).toBeGreaterThanOrEqual(1)
+    expect((await screen.findAllByText(/Payé : 500 000 FCFA/)).length).toBeGreaterThanOrEqual(1)
+    expect((await screen.findAllByText(/Reste : 500 000 FCFA/)).length).toBeGreaterThanOrEqual(1)
+    expect((await screen.findAllByText(/Tranche 1 · 300 000 FCFA/)).length).toBeGreaterThanOrEqual(1)
+    expect((await screen.findAllByText(/Échéance : 01\/02\/2026/)).length).toBeGreaterThanOrEqual(1)
+    expect(screen.getAllByText('Voir').length).toBeGreaterThanOrEqual(1)
   })
 })
