@@ -63,10 +63,23 @@ describe('Membres', () => {
     expect(screen.queryByTitle('Retirer')).not.toBeInTheDocument()
   })
 
+  it('affiche le bouton Retirer pour un autre membre', async () => {
+    const autreMembre = { ...membreFixture, id: 'u2', user_id: 'auth2', nom: 'Fatou Diop' }
+    rendre({ membres: [membreFixture, autreMembre], invitations: [] })
+    expect((await screen.findAllByText('Fatou Diop')).length).toBeGreaterThanOrEqual(1)
+    expect(screen.getAllByTitle('Retirer').length).toBeGreaterThanOrEqual(1)
+  })
+
   it('affiche les cartes invitations avec date d’expiration', async () => {
     rendre({ membres: [], invitations: [invitationFixture] })
     expect((await screen.findAllByText('invite@example.com')).length).toBeGreaterThanOrEqual(1)
     expect(screen.getByText('Expire le : 01/02/2026')).toBeInTheDocument()
+  })
+
+  it('affiche le bouton Annuler sur les invitations en attente', async () => {
+    rendre({ membres: [], invitations: [invitationFixture] })
+    expect((await screen.findAllByText('invite@example.com')).length).toBeGreaterThanOrEqual(1)
+    expect(screen.getAllByTitle('Annuler').length).toBeGreaterThanOrEqual(1)
   })
 
   it('affiche un état vide pour les membres', async () => {
