@@ -130,7 +130,7 @@ export default function Groupes() {
         <Input placeholder="Rechercher un groupe…" value={recherche} onChange={(e) => setRecherche(e.target.value)} className="pl-10" />
       </div>
 
-      <div className="overflow-hidden rounded-xl border border-outline-variant bg-surface-container-lowest shadow-sm">
+      <div className="hidden overflow-hidden rounded-xl border border-outline-variant bg-surface-container-lowest shadow-sm md:block">
         <div className="overflow-x-auto">
           <table className="w-full text-body-md">
             <thead>
@@ -186,6 +186,45 @@ export default function Groupes() {
           </table>
           {filtres.length === 0 && <EmptyState message="Aucun groupe. Créez votre premier groupe Hajj ou Omra." />}
         </div>
+      </div>
+
+      <div className="space-y-4 md:hidden">
+        {filtres.map((g) => {
+          const inscrits = g.pelerins[0]?.count ?? 0
+          const complet = inscrits >= g.nb_places_max && g.nb_places_max > 0
+          return (
+            <div key={g.id} className="rounded-xl border border-outline-variant bg-surface-container-lowest p-4 shadow-sm">
+              <div className="flex items-start justify-between gap-3">
+                <Link to={`/liste-des-pelerins?groupe=${g.id}`} className="font-semibold text-primary">
+                  {g.nom}
+                </Link>
+                <Badge tone={g.type_voyage === 'hajj' ? 'ambre' : 'neutre'}>{LIBELLES_TYPE_VOYAGE[g.type_voyage]}</Badge>
+              </div>
+              <div className="mt-3 space-y-1 text-body-md text-on-surface-variant">
+                <p>{`Départ : ${formatDate(g.date_depart)}`}</p>
+                <p>{`Retour : ${formatDate(g.date_retour)}`}</p>
+                <p className={complet ? 'font-semibold text-error' : ''}>{`Places : ${inscrits} / ${g.nb_places_max}`}</p>
+              </div>
+              <div className="mt-4 flex items-center gap-2">
+                <button
+                  onClick={() => ouvrirEdition(g)}
+                  title="Modifier"
+                  className="rounded-lg p-2 text-on-surface-variant hover:bg-surface-container hover:text-primary"
+                >
+                  <Icon name="edit" size={18} />
+                </button>
+                <button
+                  onClick={() => supprimer.mutate(g.id)}
+                  title="Supprimer"
+                  className="rounded-lg p-2 text-on-surface-variant hover:bg-surface-container hover:text-error"
+                >
+                  <Icon name="delete" size={18} />
+                </button>
+              </div>
+            </div>
+          )
+        })}
+        {filtres.length === 0 && <EmptyState message="Aucun groupe. Créez votre premier groupe Hajj ou Omra." />}
       </div>
 
       <Modal open={modalOuverte} title={enEdition ? 'Modifier le groupe' : 'Nouveau groupe'} onClose={() => setModalOuverte(false)}>
