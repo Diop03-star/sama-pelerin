@@ -20,9 +20,12 @@ function rendre() {
 }
 
 describe('PublicLayout', () => {
-  it('affiche le logo SamaPèlerin dans l’en-tête', () => {
+  it('affiche l’emblème sur mobile et le logo complet sur desktop', () => {
     rendre()
-    expect(screen.getByAltText('SamaPèlerin')).toHaveClass('h-12')
+    const marques = screen.getAllByAltText('SamaPèlerin')
+    expect(marques.length).toBe(2)
+    expect(marques[0]).toHaveClass('h-9', 'w-9', 'sm:hidden')
+    expect(marques[1]).toHaveClass('hidden', 'h-12', 'w-auto', 'sm:inline-block')
   })
 
   it('pointe les ancres du menu et du pied de page vers la landing avec l’ancre complète', () => {

@@ -1,7 +1,6 @@
 import { useEffect } from 'react'
 import { Link, Outlet, useLocation } from 'react-router-dom'
 import { useAuth } from '../../auth/AuthContext'
-import Icon from '../ui/Icon'
 import WhatsAppIcon from '../ui/WhatsAppIcon'
 import { whatsappDemoUrl } from '../../lib/vitrine'
 import logo from '../../assets/logo-sama-pelerin.png'
@@ -21,9 +20,7 @@ export default function PublicLayout() {
       <header className="sticky top-0 z-20 border-b border-outline-variant bg-surface-container-lowest/95 backdrop-blur">
         <div className="mx-auto flex w-full max-w-6xl items-center justify-between gap-4 px-4 py-3">
           <Link to="/" className="flex items-center gap-2">
-            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary-container text-on-primary-container sm:hidden">
-              <Icon name="mosque" size={18} />
-            </div>
+            <img src="/pwa-icon-192.png" alt="SamaPèlerin" className="h-9 w-9 sm:hidden" />
             <img src={logo} alt="SamaPèlerin" className="hidden h-12 w-auto sm:inline-block" />
           </Link>
           <nav className="hidden items-center gap-6 text-label-md text-on-surface-variant md:flex">
