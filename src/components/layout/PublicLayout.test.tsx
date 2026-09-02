@@ -22,7 +22,7 @@ function rendre() {
 describe('PublicLayout', () => {
   it('affiche le logo SamaPèlerin dans l’en-tête', () => {
     rendre()
-    expect(screen.getByAltText('SamaPèlerin')).toBeInTheDocument()
+    expect(screen.getByAltText('SamaPèlerin')).toHaveClass('h-12')
   })
 
   it('pointe les ancres du menu et du pied de page vers la landing avec l’ancre complète', () => {

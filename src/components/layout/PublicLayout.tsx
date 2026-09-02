@@ -24,7 +24,7 @@ export default function PublicLayout() {
             <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary-container text-on-primary-container sm:hidden">
               <Icon name="mosque" size={18} />
             </div>
-            <img src={logo} alt="SamaPèlerin" className="hidden h-9 w-auto sm:inline-block" />
+            <img src={logo} alt="SamaPèlerin" className="hidden h-12 w-auto sm:inline-block" />
           </Link>
           <nav className="hidden items-center gap-6 text-label-md text-on-surface-variant md:flex">
             <Link to="/#avantages" className="hover:text-primary">Avantages</Link>

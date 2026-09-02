@@ -39,7 +39,7 @@ function rendre() {
 describe('Onboarding', () => {
   it('affiche le logo SamaPèlerin', () => {
     rendre()
-    expect(screen.getByAltText('SamaPèlerin')).toBeInTheDocument()
+    expect(screen.getByAltText('SamaPèlerin')).toHaveClass('h-20')
   })
 
   it('crée l’agence via le RPC puis redirige vers le tableau de bord', async () => {

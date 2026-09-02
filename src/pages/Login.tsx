@@ -27,7 +27,7 @@ export default function Login() {
     <div className="flex min-h-screen items-center justify-center bg-surface px-4">
       <div className="w-full max-w-md rounded-xl border border-outline-variant bg-surface-container-lowest p-8 shadow-sm">
         <h1 className="mb-6">
-          <img src={logo} alt="SamaPèlerin" className="h-12 w-auto" />
+          <img src={logo} alt="SamaPèlerin" className="h-20 w-auto" />
         </h1>
         <h2 className="text-headline-md mb-6 text-primary">Se connecter</h2>
         <form onSubmit={onSubmit} className="space-y-4">

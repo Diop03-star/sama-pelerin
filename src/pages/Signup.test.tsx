@@ -13,6 +13,6 @@ describe('Signup', () => {
         <Signup />
       </MemoryRouter>,
     )
-    expect(screen.getByAltText('SamaPèlerin')).toBeInTheDocument()
+    expect(screen.getByAltText('SamaPèlerin')).toHaveClass('h-20')
   })
 })
