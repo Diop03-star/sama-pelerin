@@ -1,7 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
-import Icon from '../components/ui/Icon'
+import logo from '../assets/logo-sama-pelerin.png'
 
 export default function Signup() {
   const [params] = useSearchParams()
@@ -35,12 +35,9 @@ export default function Signup() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-surface px-4">
       <div className="w-full max-w-md rounded-xl border border-outline-variant bg-surface-container-lowest p-8 shadow-sm">
-        <div className="mb-6 flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary-container text-on-primary-container">
-            <Icon name="mosque" size={20} />
-          </div>
-          <h1 className="text-headline-sm font-bold text-primary">SamaPèlerin</h1>
-        </div>
+        <h1 className="mb-6">
+          <img src={logo} alt="SamaPèlerin" className="h-12 w-auto" />
+        </h1>
         <h2 className="text-headline-md mb-6 text-primary">Créer un compte</h2>
         <form onSubmit={onSubmit} className="space-y-4">
           <div>

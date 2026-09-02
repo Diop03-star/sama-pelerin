@@ -20,6 +20,11 @@ function rendre() {
 }
 
 describe('PublicLayout', () => {
+  it('affiche le logo SamaPèlerin dans l’en-tête', () => {
+    rendre()
+    expect(screen.getByAltText('SamaPèlerin')).toBeInTheDocument()
+  })
+
   it('pointe les ancres du menu et du pied de page vers la landing avec l’ancre complète', () => {
     rendre()
     const cibles: Record<string, string> = { Avantages: '/#avantages', Tarifs: '/#tarifs', Contact: '/#contact' }
