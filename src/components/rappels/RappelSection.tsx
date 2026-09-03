@@ -52,7 +52,7 @@ export default function RappelSection({ pelerinId }: { pelerinId: string }) {
     queryFn: async () => {
       const { data } = await supabase
         .from('rappels')
-        .select('*, tranche:tranches(numero_tranche, montant_prevu, date_echeance, plan_paiement:plans_paiement(pelerin_id, montant_total)), document:documents(*)')
+        .select('*, tranche:tranches(id, numero_tranche, montant_prevu, date_echeance, plan_paiement:plans_paiement(pelerin_id, montant_total)), document:documents(*)')
         .order('date_envoi_prevue', { ascending: false })
       const tous = (data as unknown as RappelAvecCible[]) ?? []
       return tous.filter((r) => {
@@ -102,6 +102,14 @@ export default function RappelSection({ pelerinId }: { pelerinId: string }) {
     return ''
   }
 
+  function rappelActifPourTranche(trancheId: string): boolean {
+    return rappels.some((r) => r.tranche?.id === trancheId && (r.statut_envoi === 'en_attente' || r.statut_envoi === 'envoye'))
+  }
+
+  function rappelActifPourDocument(documentId: string): boolean {
+    return rappels.some((r) => r.document?.id === documentId && (r.statut_envoi === 'en_attente' || r.statut_envoi === 'envoye'))
+  }
+
   return (
     <div className="rounded-xl border border-outline-variant bg-surface-container-lowest p-6 shadow-sm">
       <div className="mb-4 flex items-center gap-2">
@@ -110,7 +118,7 @@ export default function RappelSection({ pelerinId }: { pelerinId: string }) {
       </div>
 
       <div className="mb-4 flex flex-wrap gap-2">
-        {tranches.filter((t) => t.statut !== 'payee').map((t) => (
+        {tranches.filter((t) => t.statut !== 'payee' && !rappelActifPourTranche(t.id)).map((t) => (
           <Button
             key={t.id}
             variant="secondary"
@@ -121,7 +129,7 @@ export default function RappelSection({ pelerinId }: { pelerinId: string }) {
             Rappel tranche {t.numero_tranche} ({formatFCFA(t.montant_prevu)})
           </Button>
         ))}
-        {documents.filter((d) => d.statut !== 'valide').map((d) => (
+        {documents.filter((d) => d.statut !== 'valide' && !rappelActifPourDocument(d.id)).map((d) => (
           <Button
             key={d.id}
             variant="secondary"
