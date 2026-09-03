@@ -19,6 +19,7 @@ interface PelerinAvecJointures extends Pelerin {
     montant_total: number
     nombre_tranches: number
     tranches: { paiements: { montant_paye: number }[] }[]
+    acomptes: { montant_paye: number }[]
   } | null
 }
 
@@ -50,7 +51,7 @@ export default function Pelerins() {
     queryFn: async () => {
       const { data } = await supabase
         .from('pelerins')
-        .select('*, groupe:groupes(*), plan_paiement:plans_paiement(montant_total, nombre_tranches, tranches(paiements(montant_paye)))')
+        .select('*, groupe:groupes(*), plan_paiement:plans_paiement(montant_total, nombre_tranches, tranches(paiements(montant_paye)), acomptes:paiements!plan_paiement_id(montant_paye))')
         .order('nom')
       return data as unknown as PelerinAvecJointures[]
     },
@@ -149,7 +150,8 @@ export default function Pelerins() {
 
   const montantPaye = (p: PelerinAvecJointures) => {
     const paiements = p.plan_paiement?.tranches.flatMap((t) => t.paiements) ?? []
-    return paiements.reduce((s, p) => s + p.montant_paye, 0)
+    const acomptes = p.plan_paiement?.acomptes ?? []
+    return paiements.reduce((s, p) => s + p.montant_paye, 0) + acomptes.reduce((s, a) => s + a.montant_paye, 0)
   }
 
   return (

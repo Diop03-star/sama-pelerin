@@ -54,6 +54,38 @@ function rendre() {
 }
 
 describe('Pelerins', () => {
+  it('compte l’acompte payé dans le reste dû', async () => {
+    mockSupabase.from.mockImplementation((table: string) => {
+      if (table === 'groupes') {
+        return { select: () => ({ order: () => Promise.resolve({ data: [{ id: 'g1', nom: 'Hajj 2027' }], error: null }) }) }
+      }
+      if (table === 'pelerins') {
+        return {
+          select: () => ({
+            order: () => Promise.resolve({
+              data: [{
+                ...pelerinFixture,
+                groupe: { id: 'g1', nom: 'Hajj 2027' },
+                plan_paiement: {
+                  montant_total: 1000000,
+                  nombre_tranches: 4,
+                  tranches: [{ paiements: [{ montant_paye: 311000 }] }],
+                  acomptes: [{ montant_paye: 600000 }],
+                },
+              }],
+              error: null,
+            }),
+          }),
+          update: mockSupabase.update,
+          delete: mockSupabase.delete,
+        }
+      }
+      return {}
+    })
+    rendre()
+    expect(await screen.findByText('89 000 FCFA')).toBeInTheDocument()
+  })
+
   it('affiche la carte mobile avec les informations essentielles', async () => {
     rendre()
     expect((await screen.findAllByText('Awa Ndiaye')).length).toBeGreaterThanOrEqual(1)
