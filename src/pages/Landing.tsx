@@ -99,14 +99,14 @@ export default function Landing() {
         </div>
       </section>
 
-      <section id="tarifs" className="py-16">
+      <section id="tarifs" className="bg-primary py-16">
         <div className="mx-auto w-full max-w-6xl px-4">
-          <h2 className="text-headline-md font-bold text-primary">Tarifs simples et adaptés</h2>
-          <p className="mt-2 text-body-lg text-on-surface-variant">
+          <h2 className="text-headline-md font-bold text-on-primary">Tarifs simples et adaptés</h2>
+          <p className="mt-2 text-body-lg text-on-primary-container">
             Payez selon votre activité : 1 500 FCFA par pèlerin inscrit. Sans abonnement mensuel.
           </p>
-          <div className="mx-auto mt-10 max-w-xl">
-            <div className="flex flex-col rounded-card border border-secondary-fixed-dim bg-secondary-container/40 p-6 shadow-sm">
+          <div className="mx-auto mt-10 grid max-w-4xl gap-6 md:grid-cols-2">
+            <div className="flex flex-col rounded-card bg-surface-container-lowest p-6 shadow-sm">
               <h3 className="text-headline-sm font-bold text-primary">À l’usage</h3>
               <p className="mt-3 text-display-lg font-bold text-primary">
                 1 500 FCFA
@@ -120,18 +120,23 @@ export default function Landing() {
                   </li>
                 ))}
               </ul>
-              <div className="mt-6 rounded-lg border border-outline-variant bg-surface-container-lowest p-4">
-                <p className="text-label-md font-semibold text-primary">Tarif dégressif</p>
-                {PALIERS.map((p) => (
-                  <p key={p.seuil} className="mt-1 flex justify-between text-body-md text-on-surface-variant">
-                    <span>{p.seuil}</span>
-                    <span className="font-semibold text-on-surface">{p.prix}</span>
-                  </p>
-                ))}
-              </div>
               <a href={whatsappDemoUrl()} target="_blank" rel="noreferrer" className="btn-primary mt-8 px-4 py-2.5 text-center">
                 Demander une démo
               </a>
+            </div>
+            <div className="flex flex-col rounded-card bg-secondary-fixed p-6 shadow-sm">
+              <h3 className="text-headline-sm font-bold text-on-secondary-fixed-variant">Tarif dégressif</h3>
+              <p className="mt-2 text-body-md text-on-secondary-fixed-variant">
+                Plus vous inscrivez de pèlerins, moins vous payez par pèlerin.
+              </p>
+              <div className="mt-6 flex-1 space-y-4">
+                {PALIERS.map((p) => (
+                  <div key={p.seuil} className="border-b border-secondary-fixed-dim pb-4 last:border-0 last:pb-0">
+                    <p className="text-label-md text-on-secondary-fixed-variant">{p.seuil}</p>
+                    <p className="mt-1 text-display-lg font-bold text-primary">{p.prix}</p>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </div>

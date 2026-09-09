@@ -78,6 +78,11 @@ describe('Landing', () => {
     expect(screen.getByText('Hébergement sécurisé')).toBeInTheDocument()
   })
 
+  it('affiche le tarif dégressif comme argument de closing', () => {
+    rendre()
+    expect(screen.getByText('Plus vous inscrivez de pèlerins, moins vous payez par pèlerin.')).toBeInTheDocument()
+  })
+
   it('affiche l’aperçu des tutoriels avec le lien vers la galerie', async () => {
     rendre()
     expect(await screen.findByText('Créer un plan de paiement')).toBeInTheDocument()
