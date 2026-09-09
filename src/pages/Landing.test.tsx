@@ -62,6 +62,14 @@ describe('Landing', () => {
     expect(screen.getByText('750 FCFA')).toBeInTheDocument()
   })
 
+  it('n’affiche que les deux témoignages réels', () => {
+    rendre()
+    expect(screen.getByText('Al Hidjah Travel')).toBeInTheDocument()
+    expect(screen.getByText('Voyages Al-Barakah')).toBeInTheDocument()
+    expect(screen.queryByText('Agence pilote 3')).not.toBeInTheDocument()
+    expect(screen.getByText('Agences pilotes — Dakar')).toBeInTheDocument()
+  })
+
   it('affiche l’aperçu des tutoriels avec le lien vers la galerie', async () => {
     rendre()
     expect(await screen.findByText('Créer un plan de paiement')).toBeInTheDocument()

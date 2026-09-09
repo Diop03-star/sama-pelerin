@@ -33,7 +33,6 @@ const TRAITS_TARIF = [
 const TEMOIGNAGES = [
   { nom: 'Al Hidjah Travel', ville: 'Dakar', texte: '« Nous suivons enfin chaque tranche sans erreur. Les familles savent exactement où elles en sont. »' },
   { nom: 'Voyages Al-Barakah', ville: 'Dakar', texte: '« Les rappels WhatsApp nous ont libérés de la relance manuelle. Un gain de temps énorme. »' },
-  { nom: 'Agence pilote 3', ville: 'Dakar', texte: '« Tous les dossiers au même endroit : plus aucun passeport oublié à la veille du départ. »' },
 ]
 
 export default function Landing() {
@@ -151,10 +150,13 @@ export default function Landing() {
         </div>
       </section>
 
-      <section className="py-16">
+      <section className="bg-surface-container-low py-16">
         <div className="mx-auto w-full max-w-6xl px-4">
           <h2 className="text-headline-md font-bold text-primary">Ils nous font confiance</h2>
-          <div className="mt-10 grid gap-6 md:grid-cols-3">
+          <span className="mt-8 inline-block rounded-full bg-secondary-container px-3 py-1 text-label-md text-on-secondary-container">
+            Agences pilotes — Dakar
+          </span>
+          <div className="mt-4 grid gap-6 md:grid-cols-2">
             {TEMOIGNAGES.map((t) => (
               <figure key={t.nom} className="rounded-card border border-outline-variant bg-surface-container-lowest p-6 shadow-sm">
                 <blockquote className="text-body-md text-on-surface">{t.texte}</blockquote>
