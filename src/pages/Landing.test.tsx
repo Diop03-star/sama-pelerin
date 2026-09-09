@@ -11,39 +11,41 @@ vi.mock('../lib/supabase', () => ({ supabase: mockSupabase }))
 const mockAuth = vi.hoisted(() => ({ session: null as { user: { id: string } } | null, loading: false }))
 vi.mock('../auth/AuthContext', () => ({ useAuth: () => mockAuth }))
 
-const queryClient = new QueryClient()
-
 const tutosPreview: Tutos[] = [
   {
-    id: 't1', titre: 'Créer un plan de paiement', description: 'Étape par étape',
+    id: 't1', titre: 'Suivre les encaissements d’une campagne', description: 'Étape par étape',
     url_youtube: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ', ordre: 1, actif: true,
     created_at: '2026-08-01T00:00:00Z',
   },
 ]
 
-beforeEach(() => {
-  mockSupabase.from.mockReset()
-  mockSupabase.from.mockImplementation((table: string) => {
-    if (table !== 'tutos') return {}
-    return {
-      select: () => ({
-        eq: () => ({
-          order: () => ({ limit: () => Promise.resolve({ data: tutosPreview, error: null }) }),
-        }),
-      }),
-    }
-  })
-})
-
 function rendre() {
   return render(
-    <QueryClientProvider client={queryClient}>
+    <QueryClientProvider client={new QueryClient()}>
       <MemoryRouter>
         <Landing />
       </MemoryRouter>
     </QueryClientProvider>
   )
 }
+
+function simulerTutos(data: Tutos[]) {
+  mockSupabase.from.mockImplementation((table: string) => {
+    if (table !== 'tutos') return {}
+    return {
+      select: () => ({
+        eq: () => ({
+          order: () => ({ limit: () => Promise.resolve({ data, error: null }) }),
+        }),
+      }),
+    }
+  })
+}
+
+beforeEach(() => {
+  mockSupabase.from.mockReset()
+  simulerTutos(tutosPreview)
+})
 
 describe('Landing', () => {
   it('affiche le hero et les CTA de connexion', () => {
@@ -85,9 +87,19 @@ describe('Landing', () => {
 
   it('affiche l’aperçu des tutoriels avec le lien vers la galerie', async () => {
     rendre()
-    expect(await screen.findByText('Créer un plan de paiement')).toBeInTheDocument()
+    expect(await screen.findByText('Suivre les encaissements d’une campagne')).toBeInTheDocument()
+    expect(screen.queryByText('Aperçu')).not.toBeInTheDocument()
     const lien = screen.getByText('Voir tous les tutoriels').closest('a')
     expect(lien).toHaveAttribute('href', '/tutoriels')
+  })
+
+  it('affiche trois cartes d’aperçu quand aucun tuto n’est publié', async () => {
+    simulerTutos([])
+    rendre()
+    const badges = await screen.findAllByText('Aperçu')
+    expect(badges).toHaveLength(3)
+    const carte = screen.getByText('Suivre les documents d’un pèlerin').closest('a')
+    expect(carte).toHaveAttribute('href', '/tutoriels')
   })
 
   it('affiche les boutons WhatsApp de demande de démo', () => {

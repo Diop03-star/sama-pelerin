@@ -41,6 +41,12 @@ const SECURITE = [
   { icon: 'cloud_done', titre: 'Hébergement sécurisé', texte: 'Données sauvegardées et accessibles toute l’année, même hors saison.' },
 ]
 
+const TUTOS_EXEMPLE = [
+  { titre: 'Créer votre agence et inviter vos agents' },
+  { titre: 'Créer un plan de paiement' },
+  { titre: 'Suivre les documents d’un pèlerin' },
+]
+
 export default function Landing() {
   const { session } = useAuth()
   const { data: tutos = [] } = useQuery({
@@ -142,16 +148,38 @@ export default function Landing() {
         </div>
       </section>
 
-      <section id="tutoriels" className="bg-surface-container-low py-16">
+      <section id="tutoriels" className="py-16">
         <div className="mx-auto w-full max-w-6xl px-4">
           <h2 className="text-headline-md font-bold text-primary">Apprenez à utiliser l’outil</h2>
           <p className="mt-2 text-body-lg text-on-surface-variant">
             Des tutoriels vidéo courts, en français, pour chaque fonctionnalité.
           </p>
-          {tutos.length > 0 && (
+          {tutos.length > 0 ? (
             <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
               {tutos.map((t) => (
                 <CarteTuto key={t.id} tuto={t} />
+              ))}
+            </div>
+          ) : (
+            <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              {TUTOS_EXEMPLE.map((t) => (
+                <Link
+                  key={t.titre}
+                  to="/tutoriels"
+                  className="group block overflow-hidden rounded-xl border border-outline-variant bg-surface-container-lowest shadow-sm transition-all hover:shadow-md"
+                >
+                  <div className="relative flex aspect-video items-center justify-center bg-gradient-to-br from-primary via-navy-light to-secondary">
+                    <span className="text-secondary-container transition-transform group-hover:scale-110">
+                      <Icon name="play_circle" size={56} />
+                    </span>
+                    <span className="absolute left-3 top-3 rounded-full bg-secondary-fixed px-2 py-0.5 text-label-md text-on-secondary-fixed-variant">
+                      Aperçu
+                    </span>
+                  </div>
+                  <div className="p-4">
+                    <h3 className="text-headline-sm font-bold text-primary">{t.titre}</h3>
+                  </div>
+                </Link>
               ))}
             </div>
           )}
