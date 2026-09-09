@@ -35,6 +35,12 @@ const TEMOIGNAGES = [
   { nom: 'Voyages Al-Barakah', ville: 'Dakar', texte: '« Les rappels WhatsApp nous ont libérés de la relance manuelle. Un gain de temps énorme. »' },
 ]
 
+const SECURITE = [
+  { icon: 'lock', titre: 'Chiffré en transit', texte: 'Toutes les communications passent en HTTPS.' },
+  { icon: 'verified_user', titre: 'Accès cloisonné', texte: 'Chaque agence ne voit que ses propres données.' },
+  { icon: 'cloud_done', titre: 'Hébergement sécurisé', texte: 'Données sauvegardées et accessibles toute l’année, même hors saison.' },
+]
+
 export default function Landing() {
   const { session } = useAuth()
   const { data: tutos = [] } = useQuery({
@@ -163,6 +169,25 @@ export default function Landing() {
                 <figcaption className="mt-4 text-label-md font-semibold text-primary">{t.nom}</figcaption>
                 <p className="text-label-md text-on-surface-variant">{t.ville}</p>
               </figure>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="bg-secondary-container/40 py-12">
+        <div className="mx-auto w-full max-w-6xl px-4">
+          <h2 className="text-headline-md font-bold text-primary">Vos données, prises au sérieux</h2>
+          <div className="mt-8 grid gap-6 md:grid-cols-3">
+            {SECURITE.map((s) => (
+              <div key={s.titre} className="flex items-start gap-4">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-surface-container-lowest text-primary">
+                  <Icon name={s.icon} size={20} />
+                </div>
+                <div>
+                  <h3 className="text-headline-sm font-bold text-primary">{s.titre}</h3>
+                  <p className="mt-1 text-body-md text-on-surface-variant">{s.texte}</p>
+                </div>
+              </div>
             ))}
           </div>
         </div>

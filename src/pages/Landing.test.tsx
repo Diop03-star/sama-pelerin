@@ -70,6 +70,14 @@ describe('Landing', () => {
     expect(screen.getByText('Agences pilotes — Dakar')).toBeInTheDocument()
   })
 
+  it('affiche la bande sécurité avec ses trois garanties', () => {
+    rendre()
+    expect(screen.getByText('Vos données, prises au sérieux')).toBeInTheDocument()
+    expect(screen.getByText('Chiffré en transit')).toBeInTheDocument()
+    expect(screen.getByText('Accès cloisonné')).toBeInTheDocument()
+    expect(screen.getByText('Hébergement sécurisé')).toBeInTheDocument()
+  })
+
   it('affiche l’aperçu des tutoriels avec le lien vers la galerie', async () => {
     rendre()
     expect(await screen.findByText('Créer un plan de paiement')).toBeInTheDocument()
