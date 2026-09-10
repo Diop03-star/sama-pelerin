@@ -465,3 +465,8 @@ Si aucun correctif n'a été nécessaire, ne pas créer de commit vide.
 ## Ordre des fonds — état final attendu
 
 Hero (surface) → Avantages (`bg-surface-container-low`) → **Tarifs (`bg-primary` navy)** → Tutoriels (surface, clair) → Témoignages (`bg-surface-container-low` gris) → **Sécurité (`bg-secondary-container/40` or doux)** → Contact (`bg-primary` navy).
+
+## Amendement 1 (feedback utilisateur post-preview, 2026-09-09)
+
+1. Carte « Tarif dégressif » (or) : ajout d'un lien discret avec flèche « Demander une démo » en bas de la carte (wa.me, inline-flex self-start text-body-md font-semibold text-primary hover:underline, icône rrow_forward 16px). Test : within(carte).getAllByRole('link').
+2. Badges placeholders tutoriels : « Aperçu » remplacé par des durées fictives (« 2 min » / « 4 min » / « 3 min ») — choix utilisateur (durée > « Bientôt »). Tests adaptés (/\\d+ min/), assertion d'absence idem quand tutos réels.

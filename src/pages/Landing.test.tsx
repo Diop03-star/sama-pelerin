@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { render, screen, within } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { MemoryRouter } from 'react-router-dom'
 import Landing from './Landing'
@@ -85,10 +85,18 @@ describe('Landing', () => {
     expect(screen.getByText('Plus vous inscrivez de pèlerins, moins vous payez par pèlerin.')).toBeInTheDocument()
   })
 
+  it('propose une demande de démo depuis la carte tarif dégressif', () => {
+    rendre()
+    const carte = screen.getByText('Plus vous inscrivez de pèlerins, moins vous payez par pèlerin.').closest('div')!
+    const liens = within(carte).getAllByRole('link', { name: /Demander une démo/ })
+    expect(liens).toHaveLength(1)
+    expect(liens[0]).toHaveAttribute('href', expect.stringContaining('https://wa.me/'))
+  })
+
   it('affiche l’aperçu des tutoriels avec le lien vers la galerie', async () => {
     rendre()
     expect(await screen.findByText('Suivre les encaissements d’une campagne')).toBeInTheDocument()
-    expect(screen.queryByText('Aperçu')).not.toBeInTheDocument()
+    expect(screen.queryByText(/\d+ min/)).not.toBeInTheDocument()
     const lien = screen.getByText('Voir tous les tutoriels').closest('a')
     expect(lien).toHaveAttribute('href', '/tutoriels')
   })
@@ -96,7 +104,7 @@ describe('Landing', () => {
   it('affiche trois cartes d’aperçu quand aucun tuto n’est publié', async () => {
     simulerTutos([])
     rendre()
-    const badges = await screen.findAllByText('Aperçu')
+    const badges = await screen.findAllByText(/\d+ min/)
     expect(badges).toHaveLength(3)
     const carte = screen.getByText('Suivre les documents d’un pèlerin').closest('a')
     expect(carte).toHaveAttribute('href', '/tutoriels')

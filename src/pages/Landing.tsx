@@ -42,9 +42,9 @@ const SECURITE = [
 ]
 
 const TUTOS_EXEMPLE = [
-  { titre: 'Créer votre agence et inviter vos agents' },
-  { titre: 'Créer un plan de paiement' },
-  { titre: 'Suivre les documents d’un pèlerin' },
+  { titre: 'Créer votre agence et inviter vos agents', duree: '2 min' },
+  { titre: 'Créer un plan de paiement', duree: '4 min' },
+  { titre: 'Suivre les documents d’un pèlerin', duree: '3 min' },
 ]
 
 export default function Landing() {
@@ -143,6 +143,15 @@ export default function Landing() {
                   </div>
                 ))}
               </div>
+              <a
+                href={whatsappDemoUrl()}
+                target="_blank"
+                rel="noreferrer"
+                className="mt-6 inline-flex items-center gap-1 self-start text-body-md font-semibold text-primary hover:underline"
+              >
+                Demander une démo
+                <Icon name="arrow_forward" size={16} />
+              </a>
             </div>
           </div>
         </div>
@@ -173,7 +182,7 @@ export default function Landing() {
                       <Icon name="play_circle" size={56} />
                     </span>
                     <span className="absolute left-3 top-3 rounded-full bg-secondary-fixed px-2 py-0.5 text-label-md text-on-secondary-fixed-variant">
-                      Aperçu
+                      {t.duree}
                     </span>
                   </div>
                   <div className="p-4">
