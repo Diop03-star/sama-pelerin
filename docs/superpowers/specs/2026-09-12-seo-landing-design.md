@@ -93,14 +93,14 @@ export function useSeo(options: { title: string; description?: string }): void
 ```
 
 - Au montage : met à jour `document.title`, `meta[name=description]`, `og:title`, `og:description`, `og:url` (via `location.href`), et le `<link rel=canonical>` (crée les balises si absentes, à la manière d'un mini-helmet).
-- Restaure les valeurs d'origine au démontage (comportement sain lors des navigations).
+- Pas de restauration au démontage : chaque page publique appelle le hook avec ses valeurs complètes, ce qui rend la navigation déterministe (le retour sur une page remet ses propres valeurs).
 
 Application (1 ligne par page, dans le composant de page) :
 
 - `Tutoriels.tsx` : title `Tutoriels vidéo — SamaPèlerin` + description courte dédiée.
 - `Login.tsx` : title `Connexion — SamaPèlerin` (pas de description, page utilitaire).
 - `Signup.tsx` : title `Essayer gratuitement — SamaPèlerin` + description dédiée.
-- `Landing` : rien — le title/description optimisés d'`index.html` font foi.
+- `Landing.tsx` : le hook avec les valeurs par défaut d'`index.html` (title/description canoniques) — nécessaire puisque rien ne restaure les valeurs au démontage.
 
 ### 4. Tests (Vitest + jsdom, pas de dépendance)
 
