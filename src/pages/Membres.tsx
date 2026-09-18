@@ -21,6 +21,7 @@ export default function Membres() {
   const [copie, setCopie] = useState(false)
   const [erreur, setErreur] = useState('')
   const [confirmation, setConfirmation] = useState<Confirmation | null>(null)
+  const [erreurSuppression, setErreurSuppression] = useState('')
 
   const { data: membres = [] } = useQuery({
     queryKey: ['membres'],
@@ -79,6 +80,7 @@ export default function Membres() {
       setConfirmation(null)
       queryClient.invalidateQueries({ queryKey: ['membres'] })
     },
+    onError: () => setErreurSuppression('Impossible de supprimer le membre.'),
   })
 
   const supprimerInvitation = useMutation({
@@ -90,12 +92,18 @@ export default function Membres() {
       setConfirmation(null)
       queryClient.invalidateQueries({ queryKey: ['invitations'] })
     },
+    onError: () => setErreurSuppression('Impossible d’annuler l’invitation.'),
   })
 
   function onSubmit(e: FormEvent) {
     e.preventDefault()
     setErreur('')
     inviter.mutate()
+  }
+
+  function demanderConfirmation(c: Confirmation) {
+    setConfirmation(c)
+    setErreurSuppression('')
   }
 
   return (
@@ -167,7 +175,7 @@ export default function Membres() {
                     {m.user_id !== profil?.user_id && (
                       <div className="flex justify-end opacity-0 transition-opacity group-hover:opacity-100">
                         <button
-                          onClick={() => setConfirmation({ type: 'membre', id: m.id, nom: m.nom })}
+                          onClick={() => demanderConfirmation({ type: 'membre', id: m.id, nom: m.nom })}
                           title="Retirer"
                           className="rounded-lg p-2 text-on-surface-variant hover:bg-surface-container hover:text-error"
                         >
@@ -195,7 +203,7 @@ export default function Membres() {
             {m.user_id !== profil?.user_id && (
               <div className="mt-3">
                 <button
-                  onClick={() => setConfirmation({ type: 'membre', id: m.id, nom: m.nom })}
+                  onClick={() => demanderConfirmation({ type: 'membre', id: m.id, nom: m.nom })}
                   title="Retirer"
                   className="rounded-lg p-2 text-on-surface-variant hover:bg-surface-container hover:text-error"
                 >
@@ -230,7 +238,7 @@ export default function Membres() {
                     <td className="px-4 py-4 text-right">
                       <div className="flex justify-end opacity-0 transition-opacity group-hover:opacity-100">
                         <button
-                          onClick={() => setConfirmation({ type: 'invitation', id: i.id, nom: i.email })}
+                          onClick={() => demanderConfirmation({ type: 'invitation', id: i.id, nom: i.email })}
                           title="Annuler"
                           className="rounded-lg p-2 text-on-surface-variant hover:bg-surface-container hover:text-error"
                         >
@@ -254,7 +262,7 @@ export default function Membres() {
               <p className="mt-0.5 text-body-md text-on-surface-variant">{`Expire le : ${new Date(i.expires_at).toLocaleDateString('fr-FR')}`}</p>
               <div className="mt-3">
                 <button
-                  onClick={() => setConfirmation({ type: 'invitation', id: i.id, nom: i.email })}
+                  onClick={() => demanderConfirmation({ type: 'invitation', id: i.id, nom: i.email })}
                   title="Annuler"
                   className="rounded-lg p-2 text-on-surface-variant hover:bg-surface-container hover:text-error"
                 >
@@ -277,6 +285,7 @@ export default function Membres() {
             ? `Annuler l’invitation de « ${confirmation.nom} » ?`
             : `Retirer « ${confirmation?.nom} » de votre agence ? Cette action est définitive.`}
         </p>
+        {erreurSuppression && <p className="mt-2 text-sm text-error">{erreurSuppression}</p>}
         <div className="mt-6 flex justify-end gap-2">
           <Button type="button" variant="secondary" onClick={() => setConfirmation(null)}>
             Annuler

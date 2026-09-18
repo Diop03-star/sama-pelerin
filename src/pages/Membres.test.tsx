@@ -5,7 +5,7 @@ import { MemoryRouter } from 'react-router-dom'
 import Membres from './Membres'
 
 const mockSupabase = vi.hoisted(() => {
-  const eq = vi.fn(() => Promise.resolve({ data: null, error: null }))
+  const eq = vi.fn<() => Promise<{ data: null; error: { message: string } | null }>>(() => Promise.resolve({ data: null, error: null }))
   return {
     from: vi.fn(),
     delete: vi.fn(() => ({ eq })),
@@ -136,6 +136,7 @@ describe('Membres', () => {
     const modale = screen.getByText(/Retirer « Fatou Diop » de votre agence/).closest('.rounded-card') as HTMLElement
     fireEvent.click(within(modale).getByRole('button', { name: 'Confirmer' }))
     await waitFor(() => expect(mockSupabase.eq).toHaveBeenCalledWith('id', 'u2'))
+    await waitFor(() => expect(screen.queryByText(/Retirer « Fatou Diop » de votre agence/)).not.toBeInTheDocument())
   })
 
   it('ne supprime pas le membre si annulation dans la modale', async () => {
@@ -161,6 +162,7 @@ describe('Membres', () => {
     const modale = screen.getByText(/Annuler l’invitation de « invite@example.com »/).closest('.rounded-card') as HTMLElement
     fireEvent.click(within(modale).getByRole('button', { name: 'Confirmer' }))
     await waitFor(() => expect(mockSupabase.eq).toHaveBeenCalledWith('id', 'i1'))
+    await waitFor(() => expect(screen.queryByText(/Annuler l’invitation de « invite@example.com »/)).not.toBeInTheDocument())
   })
 
   it('ne supprime pas l’invitation si annulation dans la modale', async () => {
@@ -170,5 +172,16 @@ describe('Membres', () => {
     fireEvent.click(within(modale).getByRole('button', { name: 'Annuler' }))
     expect(mockSupabase.eq).not.toHaveBeenCalled()
     expect(screen.queryByText(/Annuler l’invitation de « invite@example.com »/)).not.toBeInTheDocument()
+  })
+
+  it('affiche une erreur dans la modale si la suppression du membre échoue', async () => {
+    const autreMembre = { ...membreFixture, id: 'u2', user_id: 'auth2', nom: 'Fatou Diop' }
+    rendre({ membres: [membreFixture, autreMembre], invitations: [] })
+    mockSupabase.eq.mockReturnValueOnce(Promise.resolve({ data: null, error: { message: 'FK violation' } }))
+    fireEvent.click((await screen.findAllByTitle('Retirer'))[0])
+    const modale = screen.getByText(/Retirer « Fatou Diop » de votre agence/).closest('.rounded-card') as HTMLElement
+    fireEvent.click(within(modale).getByRole('button', { name: 'Confirmer' }))
+    expect(await screen.findByText('Impossible de supprimer le membre.')).toBeInTheDocument()
+    expect(screen.getByText(/Retirer « Fatou Diop » de votre agence/)).toBeInTheDocument()
   })
 })
