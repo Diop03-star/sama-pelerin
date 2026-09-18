@@ -121,7 +121,7 @@ export default function Sidebar({ ouverte, onFermer }: SidebarProps) {
       {ouverte && (
         <div className="fixed inset-0 z-40 md:hidden">
           <button type="button" aria-label="Fermer le menu" className="absolute inset-0 bg-black/30" onClick={onFermer} />
-          <aside className="absolute left-0 top-0 h-full w-[260px] bg-surface-container-lowest px-4 py-6 shadow-lg">
+          <aside className="absolute left-0 top-0 h-full w-[260px] bg-surface-container-lowest px-4 py-6 shadow-lg pt-barre-etat">
             {contenu}
           </aside>
         </div>

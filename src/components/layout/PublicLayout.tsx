@@ -17,7 +17,7 @@ export default function PublicLayout() {
 
   return (
     <div className="flex min-h-screen flex-col bg-surface">
-      <header className="sticky top-0 z-20 border-b border-outline-variant bg-surface-container-lowest/95 backdrop-blur">
+      <header className="sticky top-0 z-20 border-b border-outline-variant bg-surface-container-lowest/95 backdrop-blur pt-barre-etat">
         <div className="mx-auto flex w-full max-w-6xl items-center justify-between gap-4 px-4 py-3">
           <Link to="/" className="flex items-center gap-2">
             <img src="/pwa-icon-192.png" alt="SamaPèlerin" className="h-9 w-9 sm:hidden" />

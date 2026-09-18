@@ -86,13 +86,13 @@ export default function SuperAdminLayout() {
       {menuOuvert && (
         <div className="fixed inset-0 z-40 md:hidden">
           <button type="button" aria-label="Fermer le menu" className="absolute inset-0 bg-black/30" onClick={() => setMenuOuvert(false)} />
-          <aside className="absolute left-0 top-0 h-full w-[260px] bg-surface-container-lowest px-4 py-6 shadow-lg">
+          <aside className="absolute left-0 top-0 h-full w-[260px] bg-surface-container-lowest px-4 py-6 shadow-lg pt-barre-etat">
             {contenu}
           </aside>
         </div>
       )}
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="sticky top-0 z-10 flex h-16 items-center justify-between border-b border-outline-variant bg-surface-container-lowest px-6">
+        <header className="sticky top-0 z-10 flex h-16 items-center justify-between border-b border-outline-variant bg-surface-container-lowest px-6 pt-barre-etat">
           <div className="flex items-center gap-4">
             <button
               type="button"

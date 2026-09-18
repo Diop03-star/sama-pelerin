@@ -106,6 +106,12 @@
 }
 
 @layer components {
+  .pt-barre-etat {
+    padding-top: env(safe-area-inset-top, 0px);
+  }
+  .top-panneau-notifs {
+    top: calc(68px + env(safe-area-inset-top, 0px));
+  }
   .input {
     border: 1px solid var(--color-border);
     border-radius: 0.5rem;

@@ -73,7 +73,7 @@ export default function Topbar({ onOuvrirMenu }: TopbarProps) {
   }
 
   return (
-    <header className="sticky top-0 z-10 flex h-16 items-center justify-between border-b border-outline-variant bg-surface-container-lowest px-6">
+    <header className="sticky top-0 z-10 flex h-16 items-center justify-between border-b border-outline-variant bg-surface-container-lowest px-6 pt-barre-etat">
       <div className="flex items-center gap-4">
         <button
           type="button"
