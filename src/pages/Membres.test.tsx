@@ -147,4 +147,28 @@ describe('Membres', () => {
     expect(mockSupabase.eq).not.toHaveBeenCalled()
     expect(screen.queryByText(/Retirer « Fatou Diop » de votre agence/)).not.toBeInTheDocument()
   })
+
+  it('ouvre une modale de confirmation au clic sur Annuler d’une invitation sans supprimer', async () => {
+    rendre({ membres: [], invitations: [invitationFixture] })
+    fireEvent.click((await screen.findAllByTitle('Annuler'))[0])
+    expect(await screen.findByText(/Annuler l’invitation de « invite@example.com »/)).toBeInTheDocument()
+    expect(mockSupabase.eq).not.toHaveBeenCalled()
+  })
+
+  it('annule l’invitation après confirmation dans la modale', async () => {
+    rendre({ membres: [], invitations: [invitationFixture] })
+    fireEvent.click((await screen.findAllByTitle('Annuler'))[0])
+    const modale = screen.getByText(/Annuler l’invitation de « invite@example.com »/).closest('.rounded-card') as HTMLElement
+    fireEvent.click(within(modale).getByRole('button', { name: 'Confirmer' }))
+    await waitFor(() => expect(mockSupabase.eq).toHaveBeenCalledWith('id', 'i1'))
+  })
+
+  it('ne supprime pas l’invitation si annulation dans la modale', async () => {
+    rendre({ membres: [], invitations: [invitationFixture] })
+    fireEvent.click((await screen.findAllByTitle('Annuler'))[0])
+    const modale = screen.getByText(/Annuler l’invitation de « invite@example.com »/).closest('.rounded-card') as HTMLElement
+    fireEvent.click(within(modale).getByRole('button', { name: 'Annuler' }))
+    expect(mockSupabase.eq).not.toHaveBeenCalled()
+    expect(screen.queryByText(/Annuler l’invitation de « invite@example.com »/)).not.toBeInTheDocument()
+  })
 })

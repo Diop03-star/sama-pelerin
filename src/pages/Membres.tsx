@@ -230,7 +230,7 @@ export default function Membres() {
                     <td className="px-4 py-4 text-right">
                       <div className="flex justify-end opacity-0 transition-opacity group-hover:opacity-100">
                         <button
-                          onClick={() => supprimerInvitation.mutate(i.id)}
+                          onClick={() => setConfirmation({ type: 'invitation', id: i.id, nom: i.email })}
                           title="Annuler"
                           className="rounded-lg p-2 text-on-surface-variant hover:bg-surface-container hover:text-error"
                         >
@@ -254,7 +254,7 @@ export default function Membres() {
               <p className="mt-0.5 text-body-md text-on-surface-variant">{`Expire le : ${new Date(i.expires_at).toLocaleDateString('fr-FR')}`}</p>
               <div className="mt-3">
                 <button
-                  onClick={() => supprimerInvitation.mutate(i.id)}
+                  onClick={() => setConfirmation({ type: 'invitation', id: i.id, nom: i.email })}
                   title="Annuler"
                   className="rounded-lg p-2 text-on-surface-variant hover:bg-surface-container hover:text-error"
                 >
