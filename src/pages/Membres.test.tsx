@@ -1,13 +1,17 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen, fireEvent } from '@testing-library/react'
+import { render, screen, fireEvent, waitFor, within } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { MemoryRouter } from 'react-router-dom'
 import Membres from './Membres'
 
-const mockSupabase = vi.hoisted(() => ({
-  from: vi.fn(),
-  delete: vi.fn(() => ({ eq: vi.fn(() => Promise.resolve({ data: null, error: null })) })),
-}))
+const mockSupabase = vi.hoisted(() => {
+  const eq = vi.fn(() => Promise.resolve({ data: null, error: null }))
+  return {
+    from: vi.fn(),
+    delete: vi.fn(() => ({ eq })),
+    eq,
+  }
+})
 vi.mock('../lib/supabase', () => ({ supabase: mockSupabase }))
 
 const mockUseProfil = vi.hoisted(() => vi.fn())
@@ -46,6 +50,7 @@ function rendre({ membres, invitations }: { membres: unknown[]; invitations: unk
 beforeEach(() => {
   mockUseProfil.mockReset()
   mockSupabase.delete.mockClear()
+  mockSupabase.eq.mockClear()
   mockUseProfil.mockReturnValue({ data: { id: 'u1', user_id: 'auth1', agence_id: 'a1' }, isLoading: false })
 })
 
@@ -114,5 +119,32 @@ describe('Membres', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Copier le lien' }))
     expect(writeText).toHaveBeenCalledWith(expect.stringContaining('/signup?invite=tok-test'))
     await screen.findByRole('button', { name: 'Lien copié' })
+  })
+
+  it('ouvre une modale de confirmation au clic sur Retirer sans supprimer', async () => {
+    const autreMembre = { ...membreFixture, id: 'u2', user_id: 'auth2', nom: 'Fatou Diop' }
+    rendre({ membres: [membreFixture, autreMembre], invitations: [] })
+    fireEvent.click((await screen.findAllByTitle('Retirer'))[0])
+    expect(await screen.findByText(/Retirer « Fatou Diop » de votre agence/)).toBeInTheDocument()
+    expect(mockSupabase.eq).not.toHaveBeenCalled()
+  })
+
+  it('supprime le membre après confirmation dans la modale', async () => {
+    const autreMembre = { ...membreFixture, id: 'u2', user_id: 'auth2', nom: 'Fatou Diop' }
+    rendre({ membres: [membreFixture, autreMembre], invitations: [] })
+    fireEvent.click((await screen.findAllByTitle('Retirer'))[0])
+    const modale = screen.getByText(/Retirer « Fatou Diop » de votre agence/).closest('.rounded-card') as HTMLElement
+    fireEvent.click(within(modale).getByRole('button', { name: 'Confirmer' }))
+    await waitFor(() => expect(mockSupabase.eq).toHaveBeenCalledWith('id', 'u2'))
+  })
+
+  it('ne supprime pas le membre si annulation dans la modale', async () => {
+    const autreMembre = { ...membreFixture, id: 'u2', user_id: 'auth2', nom: 'Fatou Diop' }
+    rendre({ membres: [membreFixture, autreMembre], invitations: [] })
+    fireEvent.click((await screen.findAllByTitle('Retirer'))[0])
+    const modale = screen.getByText(/Retirer « Fatou Diop » de votre agence/).closest('.rounded-card') as HTMLElement
+    fireEvent.click(within(modale).getByRole('button', { name: 'Annuler' }))
+    expect(mockSupabase.eq).not.toHaveBeenCalled()
+    expect(screen.queryByText(/Retirer « Fatou Diop » de votre agence/)).not.toBeInTheDocument()
   })
 })

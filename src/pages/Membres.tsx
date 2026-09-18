@@ -6,8 +6,11 @@ import { Field, Input, Select } from '../components/ui/Field'
 import Button from '../components/ui/Button'
 import Badge from '../components/ui/Badge'
 import EmptyState from '../components/ui/EmptyState'
+import Modal from '../components/ui/Modal'
 import Icon from '../components/ui/Icon'
 import type { Invitation, Utilisateur } from '../lib/types'
+
+type Confirmation = { type: 'membre' | 'invitation'; id: string; nom: string }
 
 export default function Membres() {
   const { data: profil } = useProfil()
@@ -17,6 +20,7 @@ export default function Membres() {
   const [lienInvitation, setLienInvitation] = useState('')
   const [copie, setCopie] = useState(false)
   const [erreur, setErreur] = useState('')
+  const [confirmation, setConfirmation] = useState<Confirmation | null>(null)
 
   const { data: membres = [] } = useQuery({
     queryKey: ['membres'],
@@ -71,7 +75,10 @@ export default function Membres() {
       const { error } = await supabase.from('utilisateurs').delete().eq('id', id)
       if (error) throw error
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['membres'] }),
+    onSuccess: () => {
+      setConfirmation(null)
+      queryClient.invalidateQueries({ queryKey: ['membres'] })
+    },
   })
 
   const supprimerInvitation = useMutation({
@@ -79,7 +86,10 @@ export default function Membres() {
       const { error } = await supabase.from('invitations').delete().eq('id', id)
       if (error) throw error
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['invitations'] }),
+    onSuccess: () => {
+      setConfirmation(null)
+      queryClient.invalidateQueries({ queryKey: ['invitations'] })
+    },
   })
 
   function onSubmit(e: FormEvent) {
@@ -157,7 +167,7 @@ export default function Membres() {
                     {m.user_id !== profil?.user_id && (
                       <div className="flex justify-end opacity-0 transition-opacity group-hover:opacity-100">
                         <button
-                          onClick={() => supprimer.mutate(m.id)}
+                          onClick={() => setConfirmation({ type: 'membre', id: m.id, nom: m.nom })}
                           title="Retirer"
                           className="rounded-lg p-2 text-on-surface-variant hover:bg-surface-container hover:text-error"
                         >
@@ -185,7 +195,7 @@ export default function Membres() {
             {m.user_id !== profil?.user_id && (
               <div className="mt-3">
                 <button
-                  onClick={() => supprimer.mutate(m.id)}
+                  onClick={() => setConfirmation({ type: 'membre', id: m.id, nom: m.nom })}
                   title="Retirer"
                   className="rounded-lg p-2 text-on-surface-variant hover:bg-surface-container hover:text-error"
                 >
@@ -256,6 +266,35 @@ export default function Membres() {
         </div>
         </>
       )}
+
+      <Modal
+        open={!!confirmation}
+        title={confirmation?.type === 'invitation' ? 'Confirmer l’annulation' : 'Confirmer la suppression'}
+        onClose={() => setConfirmation(null)}
+      >
+        <p className="text-body-md text-on-surface-variant">
+          {confirmation?.type === 'invitation'
+            ? `Annuler l’invitation de « ${confirmation.nom} » ?`
+            : `Retirer « ${confirmation?.nom} » de votre agence ? Cette action est définitive.`}
+        </p>
+        <div className="mt-6 flex justify-end gap-2">
+          <Button type="button" variant="secondary" onClick={() => setConfirmation(null)}>
+            Annuler
+          </Button>
+          <Button
+            type="button"
+            variant="danger"
+            disabled={confirmation?.type === 'membre' ? supprimer.isPending : supprimerInvitation.isPending}
+            onClick={() => {
+              if (!confirmation) return
+              if (confirmation.type === 'membre') supprimer.mutate(confirmation.id)
+              else supprimerInvitation.mutate(confirmation.id)
+            }}
+          >
+            Confirmer
+          </Button>
+        </div>
+      </Modal>
     </div>
   )
 }
