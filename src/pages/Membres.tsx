@@ -15,6 +15,7 @@ export default function Membres() {
   const [email, setEmail] = useState('')
   const [role, setRole] = useState<'gerant' | 'agent'>('agent')
   const [lienInvitation, setLienInvitation] = useState('')
+  const [copie, setCopie] = useState(false)
   const [erreur, setErreur] = useState('')
 
   const { data: membres = [] } = useQuery({
@@ -58,6 +59,7 @@ export default function Membres() {
     },
     onSuccess: (token) => {
       setLienInvitation(`${window.location.origin}/signup?invite=${token}`)
+      setCopie(false)
       setEmail('')
       queryClient.invalidateQueries({ queryKey: ['invitations'] })
     },
@@ -121,8 +123,12 @@ export default function Membres() {
           <div className="mt-4 rounded-md border border-secondary bg-secondary-container/20 p-3">
             <p className="mb-1 text-sm font-semibold text-navy">Lien d’invitation à partager (WhatsApp, email…) :</p>
             <p className="break-all text-sm text-navy">{lienInvitation}</p>
-            <button type="button" className="btn-secondary mt-2 text-xs" onClick={() => navigator.clipboard.writeText(lienInvitation)}>
-              Copier le lien
+            <button
+              type="button"
+              className="btn-secondary mt-2 text-xs"
+              onClick={() => navigator.clipboard.writeText(lienInvitation).then(() => setCopie(true))}
+            >
+              {copie ? 'Lien copié' : 'Copier le lien'}
             </button>
           </div>
         )}

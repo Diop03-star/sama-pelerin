@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { render, screen, fireEvent } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { MemoryRouter } from 'react-router-dom'
 import Membres from './Membres'
@@ -85,5 +85,34 @@ describe('Membres', () => {
   it('affiche un état vide pour les membres', async () => {
     rendre({ membres: [], invitations: [] })
     expect((await screen.findAllByText('Aucun membre pour le moment.')).length).toBeGreaterThanOrEqual(1)
+  })
+
+  it('affiche « Lien copié » après la copie du lien d’invitation', async () => {
+    const writeText = vi.fn(() => Promise.resolve())
+    Object.defineProperty(navigator, 'clipboard', { value: { writeText }, configurable: true })
+    vi.stubGlobal('crypto', { randomUUID: () => 'tok-test' })
+    const queryClient = new QueryClient()
+    mockSupabase.from.mockImplementation((table: string) => {
+      if (table === 'utilisateurs') {
+        return { select: () => ({ eq: () => ({ order: () => Promise.resolve({ data: [], error: null }) }) }), delete: mockSupabase.delete }
+      }
+      if (table === 'invitations') {
+        return { select: () => ({ eq: () => ({ order: () => Promise.resolve({ data: [], error: null }) }) }), insert: () => Promise.resolve({ data: null, error: null }), delete: mockSupabase.delete }
+      }
+      return {}
+    })
+    render(
+      <QueryClientProvider client={queryClient}>
+        <MemoryRouter>
+          <Membres />
+        </MemoryRouter>
+      </QueryClientProvider>,
+    )
+    fireEvent.change(screen.getByRole('textbox'), { target: { value: 'agent@example.com' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Générer le lien' }))
+    await screen.findByText(/Lien d’invitation à partager/)
+    fireEvent.click(screen.getByRole('button', { name: 'Copier le lien' }))
+    expect(writeText).toHaveBeenCalledWith(expect.stringContaining('/signup?invite=tok-test'))
+    await screen.findByRole('button', { name: 'Lien copié' })
   })
 })
