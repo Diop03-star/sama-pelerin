@@ -25,7 +25,7 @@ from pathlib import Path
 
 from fontTools.ttLib import TTFont
 
-SOURCE = Path('src/assets/fonts/material-symbols-outlined.woff2')
+SOURCE = Path('scripts/fonts/material-symbols-outlined-complet.woff2')
 SORTIE = Path('public/fonts/material-symbols-outlined.woff2')
 
 # Toute icône utilisée dans src/ (Icon name=..., props icon=..., maps de données).
