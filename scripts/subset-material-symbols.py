@@ -82,20 +82,24 @@ def main():
     police = TTFont(SOURCE)
     gsub = police['GSUB']
     nb = elaguer_ligatures(police, set(ICONES))
+    if nb != len(ICONES):
+        sys.exit(f'ERREUR: {len(ICONES) - nb} icône(s) de la liste sans ligature — '
+                 'nom inconnu de la police ou coquille dans ICONES')
     supprimer_lookup_fill(gsub)
     intermediaire = Path('public/fonts/_tmp-material-symbols.ttf')
-    police.save(intermediaire)
-
     SORTIE.parent.mkdir(parents=True, exist_ok=True)
-    subprocess.run([
-        sys.executable, '-m', 'fontTools.subset',
-        str(intermediaire),
-        '--output-file=' + str(SORTIE),
-        '--flavor=woff2',
-        '--layout-features=*',
-        '--text=' + ' '.join(ICONES),
-    ], check=True)
-    intermediaire.unlink()
+    police.save(intermediaire)
+    try:
+        subprocess.run([
+            sys.executable, '-m', 'fontTools.subset',
+            str(intermediaire),
+            '--output-file=' + str(SORTIE),
+            '--flavor=woff2',
+            '--layout-features=*',
+            '--text=' + ' '.join(ICONES),
+        ], check=True)
+    finally:
+        intermediaire.unlink(missing_ok=True)
 
     taille = SORTIE.stat().st_size
     print(f'{len(ICONES)} icônes, {nb} ligatures gardées, sortie {SORTIE} ({taille} octets)')
