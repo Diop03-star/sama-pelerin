@@ -70,3 +70,7 @@ export interface Tutos {
   id: string; titre: string; description: string | null
   url_youtube: string; ordre: number; actif: boolean; created_at: string
 }
+export interface ProfilGerant {
+  utilisateur_id: string
+  avatar_url: string | null
+}

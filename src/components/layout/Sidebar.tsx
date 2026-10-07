@@ -1,6 +1,8 @@
 import { Link, NavLink, useNavigate } from 'react-router-dom'
+import { useQuery } from '@tanstack/react-query'
 import { supabase } from '../../lib/supabase'
 import { useProfil, useAgence } from '../../hooks/useAgence'
+import { obtenirUrlImageAgence } from '../../lib/agenceImages'
 import Icon from '../ui/Icon'
 
 interface NavItem {
@@ -36,9 +38,17 @@ export default function Sidebar({ ouverte, onFermer }: SidebarProps) {
   const navigate = useNavigate()
   const { data: profil } = useProfil()
   const { data: agence } = useAgence()
+  const { data: logoUrl } = useQuery({
+    queryKey: ['agence-logo', agence?.id, agence?.logo_url],
+    enabled: !!agence?.logo_url,
+    queryFn: () => obtenirUrlImageAgence(agence!.logo_url),
+  })
   const sections: NavSection[] =
     profil?.role === 'gerant'
-      ? [...NAVIGATION, { section: 'Administration', items: [{ to: '/membres', label: 'Membres', icon: 'settings' }] }]
+      ? [...NAVIGATION, { section: 'Administration', items: [
+        { to: '/membres', label: 'Membres', icon: 'group' },
+        { to: '/parametres', label: 'Paramètres', icon: 'settings' },
+      ] }]
       : NAVIGATION
 
   async function deconnexion() {
@@ -49,9 +59,9 @@ export default function Sidebar({ ouverte, onFermer }: SidebarProps) {
   const contenu = (
     <div className="flex h-full flex-col">
       <div className="mb-10 flex items-center gap-3 px-2 pt-2">
-        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-outline-variant bg-primary-container text-on-primary-container">
-          <Icon name="mosque" size={20} />
-        </div>
+        {logoUrl
+          ? <img src={logoUrl} alt={`Logo ${agence?.nom ?? 'de l’agence'}`} className="h-10 w-10 shrink-0 rounded-full border border-outline-variant bg-white object-contain" />
+          : <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-outline-variant bg-primary-container text-on-primary-container"><Icon name="mosque" size={20} /></div>}
         <div>
           <h1 className="text-headline-sm font-bold text-primary">{agence?.nom ?? 'SamaPèlerin'}</h1>
           <p className="text-label-md text-on-surface-variant">Portail Administrateur</p>
