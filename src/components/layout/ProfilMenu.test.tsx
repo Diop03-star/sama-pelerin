@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
 import { MemoryRouter, Routes, Route } from 'react-router-dom'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import ProfilMenu from './ProfilMenu'
 
 const mockSignOut = vi.hoisted(() => vi.fn())
@@ -12,14 +13,17 @@ vi.mock('../../hooks/useAgence', () => ({ useProfil: () => mockUseProfil() }))
 
 function rendre() {
   return render(
-    <MemoryRouter initialEntries={['/tableau-de-bord']}>
-      <Routes>
-        <Route path="/tableau-de-bord" element={<ProfilMenu />} />
-        <Route path="/profil" element={<div>Page profil</div>} />
-        <Route path="/tutoriels" element={<div>Page tutoriels</div>} />
-        <Route path="/login" element={<div>Page login</div>} />
-      </Routes>
-    </MemoryRouter>,
+    <QueryClientProvider client={new QueryClient()}>
+      <MemoryRouter initialEntries={['/tableau-de-bord']}>
+        <Routes>
+          <Route path="/tableau-de-bord" element={<ProfilMenu />} />
+          <Route path="/profil" element={<div>Page profil</div>} />
+          <Route path="/parametres" element={<div>Page paramètres</div>} />
+          <Route path="/tutoriels" element={<div>Page tutoriels</div>} />
+          <Route path="/login" element={<div>Page login</div>} />
+        </Routes>
+      </MemoryRouter>
+    </QueryClientProvider>,
   )
 }
 
@@ -42,7 +46,18 @@ describe('ProfilMenu', () => {
     expect(screen.getByText('Gérant')).toBeInTheDocument()
   })
 
-  it('navigue vers /profil au clic sur « Mon profil »', () => {
+  it('navigue vers /parametres au clic sur « Paramètres »', () => {
+    rendre()
+    fireEvent.click(screen.getByLabelText('Menu profil'))
+    fireEvent.click(screen.getByText('Paramètres'))
+    expect(screen.getByText('Page paramètres')).toBeInTheDocument()
+  })
+
+  it('navigue vers /profil au clic sur « Mon profil » pour un agent', () => {
+    mockUseProfil.mockReturnValue({
+      data: { nom: 'Moussa Ndiaye', role: 'agent' },
+      isLoading: false,
+    })
     rendre()
     fireEvent.click(screen.getByLabelText('Menu profil'))
     fireEvent.click(screen.getByText('Mon profil'))
@@ -67,8 +82,8 @@ describe('ProfilMenu', () => {
   it('ferme le menu au clic extérieur', () => {
     rendre()
     fireEvent.click(screen.getByLabelText('Menu profil'))
-    expect(screen.getByText('Mon profil')).toBeInTheDocument()
+    expect(screen.getByText('Paramètres')).toBeInTheDocument()
     fireEvent.mouseDown(document.body)
-    expect(screen.queryByText('Mon profil')).not.toBeInTheDocument()
+    expect(screen.queryByText('Paramètres')).not.toBeInTheDocument()
   })
 })
