@@ -83,7 +83,7 @@ describe('Pelerins', () => {
       return {}
     })
     rendre()
-    expect(await screen.findByText('89 000 FCFA')).toBeInTheDocument()
+    expect(await screen.findByText(/89 000 FCFA/)).toBeInTheDocument()
   })
 
   it('affiche la carte mobile avec les informations essentielles', async () => {
@@ -91,7 +91,7 @@ describe('Pelerins', () => {
     expect((await screen.findAllByText('Awa Ndiaye')).length).toBeGreaterThanOrEqual(1)
     expect(screen.getAllByText('Hajj 2027').length).toBeGreaterThanOrEqual(1)
     expect(screen.getAllByText('77 123 45 67').length).toBeGreaterThanOrEqual(1)
-    expect(screen.getByText(/01\/08\/2026/)).toBeInTheDocument()
+    expect(screen.getAllByText(/01\/08\/2026/).length).toBeGreaterThanOrEqual(1)
     expect(screen.getAllByText('Validé').length).toBeGreaterThanOrEqual(1)
   })
 

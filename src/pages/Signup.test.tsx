@@ -1,6 +1,7 @@
 import { describe, it, expect, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
+import userEvent from '@testing-library/user-event'
 import Signup from './Signup'
 
 const mockSupabase = vi.hoisted(() => ({ auth: { signUp: vi.fn() } }))
@@ -14,5 +15,26 @@ describe('Signup', () => {
       </MemoryRouter>,
     )
     expect(screen.getByAltText('SamaPèlerin')).toHaveClass('h-20')
+  })
+
+  it('envoie un emailRedirectTo vers la page courante lors de la création du compte', async () => {
+    const user = userEvent.setup()
+    mockSupabase.auth.signUp.mockResolvedValue({ error: null })
+    render(
+      <MemoryRouter>
+        <Signup />
+      </MemoryRouter>,
+    )
+    await user.type(screen.getByLabelText('Nom complet'), 'Awa Diop')
+    await user.type(screen.getByLabelText('Email'), 'awa@example.com')
+    await user.type(screen.getByLabelText('Mot de passe'), 'motdepasse1')
+    await user.click(screen.getByRole('button', { name: 'Créer le compte' }))
+    expect(mockSupabase.auth.signUp).toHaveBeenCalledWith(
+      expect.objectContaining({
+        options: expect.objectContaining({
+          emailRedirectTo: expect.stringContaining(window.location.origin),
+        }),
+      }),
+    )
   })
 })

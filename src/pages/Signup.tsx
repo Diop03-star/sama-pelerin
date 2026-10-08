@@ -22,7 +22,10 @@ export default function Signup() {
     const { error } = await supabase.auth.signUp({
       email,
       password,
-      options: { data: meta },
+      options: {
+        data: meta,
+        emailRedirectTo: `${window.location.origin}/login`,
+      },
     })
     setEnCours(false)
     if (error) {

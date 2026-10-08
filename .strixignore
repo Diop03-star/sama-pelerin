@@ -1,0 +1,19 @@
+# Dépendances et builds
+node_modules/
+dist/
+.vite/
+
+# Git et caches
+.git/
+.vscode/
+.superpowers/
+
+# Docs et maquettes (non exécutables)
+maquette/
+docs/
+
+# Archives
+*.zip
+
+# Tests unitaires (pas des cibles de pentest)
+src/test/

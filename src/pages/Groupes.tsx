@@ -1,4 +1,4 @@
-import { useMemo, useState, type FormEvent } from 'react'
+import { useEffect, useMemo, useState, type FormEvent } from 'react'
 import { Link } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '../lib/supabase'
@@ -6,7 +6,6 @@ import { useAgence } from '../hooks/useAgence'
 import { LIBELLES_TYPE_VOYAGE, formatDate } from '../lib/format'
 import type { Groupe } from '../lib/types'
 import Icon from '../components/ui/Icon'
-import StatCard from '../components/ui/StatCard'
 import { Field, Input, Select } from '../components/ui/Field'
 import Button from '../components/ui/Button'
 import Badge from '../components/ui/Badge'
@@ -22,9 +21,16 @@ export default function Groupes() {
   const queryClient = useQueryClient()
   const [modalOuverte, setModalOuverte] = useState(false)
   const [enEdition, setEnEdition] = useState<Groupe | null>(null)
+  const [aSupprimer, setASupprimer] = useState<GroupeAvecCompte | null>(null)
   const [form, setForm] = useState({ nom: '', type_voyage: 'hajj', date_depart: '', date_retour: '', nb_places_max: '0' })
   const [erreur, setErreur] = useState('')
+  const [erreurSuppression, setErreurSuppression] = useState('')
   const [recherche, setRecherche] = useState('')
+  const [typeFiltre, setTypeFiltre] = useState('')
+  const [statutFiltre, setStatutFiltre] = useState('')
+  const [periodeFiltre, setPeriodeFiltre] = useState('')
+  const [modeAffichage, setModeAffichage] = useState<'liste' | 'cartes'>('liste')
+  const [page, setPage] = useState(1)
 
   const { data: groupes = [] } = useQuery({
     queryKey: ['groupes'],
@@ -37,17 +43,42 @@ export default function Groupes() {
     },
   })
 
-  const filtres = useMemo(() => {
+  const groupesFiltres = useMemo(() => {
     const terme = recherche.trim().toLowerCase()
-    if (!terme) return groupes
-    return groupes.filter((g) => g.nom.toLowerCase().includes(terme))
-  }, [groupes, recherche])
+    const aujourdHui = new Date()
+    aujourdHui.setHours(0, 0, 0, 0)
+    const dansTrenteJours = new Date(aujourdHui)
+    dansTrenteJours.setDate(dansTrenteJours.getDate() + 30)
 
-  const totaux = useMemo(() => {
-    const inscrits = groupes.reduce((s, g) => s + (g.pelerins[0]?.count ?? 0), 0)
-    const capacite = groupes.reduce((s, g) => s + g.nb_places_max, 0)
-    return { groupes: groupes.length, inscrits, placesLibres: Math.max(0, capacite - inscrits) }
-  }, [groupes])
+    return groupes.filter((g) => {
+      const inscrits = g.pelerins[0]?.count ?? 0
+      const depart = new Date(`${g.date_depart}T00:00:00`)
+      const retour = new Date(`${g.date_retour}T00:00:00`)
+      const complet = g.nb_places_max > 0 && inscrits >= g.nb_places_max
+      if (terme && !g.nom.toLowerCase().includes(terme)) return false
+      if (typeFiltre && g.type_voyage !== typeFiltre) return false
+      if (statutFiltre === 'ouvert' && (complet || depart < aujourdHui)) return false
+      if (statutFiltre === 'complet' && !complet) return false
+      if (statutFiltre === 'encours' && !(depart <= aujourdHui && retour >= aujourdHui)) return false
+      if (periodeFiltre === 'avenir' && depart < aujourdHui) return false
+      if (periodeFiltre === 'passe' && depart >= aujourdHui) return false
+      if (periodeFiltre === '30jours' && (depart < aujourdHui || depart > dansTrenteJours)) return false
+      return true
+    })
+  }, [groupes, recherche, typeFiltre, statutFiltre, periodeFiltre])
+
+  const groupesParPage = 3
+  const nombrePages = Math.max(1, Math.ceil(groupesFiltres.length / groupesParPage))
+  const groupesAffiches = groupesFiltres.slice((page - 1) * groupesParPage, page * groupesParPage)
+
+  useEffect(() => {
+    setPage((current) => Math.min(current, nombrePages))
+  }, [nombrePages])
+
+  function reinitialiserPage(action: () => void) {
+    action()
+    setPage(1)
+  }
 
   const ouvrirCreation = () => {
     setEnEdition(null)
@@ -97,8 +128,18 @@ export default function Groupes() {
       const { error } = await supabase.from('groupes').delete().eq('id', id)
       if (error) throw error
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['groupes'] }),
+    onSuccess: () => {
+      setASupprimer(null)
+      setErreurSuppression('')
+      queryClient.invalidateQueries({ queryKey: ['groupes'] })
+    },
+    onError: () => setErreurSuppression('Impossible de supprimer le groupe.'),
   })
+
+  function demanderSuppression(groupe: GroupeAvecCompte) {
+    setErreurSuppression('')
+    setASupprimer(groupe)
+  }
 
   function onSubmit(e: FormEvent) {
     e.preventDefault()
@@ -107,125 +148,157 @@ export default function Groupes() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
+    <div className="space-y-7">
+      <div className="mb-8 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
         <div>
-          <h1 className="text-display-lg text-on-surface">Groupes</h1>
-          <p className="text-body-lg mt-1 text-on-surface-variant">Organisez vos départs Hajj et Omra</p>
+          <h1 className="text-display-lg text-primary">Liste des groupes</h1>
+          <p className="text-body-lg mt-1 text-on-surface-variant">Gérez les départs, suivez le remplissage et organisez vos pèlerins.</p>
         </div>
-        <Button onClick={ouvrirCreation}>
-          <Icon name="group_add" size={18} className="mr-2" />
-          Nouveau groupe
+        <Button onClick={ouvrirCreation} className="whitespace-nowrap">
+          <Icon name="add" size={20} className="mr-2" />
+          Ajouter un groupe
         </Button>
       </div>
 
-      <section className="grid grid-cols-1 gap-4 md:grid-cols-3">
-        <StatCard label="Total Groupes" valeur={totaux.groupes} icon="group" />
-        <StatCard label="Pèlerins inscrits" valeur={totaux.inscrits} icon="person" tone="vert" />
-        <StatCard label="Places libres" valeur={totaux.placesLibres} icon="event_seat" tone={totaux.placesLibres === 0 ? 'error' : 'gold'} />
+      <section className="flex flex-col items-stretch justify-between gap-4 rounded-xl border border-outline-variant bg-surface-container-lowest p-4 shadow-sm lg:flex-row lg:items-center">
+        <div className="relative w-full lg:w-1/3">
+          <Icon name="search" size={20} className="absolute left-3 top-1/2 -translate-y-1/2 text-outline-variant" />
+          <Input
+            aria-label="Rechercher par nom de groupe"
+            placeholder="Rechercher par nom de groupe…"
+            value={recherche}
+            onChange={(e) => reinitialiserPage(() => setRecherche(e.target.value))}
+            className="w-full rounded-lg bg-surface-container-low pl-10"
+          />
+        </div>
+        <div className="flex w-full flex-wrap items-center gap-3 lg:w-auto">
+          <Select aria-label="Filtrer par type" value={typeFiltre} onChange={(e) => reinitialiserPage(() => setTypeFiltre(e.target.value))} className="min-w-36">
+            <option value="">Tous les types</option>
+            <option value="hajj">Hajj</option>
+            <option value="omra">Omra</option>
+          </Select>
+          <Select aria-label="Filtrer par statut" value={statutFiltre} onChange={(e) => reinitialiserPage(() => setStatutFiltre(e.target.value))} className="min-w-36">
+            <option value="">Statut : Tous</option>
+            <option value="ouvert">Ouvert</option>
+            <option value="complet">Complet</option>
+            <option value="encours">En cours</option>
+          </Select>
+          <div className="flex items-center gap-2 rounded-lg border border-outline-variant bg-surface-container-lowest px-3 py-2 text-body-md">
+            <Icon name="calendar_month" size={18} className="text-on-surface-variant" />
+            <Select aria-label="Filtrer par période" value={periodeFiltre} onChange={(e) => reinitialiserPage(() => setPeriodeFiltre(e.target.value))} className="min-w-36 border-0 bg-transparent p-0 shadow-none focus:ring-0">
+              <option value="">Période</option>
+              <option value="30jours">30 prochains jours</option>
+              <option value="avenir">Départs à venir</option>
+              <option value="passe">Départs passés</option>
+            </Select>
+          </div>
+          <div className="ml-auto flex rounded-lg border border-outline-variant bg-surface-container-low p-1" aria-label="Mode d’affichage">
+            <button type="button" aria-label="Affichage en liste" aria-pressed={modeAffichage === 'liste'} onClick={() => setModeAffichage('liste')} className={`rounded-md p-2 ${modeAffichage === 'liste' ? 'bg-surface-container-lowest text-primary shadow-sm' : 'text-on-surface-variant'}`}>
+              <Icon name="menu" size={20} />
+            </button>
+            <button type="button" aria-label="Affichage en cartes" aria-pressed={modeAffichage === 'cartes'} onClick={() => setModeAffichage('cartes')} className={`rounded-md p-2 ${modeAffichage === 'cartes' ? 'bg-surface-container-lowest text-primary shadow-sm' : 'text-on-surface-variant'}`}>
+              <Icon name="dashboard" size={20} />
+            </button>
+          </div>
+        </div>
       </section>
 
-      <div className="relative max-w-xs">
-        <Icon name="search" size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant" />
-        <Input placeholder="Rechercher un groupe…" value={recherche} onChange={(e) => setRecherche(e.target.value)} className="pl-10" />
-      </div>
-
-      <div className="hidden overflow-hidden rounded-xl border border-outline-variant bg-surface-container-lowest shadow-sm md:block">
-        <div className="overflow-x-auto">
-          <table className="w-full text-body-md">
-            <thead>
-              <tr className="bg-[#f1f5f9] text-left text-label-md uppercase tracking-wider text-on-surface-variant">
-                <th className="px-4 py-3">Nom</th>
-                <th className="px-4 py-3">Type</th>
-                <th className="px-4 py-3">Départ</th>
-                <th className="px-4 py-3">Retour</th>
-                <th className="px-4 py-3">Places</th>
-                <th className="px-4 py-3 text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filtres.map((g) => {
-                const inscrits = g.pelerins[0]?.count ?? 0
-                return (
-                  <tr key={g.id} className="group border-t border-outline-variant transition-colors hover:bg-surface-container-low">
-                    <td className="px-4 py-4 font-medium text-primary">
-                      <Link to={`/liste-des-pelerins?groupe=${g.id}`} className="hover:underline">{g.nom}</Link>
-                    </td>
-                    <td className="px-4 py-4">
-                      <Badge tone={g.type_voyage === 'hajj' ? 'ambre' : 'neutre'}>{LIBELLES_TYPE_VOYAGE[g.type_voyage]}</Badge>
-                    </td>
-                    <td className="px-4 py-4">{formatDate(g.date_depart)}</td>
-                    <td className="px-4 py-4">{formatDate(g.date_retour)}</td>
-                    <td className="px-4 py-4">
-                      <span className={inscrits >= g.nb_places_max && g.nb_places_max > 0 ? 'font-semibold text-error' : ''}>
-                        {inscrits} / {g.nb_places_max}
-                      </span>
-                    </td>
-                    <td className="px-4 py-4 text-right">
-                      <div className="flex justify-end gap-1 opacity-0 transition-opacity group-hover:opacity-100">
-                        <button
-                          onClick={() => ouvrirEdition(g)}
-                          title="Modifier"
-                          className="rounded-lg p-2 text-on-surface-variant hover:bg-surface-container hover:text-primary"
-                        >
-                          <Icon name="edit" size={18} />
-                        </button>
-                        <button
-                          onClick={() => supprimer.mutate(g.id)}
-                          title="Supprimer"
-                          className="rounded-lg p-2 text-on-surface-variant hover:bg-surface-container hover:text-error"
-                        >
-                          <Icon name="delete" size={18} />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                )
-              })}
-            </tbody>
-          </table>
-          {filtres.length === 0 && <EmptyState message="Aucun groupe. Créez votre premier groupe Hajj ou Omra." />}
-        </div>
-      </div>
-
-      <div className="space-y-4 md:hidden">
-        {filtres.map((g) => {
-          const inscrits = g.pelerins[0]?.count ?? 0
-          const complet = inscrits >= g.nb_places_max && g.nb_places_max > 0
-          return (
-            <div key={g.id} className="rounded-xl border border-outline-variant bg-surface-container-lowest p-4 shadow-sm">
-              <div className="flex items-start justify-between gap-3">
-                <Link to={`/liste-des-pelerins?groupe=${g.id}`} className="font-semibold text-primary">
-                  {g.nom}
-                </Link>
-                <Badge tone={g.type_voyage === 'hajj' ? 'ambre' : 'neutre'}>{LIBELLES_TYPE_VOYAGE[g.type_voyage]}</Badge>
-              </div>
-              <div className="mt-3 space-y-1 text-body-md text-on-surface-variant">
-                <p>{`Départ : ${formatDate(g.date_depart)}`}</p>
-                <p>{`Retour : ${formatDate(g.date_retour)}`}</p>
-                <p className={complet ? 'font-semibold text-error' : ''}>{`Places : ${inscrits} / ${g.nb_places_max}`}</p>
-              </div>
-              <div className="mt-4 flex items-center gap-2">
-                <button
-                  onClick={() => ouvrirEdition(g)}
-                  title="Modifier"
-                  className="rounded-lg p-2 text-on-surface-variant hover:bg-surface-container hover:text-primary"
-                >
-                  <Icon name="edit" size={18} />
-                </button>
-                <button
-                  onClick={() => supprimer.mutate(g.id)}
-                  title="Supprimer"
-                  className="rounded-lg p-2 text-on-surface-variant hover:bg-surface-container hover:text-error"
-                >
-                  <Icon name="delete" size={18} />
-                </button>
-              </div>
+      {modeAffichage === 'liste' ? (
+        <div className="overflow-hidden rounded-xl border border-outline-variant bg-surface-container-lowest shadow-sm">
+          <div className="hidden overflow-x-auto md:block">
+            <table className="w-full min-w-[780px] text-body-md">
+              <thead>
+                <tr className="bg-surface-container-low text-left text-label-md text-on-surface-variant">
+                  <th className="px-6 py-4 font-medium">Nom du groupe</th>
+                  <th className="px-5 py-4 font-medium">Type</th>
+                  <th className="px-5 py-4 font-medium">Dates (Départ/Retour)</th>
+                  <th className="px-5 py-4 font-medium">Remplissage</th>
+                  <th className="px-5 py-4 text-right font-medium">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {groupesAffiches.map((g) => {
+                  const inscrits = g.pelerins[0]?.count ?? 0
+                  const capacite = g.nb_places_max
+                  const complet = capacite > 0 && inscrits >= capacite
+                  const pourcentage = capacite > 0 ? Math.min(100, Math.round((inscrits / capacite) * 100)) : 0
+                  return (
+                    <tr key={g.id} className="group border-t border-outline-variant transition-colors hover:bg-surface-container-low/60">
+                      <td className="px-6 py-5">
+                        <div className="flex items-center gap-4">
+                          <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-primary-container text-lg font-semibold text-on-primary-container">{g.nom.trim().charAt(0).toUpperCase() || 'G'}</span>
+                          <div className="font-semibold text-primary"><Link to={`/liste-des-pelerins?groupe=${g.id}`} className="hover:underline">{g.nom}</Link><p className="mt-0.5 text-sm font-normal text-on-surface-variant">{agence?.nom}</p></div>
+                        </div>
+                      </td>
+                      <td className="px-5 py-5"><Badge tone={g.type_voyage === 'hajj' ? 'ambre' : 'vert'}>{LIBELLES_TYPE_VOYAGE[g.type_voyage]}</Badge></td>
+                      <td className="px-5 py-5"><div className="space-y-1.5"><p className="flex items-center gap-2"><Icon name="flight" size={18} className="text-on-surface-variant" />{formatDate(g.date_depart)}</p><p className="flex items-center gap-2"><Icon name="flight" size={18} className="rotate-180 text-on-surface-variant" />{formatDate(g.date_retour)}</p></div></td>
+                      <td className="px-5 py-5">
+                        <div className="max-w-60 space-y-1.5">
+                          <div className="flex justify-between gap-4 text-sm font-medium"><span>{inscrits} / {capacite}</span><span className={complet ? 'text-vert' : ''}>{complet ? 'Complet' : `${pourcentage}%`}</span></div>
+                          <div role="progressbar" aria-label={`Remplissage de ${g.nom}`} aria-valuemin={0} aria-valuemax={100} aria-valuenow={pourcentage} className="h-2 overflow-hidden rounded-full bg-surface-container"><div className={`h-full rounded-full ${complet ? 'bg-vert' : pourcentage >= 80 ? 'bg-secondary-fixed-dim' : 'bg-primary'}`} style={{ width: `${pourcentage}%` }} /></div>
+                          <p className="text-sm text-on-surface-variant">{complet ? 'Liste d’attente' : `${Math.max(0, capacite - inscrits)} places restantes`}</p>
+                        </div>
+                      </td>
+                      <td className="px-5 py-5 text-right">
+                        <div className="flex justify-end gap-1">
+                          <button onClick={() => ouvrirEdition(g)} title="Modifier" className="rounded-lg p-2 text-on-surface-variant hover:bg-surface-container hover:text-primary"><Icon name="edit" size={18} /></button>
+                          <button onClick={() => demanderSuppression(g)} title="Supprimer" className="rounded-lg p-2 text-on-surface-variant hover:bg-surface-container hover:text-error"><Icon name="delete" size={18} /></button>
+                        </div>
+                      </td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+            {groupesFiltres.length === 0 && <EmptyState message={groupes.length === 0 ? 'Aucun groupe. Créez votre premier groupe Hajj ou Omra.' : 'Aucun groupe ne correspond à ces filtres.'} />}
+          </div>
+          {groupesFiltres.length > 0 && (
+            <div className="hidden flex-col items-center justify-between gap-3 border-t border-outline-variant px-6 py-4 sm:flex-row md:flex">
+              <p className="text-body-md text-on-surface-variant">Affichage de {(page - 1) * groupesParPage + 1} à {Math.min(page * groupesParPage, groupesFiltres.length)} sur {groupesFiltres.length} groupes</p>
+              <nav aria-label="Pagination des groupes" className="flex items-center gap-1">
+                <button type="button" aria-label="Page précédente" disabled={page === 1} onClick={() => setPage((p) => Math.max(1, p - 1))} className="rounded-lg p-2 text-on-surface-variant hover:bg-surface-container disabled:opacity-40"><Icon name="chevron_right" size={20} className="rotate-180" /></button>
+                {Array.from({ length: nombrePages }, (_, i) => i + 1).map((numero) => <button key={numero} type="button" aria-label={`Page ${numero}`} aria-current={page === numero ? 'page' : undefined} onClick={() => setPage(numero)} className={`h-10 min-w-10 rounded-lg px-3 ${page === numero ? 'bg-primary text-on-primary' : 'text-on-surface hover:bg-surface-container-low'}`}>{numero}</button>)}
+                <button type="button" aria-label="Page suivante" disabled={page === nombrePages} onClick={() => setPage((p) => Math.min(nombrePages, p + 1))} className="rounded-lg p-2 text-on-surface-variant hover:bg-surface-container disabled:opacity-40"><Icon name="chevron_right" size={20} /></button>
+              </nav>
             </div>
-          )
-        })}
-        {filtres.length === 0 && <EmptyState message="Aucun groupe. Créez votre premier groupe Hajj ou Omra." />}
-      </div>
+          )}
+          <div className="space-y-3 p-3 md:hidden">
+            {groupesAffiches.map((g) => {
+              const inscrits = g.pelerins[0]?.count ?? 0
+              const capacite = g.nb_places_max
+              const complet = capacite > 0 && inscrits >= capacite
+              const pourcentage = capacite > 0 ? Math.min(100, Math.round((inscrits / capacite) * 100)) : 0
+              return <article key={g.id} className="rounded-lg border border-outline-variant bg-surface p-4">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0"><Link to={`/liste-des-pelerins?groupe=${g.id}`} className="break-words font-semibold text-primary">{g.nom}</Link><p className="mt-0.5 text-sm text-on-surface-variant">{agence?.nom}</p></div>
+                  <Badge tone={g.type_voyage === 'hajj' ? 'ambre' : 'vert'}>{LIBELLES_TYPE_VOYAGE[g.type_voyage]}</Badge>
+                </div>
+                <div className="my-3 grid grid-cols-2 gap-3 text-sm"><div><p className="text-on-surface-variant">Départ</p><p className="flex items-center gap-1 font-medium"><Icon name="flight" size={16} />{formatDate(g.date_depart)}</p></div><div><p className="text-on-surface-variant">Retour</p><p className="flex items-center gap-1 font-medium"><Icon name="flight" size={16} className="rotate-180" />{formatDate(g.date_retour)}</p></div></div>
+                <div className="space-y-1"><div className="flex justify-between gap-2 text-sm"><span>{inscrits} / {capacite} pèlerins</span><span>{complet ? 'Complet' : `${pourcentage}%`}</span></div><div role="progressbar" aria-label={`Remplissage de ${g.nom}`} aria-valuemin={0} aria-valuemax={100} aria-valuenow={pourcentage} className="h-2 overflow-hidden rounded-full bg-surface-container"><div className={`h-full rounded-full ${complet ? 'bg-vert' : 'bg-primary'}`} style={{ width: `${pourcentage}%` }} /></div><p className="text-sm text-on-surface-variant">{complet ? 'Liste d’attente' : `${Math.max(0, capacite - inscrits)} places restantes`}</p></div>
+                <div className="mt-3 flex justify-end gap-2 border-t border-outline-variant pt-3"><button onClick={() => ouvrirEdition(g)} aria-label={`Modifier ${g.nom}`} className="rounded-lg p-2 text-on-surface-variant hover:bg-surface-container"><Icon name="edit" size={18} /></button><button onClick={() => demanderSuppression(g)} aria-label={`Supprimer ${g.nom}`} className="rounded-lg p-2 text-on-surface-variant hover:bg-surface-container hover:text-error"><Icon name="delete" size={18} /></button></div>
+              </article>
+            })}
+            {groupesFiltres.length === 0 && <EmptyState message={groupes.length === 0 ? 'Aucun groupe. Créez votre premier groupe Hajj ou Omra.' : 'Aucun groupe ne correspond à ces filtres.'} />}
+            {groupesFiltres.length > 0 && <nav aria-label="Pagination des groupes" className="flex items-center justify-between rounded-lg border border-outline-variant bg-surface px-2 py-2"><button type="button" aria-label="Page précédente" disabled={page === 1} onClick={() => setPage((p) => Math.max(1, p - 1))} className="rounded-lg p-2 disabled:opacity-40"><Icon name="chevron_right" size={20} className="rotate-180" /></button><span className="text-sm text-on-surface-variant">Page {page} sur {nombrePages}</span><button type="button" aria-label="Page suivante" disabled={page === nombrePages} onClick={() => setPage((p) => Math.min(nombrePages, p + 1))} className="rounded-lg p-2 disabled:opacity-40"><Icon name="chevron_right" size={20} /></button></nav>}
+          </div>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 xl:grid-cols-3">
+          {groupesAffiches.map((g) => {
+            const inscrits = g.pelerins[0]?.count ?? 0
+            const complet = g.nb_places_max > 0 && inscrits >= g.nb_places_max
+            const pourcentage = g.nb_places_max > 0 ? Math.min(100, Math.round((inscrits / g.nb_places_max) * 100)) : 0
+            return <article key={g.id} className="rounded-xl border border-outline-variant bg-surface-container-lowest p-5 shadow-sm">
+              <div className="flex items-start justify-between gap-3"><div className="flex items-center gap-3"><span className="flex h-11 w-11 items-center justify-center rounded-lg bg-primary-container text-lg font-semibold text-on-primary-container">{g.nom.trim().charAt(0).toUpperCase() || 'G'}</span><div><Link to={`/liste-des-pelerins?groupe=${g.id}`} className="font-semibold text-primary hover:underline">{g.nom}</Link><p className="text-sm text-on-surface-variant">{agence?.nom}</p></div></div><Badge tone={g.type_voyage === 'hajj' ? 'ambre' : 'vert'}>{LIBELLES_TYPE_VOYAGE[g.type_voyage]}</Badge></div>
+              <div className="my-4 space-y-2 text-body-md text-on-surface-variant"><p className="flex items-center gap-2"><Icon name="flight" size={18} />Départ : {formatDate(g.date_depart)}</p><p className="flex items-center gap-2"><Icon name="flight" size={18} className="rotate-180" />Retour : {formatDate(g.date_retour)}</p></div>
+              <div className="space-y-1.5"><div className="flex justify-between text-sm font-medium"><span>{inscrits} / {g.nb_places_max}</span><span>{complet ? 'Complet' : `${pourcentage}%`}</span></div><div role="progressbar" aria-label={`Remplissage de ${g.nom}`} aria-valuemin={0} aria-valuemax={100} aria-valuenow={pourcentage} className="h-2 overflow-hidden rounded-full bg-surface-container"><div className={`h-full rounded-full ${complet ? 'bg-vert' : 'bg-primary'}`} style={{ width: `${pourcentage}%` }} /></div><p className="text-sm text-on-surface-variant">{complet ? 'Liste d’attente' : `${Math.max(0, g.nb_places_max - inscrits)} places restantes`}</p></div>
+              <div className="mt-4 flex justify-end gap-1 border-t border-outline-variant pt-3"><button onClick={() => ouvrirEdition(g)} title="Modifier" className="rounded-lg p-2 text-on-surface-variant hover:bg-surface-container hover:text-primary"><Icon name="edit" size={18} /></button><button onClick={() => demanderSuppression(g)} title="Supprimer" className="rounded-lg p-2 text-on-surface-variant hover:bg-surface-container hover:text-error"><Icon name="delete" size={18} /></button></div>
+            </article>
+          })}
+          {groupesFiltres.length === 0 && <EmptyState message={groupes.length === 0 ? 'Aucun groupe. Créez votre premier groupe Hajj ou Omra.' : 'Aucun groupe ne correspond à ces filtres.'} />}
+          {groupesFiltres.length > 0 && <nav aria-label="Pagination des groupes" className="col-span-full flex justify-center gap-1 pt-2"><button type="button" aria-label="Page précédente" disabled={page === 1} onClick={() => setPage((p) => Math.max(1, p - 1))} className="rounded-lg p-2 text-on-surface-variant disabled:opacity-40"><Icon name="chevron_right" size={20} className="rotate-180" /></button>{Array.from({ length: nombrePages }, (_, i) => i + 1).map((numero) => <button key={numero} type="button" aria-label={`Page ${numero}`} aria-current={page === numero ? 'page' : undefined} onClick={() => setPage(numero)} className={`h-10 min-w-10 rounded-lg px-3 ${page === numero ? 'bg-primary text-on-primary' : 'text-on-surface hover:bg-surface-container-low'}`}>{numero}</button>)}<button type="button" aria-label="Page suivante" disabled={page === nombrePages} onClick={() => setPage((p) => Math.min(nombrePages, p + 1))} className="rounded-lg p-2 text-on-surface-variant disabled:opacity-40"><Icon name="chevron_right" size={20} /></button></nav>}
+        </div>
+      )}
 
       <Modal open={modalOuverte} title={enEdition ? 'Modifier le groupe' : 'Nouveau groupe'} onClose={() => setModalOuverte(false)}>
         <form onSubmit={onSubmit} className="space-y-4">
@@ -255,6 +328,40 @@ export default function Groupes() {
             <Button type="submit" disabled={sauver.isPending}>{enEdition ? 'Enregistrer' : 'Créer'}</Button>
           </div>
         </form>
+      </Modal>
+
+      <Modal
+        open={!!aSupprimer}
+        title="Supprimer le groupe"
+        onClose={() => {
+          setASupprimer(null)
+          setErreurSuppression('')
+        }}
+      >
+        <p className="text-body-md text-on-surface-variant">
+          Supprimer « {aSupprimer?.nom} » ? Les pèlerins, documents et paiements associés seront également supprimés définitivement.
+        </p>
+        {erreurSuppression && <p className="mt-2 text-sm text-error">{erreurSuppression}</p>}
+        <div className="mt-6 flex justify-end gap-2">
+          <Button
+            type="button"
+            variant="secondary"
+            onClick={() => {
+              setASupprimer(null)
+              setErreurSuppression('')
+            }}
+          >
+            Annuler
+          </Button>
+          <Button
+            type="button"
+            variant="danger"
+            disabled={supprimer.isPending}
+            onClick={() => aSupprimer && supprimer.mutate(aSupprimer.id)}
+          >
+            Confirmer la suppression
+          </Button>
+        </div>
       </Modal>
     </div>
   )
