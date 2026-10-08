@@ -18,9 +18,9 @@ Le mot de passe est celui du compte Supabase Auth du gérant. Le formulaire dema
 ## Parcours et accès
 
 - Ajouter « Paramètres » dans la section Administration réservée au rôle `gerant` de la barre latérale.
-- Faire pointer l’entrée de menu du profil « Mon profil » vers `/parametres` (ou la renommer « Paramètres »).
+- Faire pointer l’entrée de menu du profil du gérant vers `/parametres` et la renommer « Paramètres »; garder « Mon profil » en lecture seule pour les agents.
 - Ajouter une route `/parametres` protégée par une vérification du rôle `gerant`. Une navigation directe par un agent doit être refusée et redirigée vers le tableau de bord.
-- Conserver `/profil` comme redirection de compatibilité vers `/parametres`, afin que les anciens liens continuent de fonctionner.
+- Rediriger le rôle gérant de `/profil` vers `/parametres`, afin que les anciens liens continuent de fonctionner; conserver la page de profil en lecture seule pour les agents.
 - Après sauvegarde, invalider les requêtes `agence` et `profil`; la barre latérale, le menu utilisateur et les autres éléments qui lisent ces données reflètent les changements sans rechargement.
 
 ## Données et stockage

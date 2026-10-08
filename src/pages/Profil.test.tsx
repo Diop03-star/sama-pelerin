@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen } from '@testing-library/react'
+import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import Profil from './Profil'
 
 const mockUseProfil = vi.hoisted(() => vi.fn())
@@ -24,7 +25,7 @@ describe('Profil', () => {
         nom: 'Moussa Ndiaye',
         telephone: '77 123 45 67',
         email: 'moussa@alhidjah.sn',
-        role: 'gerant',
+        role: 'agent',
         created_at: '2026-01-15T12:00:00Z',
       },
       isLoading: false,
@@ -32,11 +33,28 @@ describe('Profil', () => {
     mockUseAgence.mockReturnValue({ data: { id: 'a1', nom: 'Al Hidjah' }, isLoading: false })
     render(<Profil />)
     expect(screen.getByText('Moussa Ndiaye')).toBeInTheDocument()
-    expect(screen.getByText('Gérant')).toBeInTheDocument()
+    expect(screen.getByText('Agent')).toBeInTheDocument()
     expect(screen.getByText('moussa@alhidjah.sn')).toBeInTheDocument()
     expect(screen.getByText('77 123 45 67')).toBeInTheDocument()
     expect(screen.getByText('Al Hidjah')).toBeInTheDocument()
     expect(screen.getByText('15/01/2026')).toBeInTheDocument()
+  })
+
+  it('redirige un gérant vers /parametres', () => {
+    mockUseProfil.mockReturnValue({
+      data: { id: 'u1', nom: 'Moussa Ndiaye', role: 'gerant' },
+      isLoading: false,
+    })
+    mockUseAgence.mockReturnValue({ data: { id: 'a1', nom: 'Al Hidjah' }, isLoading: false })
+    render(
+      <MemoryRouter initialEntries={['/profil']}>
+        <Routes>
+          <Route path="/profil" element={<Profil />} />
+          <Route path="/parametres" element={<div>Page paramètres</div>} />
+        </Routes>
+      </MemoryRouter>,
+    )
+    expect(screen.getByText('Page paramètres')).toBeInTheDocument()
   })
 
   it('affiche un message quand le profil est introuvable', () => {

@@ -2,6 +2,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider } from './auth/AuthContext'
 import ProtectedRoute from './auth/ProtectedRoute'
+import GerantRoute from './auth/GerantRoute'
 import AppLayout from './components/layout/AppLayout'
 import SuperAdminLayout from './components/layout/SuperAdminLayout'
 import SuperAdminGlobal from './pages/SuperAdminGlobal'
@@ -18,6 +19,7 @@ import PelerinDetail from './pages/PelerinDetail'
 import Documents from './pages/Documents'
 import Paiements from './pages/Paiements'
 import Dashboard from './pages/Dashboard'
+import Parametres from './pages/Parametres'
 import Profil from './pages/Profil'
 import PublicLayout from './components/layout/PublicLayout'
 import Landing from './pages/Landing'
@@ -54,6 +56,9 @@ export default function App() {
                 <Route path="/paiements-echeanciers" element={<Paiements />} />
                 <Route path="/tableau-de-bord" element={<Dashboard />} />
                 <Route path="/profil" element={<Profil />} />
+                <Route element={<GerantRoute />}>
+                  <Route path="/parametres" element={<Parametres />} />
+                </Route>
                 <Route path="*" element={<Navigate to="/tableau-de-bord" replace />} />
               </Route>
             </Route>

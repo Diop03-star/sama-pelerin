@@ -1,3 +1,4 @@
+import { Navigate } from 'react-router-dom'
 import { useAgence, useProfil } from '../hooks/useAgence'
 import { formatDate } from '../lib/format'
 
@@ -12,9 +13,9 @@ export default function Profil() {
   if (!profil) {
     return <div className="flex h-screen items-center justify-center text-error">Profil introuvable.</div>
   }
+  if (profil.role === 'gerant') return <Navigate to="/parametres" replace />
 
-  const roleLibelle =
-    profil.role === 'gerant' ? 'Gérant' : profil.role === 'superadmin' ? 'Super admin' : 'Agent'
+  const roleLibelle = profil.role === 'superadmin' ? 'Super admin' : 'Agent'
 
   return (
     <div className="mx-auto max-w-md px-6 py-8">

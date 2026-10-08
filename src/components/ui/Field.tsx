@@ -1,9 +1,9 @@
 import type { InputHTMLAttributes, ReactNode, SelectHTMLAttributes } from 'react'
 
-export function Field({ label, children }: { label: string; children: ReactNode }) {
+export function Field({ label, htmlFor, children }: { label: string; htmlFor?: string; children: ReactNode }) {
   return (
     <div>
-      <label className="label mb-1 block">{label}</label>
+      <label htmlFor={htmlFor} className="label mb-1 block">{label}</label>
       {children}
     </div>
   )
