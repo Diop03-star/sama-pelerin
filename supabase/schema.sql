@@ -177,19 +177,27 @@ revoke all on function public.is_current_gerant_profile(uuid) from public;
 grant execute on function public.is_current_gerant() to authenticated;
 grant execute on function public.is_current_gerant_profile(uuid) to authenticated;
 
--- Inscription : crée la ligne utilisateurs, gère l'invitation, relie les comptes seedés
+-- Inscription : crée la ligne utilisateurs, gère l'invitation (jeton + email), relie les comptes pré-créés
 create or replace function public.handle_new_user()
 returns trigger language plpgsql security definer set search_path = public as $$
 declare
   v_invite public.invitations%rowtype;
+  v_token text := new.raw_user_meta_data->>'invite_token';
 begin
-  select * into v_invite from public.invitations
-    where lower(email) = lower(new.email) and used_at is null and expires_at > now()
-    order by created_at desc limit 1;
+  if v_token is not null then
+    select * into v_invite from public.invitations
+      where token = v_token
+        and lower(email) = lower(new.email)
+        and used_at is null and expires_at > now()
+      for update;
+  end if;
 
-  if exists (select 1 from public.utilisateurs where lower(email) = lower(new.email) and user_id is null) then
+  if v_invite.id is null and exists (
+    select 1 from public.utilisateurs
+    where lower(email) = lower(new.email) and user_id is null and role <> 'superadmin'
+  ) then
     update public.utilisateurs set user_id = new.id
-      where lower(email) = lower(new.email) and user_id is null;
+      where lower(email) = lower(new.email) and user_id is null and role <> 'superadmin';
     return new;
   end if;
 
@@ -207,6 +215,38 @@ begin
   end if;
   return new;
 end $$;
+
+-- Le rattachement d'un compte (user_id) n'est fait que par le trigger
+-- d'inscription (aucun JWT), jamais par une requête API.
+create or replace function public.proteger_rattachement_utilisateur()
+returns trigger language plpgsql security definer set search_path = public as $$
+begin
+  if new.user_id is distinct from old.user_id and auth.uid() is not null then
+    raise exception 'Modification du compte rattaché interdite.';
+  end if;
+  return new;
+end $$;
+
+-- Les clés étrangères ignorent la RLS : refuse une référence vers une ligne d'une autre agence.
+-- tg_argv[0] = table parente, tg_argv[1] = colonne de référence.
+create or replace function public.verifier_agence_parent()
+returns trigger language plpgsql security definer set search_path = public as $$
+declare
+  v_parent_id uuid := (to_jsonb(new) ->> tg_argv[1])::uuid;
+  v_agence uuid;
+begin
+  if v_parent_id is null then
+    return new;
+  end if;
+  execute format('select agence_id from public.%I where id = $1', tg_argv[0])
+    into v_agence using v_parent_id;
+  if v_agence is distinct from new.agence_id then
+    raise exception 'Référence invalide : % n''appartient pas à cette agence.', tg_argv[1];
+  end if;
+  return new;
+end $$;
+
+revoke all on function public.verifier_agence_parent() from public;
 
 -- Création d'agence en self-service : insère l'agence et rattache l'utilisateur courant comme gérant
 create or replace function public.creer_agence(p_nom text, p_telephone text, p_adresse text)
@@ -354,6 +394,40 @@ create trigger on_auth_user_created
   after insert on auth.users
   for each row execute function public.handle_new_user();
 
+create trigger proteger_rattachement_utilisateur
+  before update on public.utilisateurs
+  for each row execute function public.proteger_rattachement_utilisateur();
+
+-- Préfixe « agence_coherente_ » : les triggers BEFORE s'exécutent par ordre
+-- alphabétique, ce contrôle passe donc avant bloquer_encaissement_excedent.
+create trigger agence_coherente_groupe
+  before insert or update of groupe_id, agence_id on public.pelerins
+  for each row execute function public.verifier_agence_parent('groupes', 'groupe_id');
+create trigger agence_coherente_pelerin
+  before insert or update of pelerin_id, agence_id on public.documents
+  for each row execute function public.verifier_agence_parent('pelerins', 'pelerin_id');
+create trigger agence_coherente_pelerin
+  before insert or update of pelerin_id, agence_id on public.plans_paiement
+  for each row execute function public.verifier_agence_parent('pelerins', 'pelerin_id');
+create trigger agence_coherente_plan
+  before insert or update of plan_paiement_id, agence_id on public.tranches
+  for each row execute function public.verifier_agence_parent('plans_paiement', 'plan_paiement_id');
+create trigger agence_coherente_tranche
+  before insert or update of tranche_id, agence_id on public.paiements
+  for each row execute function public.verifier_agence_parent('tranches', 'tranche_id');
+create trigger agence_coherente_plan
+  before insert or update of plan_paiement_id, agence_id on public.paiements
+  for each row execute function public.verifier_agence_parent('plans_paiement', 'plan_paiement_id');
+create trigger agence_coherente_utilisateur
+  before insert or update of enregistre_par, agence_id on public.paiements
+  for each row execute function public.verifier_agence_parent('utilisateurs', 'enregistre_par');
+create trigger agence_coherente_tranche
+  before insert or update of tranche_id, agence_id on public.rappels
+  for each row execute function public.verifier_agence_parent('tranches', 'tranche_id');
+create trigger agence_coherente_document
+  before insert or update of document_id, agence_id on public.rappels
+  for each row execute function public.verifier_agence_parent('documents', 'document_id');
+
 create trigger trg_paiement_maj_tranche
   after insert or update or delete on public.paiements
   for each row execute function public.trg_maj_statut_tranche();
@@ -493,8 +567,9 @@ create policy agences_update on public.agences for update
 
 create policy utilisateurs_select on public.utilisateurs for select
   using (agence_id = public.current_agence_id() or user_id = auth.uid() or public.is_superadmin());
+-- Seul le superadmin pré-crée des comptes ; les membres arrivent par invitation.
 create policy utilisateurs_insert on public.utilisateurs for insert
-  with check (agence_id = public.current_agence_id() or public.is_superadmin());
+  with check (public.is_superadmin() and role in ('gerant','agent'));
 create policy utilisateurs_update on public.utilisateurs for update
   using (user_id = auth.uid()
     or (agence_id = public.current_agence_id()
@@ -552,11 +627,13 @@ create policy rappels_all on public.rappels for all
   with check (agence_id = public.current_agence_id());
 
 -- ---------- STORAGE ----------
-insert into storage.buckets (id, name, public)
-values ('documents_pelerins', 'documents_pelerins', false)
+insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+values ('documents_pelerins', 'documents_pelerins', false, 10485760,
+        array['application/pdf','image/jpeg','image/png','image/webp'])
 on conflict (id) do nothing;
-insert into storage.buckets (id, name, public)
-values ('logos_agences', 'logos_agences', false)
+insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+values ('logos_agences', 'logos_agences', false, 5242880,
+        array['image/jpeg','image/png','image/webp'])
 on conflict (id) do nothing;
 
 create policy doc_pelerins_read on storage.objects for select

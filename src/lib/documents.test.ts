@@ -1,9 +1,44 @@
 import { describe, expect, it, vi, beforeEach } from 'vitest'
-import { expirantDans, majMetadonnees, validerSansFichier } from './documents'
+import {
+  cheminFichierDocument,
+  expirantDans,
+  majMetadonnees,
+  validerFichierDocument,
+  validerSansFichier,
+} from './documents'
 
 const mockSupabase = vi.hoisted(() => ({ from: vi.fn() }))
 
 vi.mock('./supabase', () => ({ supabase: mockSupabase }))
+
+function fichierDe(nom: string, type: string, taille = 1024) {
+  const fichier = new File(['x'], nom, { type })
+  Object.defineProperty(fichier, 'size', { value: taille })
+  return fichier
+}
+
+describe('validerFichierDocument', () => {
+  it('accepte un PDF ou une image raisonnable', () => {
+    expect(validerFichierDocument(fichierDe('passeport.pdf', 'application/pdf'))).toBeNull()
+    expect(validerFichierDocument(fichierDe('photo.jpg', 'image/jpeg'))).toBeNull()
+  })
+
+  it('refuse un type non autorisé', () => {
+    expect(validerFichierDocument(fichierDe('page.html', 'text/html'))).toMatch(/PDF, JPEG, PNG ou WebP/)
+    expect(validerFichierDocument(fichierDe('image.svg', 'image/svg+xml'))).toMatch(/PDF, JPEG, PNG ou WebP/)
+  })
+
+  it('refuse un fichier de plus de 10 Mo', () => {
+    expect(validerFichierDocument(fichierDe('gros.pdf', 'application/pdf', 10 * 1024 * 1024 + 1))).toMatch(/10 Mo/)
+  })
+})
+
+describe('cheminFichierDocument', () => {
+  it('range le fichier sous l’agence et n’utilise pas le nom d’origine', () => {
+    const chemin = cheminFichierDocument('agence-1', 'pelerin-1', fichierDe('../../autre agence/x.pdf', 'application/pdf'))
+    expect(chemin).toMatch(/^agence-1\/pelerin-1\/[0-9a-f-]{36}\.pdf$/)
+  })
+})
 
 describe('expirantDans', () => {
   const reference = new Date('2026-08-14T10:00:00')

@@ -3,7 +3,13 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '../../lib/supabase'
 import { useAgence } from '../../hooks/useAgence'
 import { LIBELLES_DOCUMENT, LIBELLES_DOC_STATUT, formatDate } from '../../lib/format'
-import { validerSansFichier, type MetadonneesDocument } from '../../lib/documents'
+import {
+  TYPES_FICHIER_ACCEPTES,
+  cheminFichierDocument,
+  validerFichierDocument,
+  validerSansFichier,
+  type MetadonneesDocument,
+} from '../../lib/documents'
 import ModifierDocumentModal from './ModifierDocumentModal'
 import type { Document } from '../../lib/types'
 import Button from '../ui/Button'
@@ -81,10 +87,12 @@ export default function DocumentSection({ pelerinId }: { pelerinId: string }) {
 
   const televerser = useMutation({
     mutationFn: async ({ fichier, typeDocument }: { fichier: File; typeDocument: string }) => {
-      const chemin = `${agence!.id}/${pelerinId}/${Date.now()}-${fichier.name}`
+      const erreurValidation = validerFichierDocument(fichier)
+      if (erreurValidation) throw new Error(erreurValidation)
+      const chemin = cheminFichierDocument(agence!.id, pelerinId, fichier)
       const { error: eUpload } = await supabase.storage
         .from('documents_pelerins')
-        .upload(chemin, fichier)
+        .upload(chemin, fichier, { contentType: fichier.type })
       if (eUpload) throw eUpload
       const { error: eInsert } = await supabase.from('documents').upsert(
         {
@@ -174,7 +182,7 @@ export default function DocumentSection({ pelerinId }: { pelerinId: string }) {
           value={numeroDocument}
           onChange={(e) => setNumeroDocument(e.target.value)}
         />
-        <input ref={inputRef} type="file" hidden onChange={onChangeFichier} />
+        <input ref={inputRef} type="file" accept={TYPES_FICHIER_ACCEPTES.join(',')} hidden onChange={onChangeFichier} />
         <Button type="button" variant="secondary" disabled={televerser.isPending} onClick={() => inputRef.current?.click()}>
           <Icon name="upload_file" size={18} className="mr-2" />
           {televerser.isPending ? 'Upload…' : 'Téléverser un fichier'}
@@ -184,6 +192,9 @@ export default function DocumentSection({ pelerinId }: { pelerinId: string }) {
           Valider sans fichier
         </Button>
       </div>
+      {televerser.error && (
+        <p role="alert" className="text-label-md mb-4 text-error">{televerser.error.message}</p>
+      )}
 
       {documents.length === 0 && <EmptyState message="Aucun document pour ce pèlerin." />}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
