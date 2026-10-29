@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
+import { messageErreurAuth } from '../lib/erreursAuth'
 import logo from '../assets/logo-sama-pelerin.png'
 
 export default function Login() {
@@ -17,7 +18,7 @@ export default function Login() {
     const { error } = await supabase.auth.signInWithPassword({ email, password })
     setEnCours(false)
     if (error) {
-      setErreur('Email ou mot de passe incorrect.')
+      setErreur(messageErreurAuth(error, 'Email ou mot de passe incorrect.'))
       return
     }
     navigate('/tableau-de-bord')

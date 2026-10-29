@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
+import { messageErreurAuth } from '../lib/erreursAuth'
 import logo from '../assets/logo-sama-pelerin.png'
 
 export default function Signup() {
@@ -29,7 +30,7 @@ export default function Signup() {
     })
     setEnCours(false)
     if (error) {
-      setErreur(error.message)
+      setErreur(messageErreurAuth(error))
       return
     }
     setMessage('Compte créé. Confirmez votre email pour activer votre compte, puis connectez-vous.')
