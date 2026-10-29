@@ -5,6 +5,8 @@
 -- Seul le superadmin pré-crée des comptes (gérant d'une nouvelle agence) ;
 -- les membres d'une agence arrivent uniquement par invitation.
 drop policy if exists utilisateurs_insert on public.utilisateurs;
+-- Ancienne règle présente en prod, absente de schema.sql : autorisait le superadmin à créer d'autres superadmins
+drop policy if exists utilisateurs_insert_superadmin on public.utilisateurs;
 create policy utilisateurs_insert on public.utilisateurs for insert
   with check (public.is_superadmin() and role in ('gerant','agent'));
 
