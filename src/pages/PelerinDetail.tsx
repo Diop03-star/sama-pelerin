@@ -12,6 +12,7 @@ import Badge from '../components/ui/Badge'
 import DocumentSection from '../components/documents/DocumentSection'
 import PlanPaiementSection from '../components/paiements/PlanPaiementSection'
 import RappelSection from '../components/rappels/RappelSection'
+import { MESSAGE_TELEPHONE_INVALIDE, formatTelephone, normaliserTelephone } from '../lib/telephone'
 
 type PelerinAvecGroupe = Pelerin & { groupe: { nom: string; type_voyage: 'hajj' | 'omra'; date_depart: string } | null }
 
@@ -39,12 +40,14 @@ export default function PelerinDetail() {
         .update({
           nom: form.nom,
           prenom: form.prenom,
-          telephone: form.telephone,
+          telephone: normaliserTelephone(form.telephone) ?? form.telephone,
           email: form.email,
           date_naissance: form.date_naissance,
           sexe: form.sexe,
           contact_urgence_nom: form.contact_urgence_nom,
-          contact_urgence_telephone: form.contact_urgence_telephone,
+          contact_urgence_telephone: form.contact_urgence_telephone
+            ? normaliserTelephone(form.contact_urgence_telephone) ?? form.contact_urgence_telephone
+            : null,
         })
         .eq('id', id!)
       if (error) throw error
@@ -61,12 +64,22 @@ export default function PelerinDetail() {
   if (!pelerin) return <div className="flex h-screen items-center justify-center text-error">Pèlerin introuvable.</div>
 
   const ouvrirEdition = () => {
-    setForm({ ...pelerin })
+    setForm({
+      ...pelerin,
+      telephone: formatTelephone(pelerin.telephone),
+      contact_urgence_telephone: pelerin.contact_urgence_telephone ? formatTelephone(pelerin.contact_urgence_telephone) : null,
+    })
     setEnEdition(true)
   }
 
   function onSubmit(e: FormEvent) {
     e.preventDefault()
+    if (!form) return
+    const urgenceInvalide = !!form.contact_urgence_telephone && !normaliserTelephone(form.contact_urgence_telephone)
+    if (!normaliserTelephone(form.telephone) || urgenceInvalide) {
+      setErreur(MESSAGE_TELEPHONE_INVALIDE)
+      return
+    }
     setErreur('')
     enregistrer.mutate()
   }
@@ -109,7 +122,7 @@ export default function PelerinDetail() {
                 <Input required value={form.nom} onChange={(e) => setForm({ ...form, nom: e.target.value })} />
               </Field>
               <Field label="Téléphone">
-                <Input required value={form.telephone} onChange={(e) => setForm({ ...form, telephone: e.target.value })} />
+                <Input required type="tel" inputMode="tel" placeholder="77 123 45 67" value={form.telephone} onChange={(e) => setForm({ ...form, telephone: e.target.value })} />
               </Field>
               <Field label="Email">
                 <Input type="email" value={form.email ?? ''} onChange={(e) => setForm({ ...form, email: e.target.value || null })} />
@@ -127,7 +140,7 @@ export default function PelerinDetail() {
                 <Input value={form.contact_urgence_nom ?? ''} onChange={(e) => setForm({ ...form, contact_urgence_nom: e.target.value || null })} />
               </Field>
               <Field label="Contact urgence — téléphone">
-                <Input value={form.contact_urgence_telephone ?? ''} onChange={(e) => setForm({ ...form, contact_urgence_telephone: e.target.value || null })} />
+                <Input type="tel" inputMode="tel" placeholder="77 123 45 67" value={form.contact_urgence_telephone ?? ''} onChange={(e) => setForm({ ...form, contact_urgence_telephone: e.target.value || null })} />
               </Field>
               {erreur && <p className="text-sm text-error">{erreur}</p>}
               <div className="flex gap-3">
@@ -158,7 +171,7 @@ export default function PelerinDetail() {
                     </div>
                     <div className="flex flex-col">
                       <span className="text-label-md text-on-surface-variant">Téléphone</span>
-                      <span className="text-body-md text-on-surface">{pelerin.telephone}</span>
+                      <span className="text-body-md text-on-surface">{formatTelephone(pelerin.telephone)}</span>
                     </div>
                     <div className="flex flex-col">
                       <span className="text-label-md text-on-surface-variant">Email</span>
@@ -185,7 +198,7 @@ export default function PelerinDetail() {
                     </div>
                     <div className="flex flex-col">
                       <span className="text-label-md text-on-surface-variant">Téléphone</span>
-                      <span className="text-body-md text-on-surface">{pelerin.contact_urgence_telephone ?? '—'}</span>
+                      <span className="text-body-md text-on-surface">{pelerin.contact_urgence_telephone ? formatTelephone(pelerin.contact_urgence_telephone) : '—'}</span>
                     </div>
                   </div>
                 ) : (

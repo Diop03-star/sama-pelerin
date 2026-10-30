@@ -18,6 +18,15 @@ export function statutDossierDepuisDocuments(
   return TYPES_DOCUMENT_REQUIS.every((t) => valides.has(t)) ? 'valide' : 'incomplet'
 }
 
+export function documentsManquants(
+  documents: Array<{ type_document: string; statut: string }>
+): string[] {
+  const valides = new Set(
+    documents.filter((d) => d.statut === 'valide').map((d) => d.type_document)
+  )
+  return TYPES_DOCUMENT_REQUIS.filter((t) => !valides.has(t))
+}
+
 export function statutDocumentParType(
   documents: Array<{ type_document: string; statut: string }>,
   type: string

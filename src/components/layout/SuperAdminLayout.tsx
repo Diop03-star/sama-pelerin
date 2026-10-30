@@ -39,7 +39,7 @@ export default function SuperAdminLayout() {
           <p className="text-label-md text-on-surface-variant">Superadmin</p>
         </div>
       </div>
-      <ul className="flex-1 space-y-4 overflow-y-auto">
+      <ul className="flex-1 space-y-4 overflow-y-auto overflow-x-hidden">
         {NAVIGATION.map((item) => (
           <li key={item.to}>
             <NavLink

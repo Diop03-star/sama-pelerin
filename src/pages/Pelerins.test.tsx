@@ -90,7 +90,7 @@ describe('Pelerins', () => {
     rendre()
     expect((await screen.findAllByText('Awa Ndiaye')).length).toBeGreaterThanOrEqual(1)
     expect(screen.getAllByText('Hajj 2027').length).toBeGreaterThanOrEqual(1)
-    expect(screen.getAllByText('77 123 45 67').length).toBeGreaterThanOrEqual(1)
+    expect(screen.getAllByText('+221 77 123 45 67').length).toBeGreaterThanOrEqual(1)
     expect(screen.getAllByText(/01\/08\/2026/).length).toBeGreaterThanOrEqual(1)
     expect(screen.getAllByText('Validé').length).toBeGreaterThanOrEqual(1)
   })
@@ -105,15 +105,25 @@ describe('Pelerins', () => {
     fireEvent.click(screen.getByText('Enregistrer'))
     await vi.waitFor(() => {
       expect(mockSupabase.update).toHaveBeenCalledWith({
-        groupe_id: 'g1', nom: 'Ndiaye', prenom: 'Fatou', telephone: '77 123 45 67',
+        groupe_id: 'g1', nom: 'Ndiaye', prenom: 'Fatou', telephone: '+221771234567',
         email: null, sexe: 'F',
       })
     })
   })
 
+  it('refuse un numéro de téléphone invalide sans rien enregistrer', async () => {
+    rendre()
+    mockSupabase.update.mockClear()
+    fireEvent.click(await screen.findAllByTitle('Modifier').then((b) => b[0]))
+    fireEvent.change(screen.getByPlaceholderText('77 123 45 67'), { target: { value: '+221221773788' } })
+    fireEvent.click(screen.getByText('Enregistrer'))
+    expect(await screen.findByText(/Numéro invalide/)).toBeInTheDocument()
+    expect(mockSupabase.update).not.toHaveBeenCalled()
+  })
+
   it('supprime un pèlerin après confirmation via le menu ⋮ Plus', async () => {
     rendre()
-    fireEvent.click(await screen.findAllByTitle('Plus').then((b) => b[0]))
+    fireEvent.click(await screen.findAllByRole('button', { name: /Plus d’actions/ }).then((b) => b[0]))
     fireEvent.click(screen.getByText('Supprimer'))
     expect(screen.getByText(/Supprimer « Awa Ndiaye »/)).toBeInTheDocument()
     fireEvent.click(screen.getByText('Confirmer la suppression'))

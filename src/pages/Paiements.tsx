@@ -10,6 +10,7 @@ import ProgressBar from '../components/ui/ProgressBar'
 import Button from '../components/ui/Button'
 import Badge from '../components/ui/Badge'
 import EmptyState from '../components/ui/EmptyState'
+import { formatTelephone } from '../lib/telephone'
 
 interface PlanEcheancier extends PlanPaiement {
   pelerin: { id: string; prenom: string; nom: string; telephone: string }
@@ -127,7 +128,7 @@ export default function Paiements() {
                       <Link to={`/details-du-pelerin/${p.pelerin.id}`} className="font-medium text-primary hover:underline">
                         {p.pelerin.prenom} {p.pelerin.nom}
                       </Link>
-                      <p className="text-label-md text-on-surface-variant">{p.pelerin.telephone}</p>
+                      <p className="text-label-md text-on-surface-variant">{formatTelephone(p.pelerin.telephone)}</p>
                     </td>
                     <td className="px-4 py-4 text-data-mono">{formatFCFA(p.montant_total)} · {pluriel(p.nombre_tranches, 'tranche')}</td>
                     <td className="px-4 py-4 font-medium text-vert">{formatFCFA(paye)}</td>
@@ -169,7 +170,7 @@ export default function Paiements() {
                 </Link>
                 <Badge tone={TONE_STATUT_PLAN[p.statut]}>{LIBELLES_STATUT_PLAN[p.statut]}</Badge>
               </div>
-              <p className="mt-0.5 text-body-md text-on-surface-variant">{p.pelerin.telephone}</p>
+              <p className="mt-0.5 text-body-md text-on-surface-variant">{formatTelephone(p.pelerin.telephone)}</p>
               <div className="mt-3 space-y-1 text-body-md text-on-surface-variant">
                 <p>{`Plan : ${formatFCFA(p.montant_total)} · ${pluriel(p.nombre_tranches, 'tranche')}`}</p>
                 <p className="text-vert">{`Payé : ${formatFCFA(paye)}`}</p>

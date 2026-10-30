@@ -3,6 +3,7 @@ import {
   montantPayePlan,
   progressionPaiement,
   resteDu,
+  documentsManquants,
   statutDossierDepuisDocuments,
   statutDocumentParType,
   proposerAcompte,
@@ -177,5 +178,15 @@ describe('reste dû et progression', () => {
   it('plafonne la progression à 100 %', () => {
     expect(progressionPaiement(800000, 800001)).toBe(100)
     expect(progressionPaiement(0, 0)).toBe(0)
+  })
+})
+
+describe('documentsManquants', () => {
+  it('liste les pièces obligatoires non validées', () => {
+    expect(documentsManquants([
+      { type_document: 'passeport', statut: 'valide' },
+      { type_document: 'visa', statut: 'soumis' },
+      { type_document: 'autre', statut: 'valide' },
+    ])).toEqual(['visa', 'certificat_vaccination', 'photo'])
   })
 })

@@ -4,6 +4,7 @@ import { useQuery } from '@tanstack/react-query'
 import { supabase } from '../../lib/supabase'
 import { useAgence, useProfil } from '../../hooks/useAgence'
 import { filtrerRecherche } from '../../lib/recherche'
+import { formatTelephone } from '../../lib/telephone'
 import Icon from '../ui/Icon'
 import NotifPanel from './NotifPanel'
 import ProfilMenu from './ProfilMenu'
@@ -48,7 +49,7 @@ export default function Topbar({ onOuvrirMenu }: TopbarProps) {
       pelerins.map((p) => ({
         id: p.id,
         libelle: `${p.prenom} ${p.nom}`,
-        sousLibelle: p.telephone,
+        sousLibelle: formatTelephone(p.telephone),
         to: `/details-du-pelerin/${p.id}`,
       }))
     )

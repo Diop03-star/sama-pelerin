@@ -13,6 +13,7 @@ import Badge from '../components/ui/Badge'
 import Modal from '../components/ui/Modal'
 import EmptyState from '../components/ui/EmptyState'
 import BoutonFiltres from '../components/ui/BoutonFiltres'
+import { MESSAGE_TELEPHONE_INVALIDE, chiffresTelephone, formatTelephone, normaliserTelephone } from '../lib/telephone'
 
 interface PelerinAvecJointures extends Pelerin {
   groupe: Groupe
@@ -68,7 +69,7 @@ export default function Pelerins() {
       if (statutFiltre && p.statut_dossier !== statutFiltre) return false
       if (!terme) return true
       return `${p.prenom} ${p.nom}`.toLowerCase().includes(terme)
-        || p.telephone.includes(terme)
+        || (chiffresTelephone(terme).length >= 2 && chiffresTelephone(p.telephone).includes(chiffresTelephone(terme)))
         || (p.documents ?? []).some((d) => d.numero_document?.toLowerCase().includes(terme))
     })
   }, [pelerins, recherche, groupeFiltre, statutFiltre])
@@ -115,7 +116,7 @@ export default function Pelerins() {
         groupe_id: form.groupe_id,
         nom: form.nom,
         prenom: form.prenom,
-        telephone: form.telephone,
+        telephone: normaliserTelephone(form.telephone) ?? form.telephone,
         email: form.email || null,
         sexe: form.sexe as 'M' | 'F',
       }
@@ -149,7 +150,7 @@ export default function Pelerins() {
       groupe_id: p.groupe_id,
       nom: p.nom,
       prenom: p.prenom,
-      telephone: p.telephone,
+      telephone: formatTelephone(p.telephone),
       email: p.email ?? '',
       sexe: p.sexe ?? 'M',
     })
@@ -160,6 +161,10 @@ export default function Pelerins() {
 
   function onSubmit(e: FormEvent) {
     e.preventDefault()
+    if (!normaliserTelephone(form.telephone)) {
+      setErreur(MESSAGE_TELEPHONE_INVALIDE)
+      return
+    }
     setErreur('')
     sauver.mutate()
   }
@@ -248,7 +253,7 @@ export default function Pelerins() {
                         <div><p className="font-medium text-on-surface">{p.prenom} {p.nom}</p><p className="text-sm text-on-surface-variant">Inscrit le {formatDate(p.date_inscription)}</p></div>
                       </div>
                     </td>
-                    <td className="px-6 py-4"><p className="text-data-mono text-on-surface">{p.telephone}</p><p className="text-sm text-on-surface-variant">{p.email || 'Sans email'}</p></td>
+                    <td className="px-6 py-4"><p className="text-data-mono text-on-surface">{formatTelephone(p.telephone)}</p><p className="text-sm text-on-surface-variant">{p.email || 'Sans email'}</p></td>
                     <td className="px-6 py-4"><Badge tone={p.groupe?.type_voyage === 'hajj' ? 'ambre' : 'neutre'}>{p.groupe?.type_voyage ? LIBELLES_TYPE_VOYAGE[p.groupe.type_voyage] : '—'}</Badge><p className="mt-1 text-on-surface">{p.groupe?.nom ?? '—'}</p></td>
                     <td className="px-6 py-4">
                       <div className="flex min-w-48 items-center gap-3">
@@ -291,10 +296,10 @@ export default function Pelerins() {
           const reste = p.plan_paiement ? resteDu(p.plan_paiement.montant_total, montantPaye(p)) : null
           return <div key={p.id} className="rounded-xl border border-outline-variant bg-surface-container-lowest p-4 shadow-sm">
             <div className="flex items-start justify-between gap-3"><div><p className="font-semibold text-primary">{p.prenom} {p.nom}</p><p className="mt-0.5 flex items-center gap-1 text-body-md text-on-surface-variant"><Icon name="group" size={16} />{p.groupe?.nom ?? '—'}</p></div><Badge tone={TONE_DOSSIER[p.statut_dossier]}>{LIBELLES_DOSSIER[p.statut_dossier]}</Badge></div>
-            <div className="mt-3 space-y-1 text-body-md text-on-surface-variant"><p className="flex items-center gap-2"><Icon name="call" size={16} />{p.telephone}</p><p className="flex items-center gap-2"><Icon name="calendar_month" size={16} />Inscrit le {new Date(p.date_inscription).toLocaleDateString('fr-FR')}</p></div>
+            <div className="mt-3 space-y-1 text-body-md text-on-surface-variant"><p className="flex items-center gap-2"><Icon name="call" size={16} />{formatTelephone(p.telephone)}</p><p className="flex items-center gap-2"><Icon name="calendar_month" size={16} />Inscrit le {new Date(p.date_inscription).toLocaleDateString('fr-FR')}</p></div>
             <div className="mt-3 flex items-center gap-3"><div role="progressbar" aria-label={`Documents valides pour ${p.prenom} ${p.nom}`} aria-valuemin={0} aria-valuemax={TYPES_DOCUMENT_REQUIS.length} aria-valuenow={documentsValides} className="h-2 flex-1 overflow-hidden rounded-full bg-surface-container"><div className={`h-full rounded-full ${documentsValides === TYPES_DOCUMENT_REQUIS.length ? 'bg-vert' : documentsValides === 0 ? 'bg-error' : 'bg-secondary-fixed-dim'}`} style={{ width: `${progression}%` }} /></div><span className="text-sm text-on-surface-variant">{documentsValides}/{TYPES_DOCUMENT_REQUIS.length} docs</span></div>
             {reste !== null && <p className="mt-2 text-sm text-on-surface-variant">Reste dû : {formatFCFA(reste)}</p>}
-            <div className="mt-4 flex items-center gap-2"><Link to={`/details-du-pelerin/${p.id}`} className="btn-secondary px-3 py-1.5 text-sm">Voir</Link><Button variant="secondary" onClick={() => ouvrirEdition(p)} className="px-3 py-1.5 text-sm">Modifier</Button><div className="relative"><button onClick={() => setMenuOuvert(menuOuvert === p.id ? null : p.id)} title="Plus" className="rounded-lg p-2 text-on-surface-variant hover:bg-surface-container"><Icon name="menu" size={18} /></button>{menuOuvert === p.id && <div className="absolute right-0 z-10 mt-1 w-40 rounded-lg border border-outline-variant bg-surface-container-lowest p-1 shadow-lg"><button onClick={() => { setMenuOuvert(null); setASupprimer(p) }} className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-sm text-error hover:bg-surface-container"><Icon name="delete" size={16} />Supprimer</button></div>}</div></div>
+            <div className="mt-4 flex items-center gap-2"><Link to={`/details-du-pelerin/${p.id}`} className="btn-secondary px-3 py-1.5 text-sm">Voir</Link><Button variant="secondary" onClick={() => ouvrirEdition(p)} className="px-3 py-1.5 text-sm">Modifier</Button><div className="relative"><button onClick={() => setMenuOuvert(menuOuvert === p.id ? null : p.id)} aria-label={`Plus d’actions pour ${p.prenom} ${p.nom}`} aria-expanded={menuOuvert === p.id} className="rounded-lg p-2 text-on-surface-variant hover:bg-surface-container"><Icon name="more_vert" size={18} /></button>{menuOuvert === p.id && <div className="absolute right-0 z-10 mt-1 w-40 rounded-lg border border-outline-variant bg-surface-container-lowest p-1 shadow-lg"><button onClick={() => { setMenuOuvert(null); setASupprimer(p) }} className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-sm text-error hover:bg-surface-container"><Icon name="delete" size={16} />Supprimer</button></div>}</div></div>
           </div>
         })}
         {filtres.length === 0 && <EmptyState message="Aucun pèlerin trouvé." />}
@@ -324,7 +329,7 @@ export default function Pelerins() {
             </Field>
           </div>
           <Field label="Téléphone">
-            <Input required value={form.telephone} onChange={(e) => setForm({ ...form, telephone: e.target.value })} placeholder="+221 77 XXX XX XX" />
+            <Input required type="tel" inputMode="tel" value={form.telephone} onChange={(e) => setForm({ ...form, telephone: e.target.value })} placeholder="77 123 45 67" />
           </Field>
           <Field label="Email (optionnel)">
             <Input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />

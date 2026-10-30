@@ -64,10 +64,11 @@ export default function Sidebar({ ouverte, onFermer }: SidebarProps) {
           : <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-outline-variant bg-primary-container text-on-primary-container"><Icon name="mosque" size={20} /></div>}
         <div>
           <h1 className="text-headline-sm font-bold text-primary">{agence?.nom ?? 'SamaPèlerin'}</h1>
-          <p className="text-label-md text-on-surface-variant">Portail Administrateur</p>
+          <p className="text-label-md text-on-surface-variant">{profil?.role === 'gerant' ? 'Espace gérant' : 'Espace agent'}</p>
         </div>
       </div>
-      <ul className="flex-1 space-y-4 overflow-y-auto">
+      {/* overflow-x-hidden : le décalage de l'élément actif (translate-x-1) faisait apparaître une barre de défilement horizontale */}
+      <ul className="flex-1 space-y-4 overflow-y-auto overflow-x-hidden">
         {sections.map((s) => (
           <li key={s.section}>
             <p className="text-label-md mb-1 px-3 text-on-surface-variant">{s.section}</p>

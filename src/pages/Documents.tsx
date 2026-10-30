@@ -3,10 +3,11 @@ import { Link, useSearchParams } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { supabase } from '../lib/supabase'
 import { LIBELLES_DOCUMENT } from '../lib/format'
-import { statutDossierDepuisDocuments, statutDocumentParType } from '../lib/plan'
+import { documentsManquants, statutDossierDepuisDocuments, statutDocumentParType } from '../lib/plan'
 import StatCard from '../components/ui/StatCard'
 import Badge from '../components/ui/Badge'
 import EmptyState from '../components/ui/EmptyState'
+import { formatTelephone } from '../lib/telephone'
 
 interface PelerinAvecDocuments {
   id: string
@@ -48,6 +49,7 @@ export default function Documents() {
   const lignes = useMemo(() => {
     return pelerins.map((p) => ({
       ...p,
+      manquants: documentsManquants(p.documents),
       statut: filtreType
         ? statutDocumentParType(p.documents, filtreType)
         : statutDossierDepuisDocuments(p.documents),
@@ -121,7 +123,12 @@ export default function Documents() {
                     <Link to={`/details-du-pelerin/${p.id}`} className="font-medium text-primary hover:underline">
                       {p.prenom} {p.nom}
                     </Link>
-                    <p className="text-label-md text-on-surface-variant">{p.telephone}</p>
+                    <p className="text-label-md text-on-surface-variant">{formatTelephone(p.telephone)}</p>
+                    {!filtreType && p.manquants.length > 0 && (
+                      <p className="mt-1 text-body-md text-error">
+                        Manque : {p.manquants.map((t) => LIBELLES_DOCUMENT[t] ?? t).join(', ')}
+                      </p>
+                    )}
                   </td>
                   <td className="px-4 py-4">
                     <Badge tone={TONE_STATUT_LIGNE[p.statut]}>{LIBELLES_STATUT_LIGNE[p.statut]}</Badge>

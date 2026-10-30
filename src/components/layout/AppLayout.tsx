@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Navigate, Outlet } from 'react-router-dom'
 import Sidebar from './Sidebar'
 import Topbar from './Topbar'
+import BandeauHorsLigne from './BandeauHorsLigne'
 import { useAgence, useProfil } from '../../hooks/useAgence'
 import Icon from '../ui/Icon'
 
@@ -38,6 +39,7 @@ export default function AppLayout() {
       <Sidebar ouverte={menuOuvert} onFermer={() => setMenuOuvert(false)} />
       <div className="flex min-w-0 flex-1 flex-col">
         <Topbar onOuvrirMenu={() => setMenuOuvert(true)} />
+        <BandeauHorsLigne />
         <main className="mx-auto w-full max-w-[1440px] flex-1 p-4 md:p-8">
           <Outlet />
         </main>
