@@ -1,7 +1,8 @@
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { supabase } from '../lib/supabase'
-import { LIBELLES_STATUT_PLAN, LIBELLES_TRANCHE, TONE_STATUT_PLAN, TONE_TRANCHE, formatDate, formatFCFA } from '../lib/format'
+import { LIBELLES_STATUT_PLAN, LIBELLES_TRANCHE, TONE_STATUT_PLAN, TONE_TRANCHE, formatDate, formatFCFA, pluriel } from '../lib/format'
+import { montantPayePlan, progressionPaiement, resteDu } from '../lib/plan'
 import type { Paiement, PlanPaiement, Tranche } from '../lib/types'
 import Icon from '../components/ui/Icon'
 import StatCard from '../components/ui/StatCard'
@@ -43,19 +44,17 @@ export default function Paiements() {
   const aujourdhui = new Date().toISOString().slice(0, 10)
 
   const plansSoldeARegler = plans.filter((p) => {
-    const paye = p.tranches.reduce((s, t) => s + t.paiements.reduce((x, y) => x + y.montant_paye, 0), 0)
-      + p.acomptes.reduce((s, a) => s + a.montant_paye, 0)
-    const reste = p.montant_total - paye
+    const paye = montantPayePlan(p)
+    const reste = resteDu(p.montant_total, paye)
     return p.statut === 'en_retard' || (p.date_limite_solde !== null && p.date_limite_solde < aujourdhui && reste > 0)
   })
 
   const totals = plans.reduce(
     (acc, p) => {
-      const paye = p.tranches.reduce((s, t) => s + t.paiements.reduce((x, y) => x + y.montant_paye, 0), 0)
-        + p.acomptes.reduce((s, a) => s + a.montant_paye, 0)
-      return { total: acc.total + p.montant_total, paye: acc.paye + paye }
+      const paye = montantPayePlan(p)
+      return { total: acc.total + p.montant_total, paye: acc.paye + paye, reste: acc.reste + resteDu(p.montant_total, paye) }
     },
-    { total: 0, paye: 0 }
+    { total: 0, paye: 0, reste: 0 }
   )
 
   return (
@@ -74,12 +73,12 @@ export default function Paiements() {
       <section className="grid grid-cols-1 gap-4 md:grid-cols-3">
         <StatCard label="Total attendu" valeur={formatFCFA(totals.total)} icon="request_quote" />
         <StatCard label="Total encaissé" valeur={formatFCFA(totals.paye)} icon="payments" tone="vert" />
-        <StatCard label="Reste global" valeur={formatFCFA(totals.total - totals.paye)} icon="account_balance_wallet" tone={totals.total - totals.paye > 0 ? 'error' : 'vert'} />
+        <StatCard label="Reste global" valeur={formatFCFA(totals.reste)} icon="account_balance_wallet" tone={totals.reste > 0 ? 'error' : 'vert'} />
       </section>
 
       {enRetard.length > 0 && (
         <div className="rounded-r-lg border-l-4 border-error bg-error-container/20 p-4">
-          <p className="text-headline-sm text-error">{enRetard.length} tranche(s) en retard</p>
+          <p className="text-headline-sm text-error">{pluriel(enRetard.length, 'tranche')} en retard</p>
           <ul className="text-body-md mt-1 text-on-surface-variant">
             {enRetard.map(({ p, t }) => (
               <li key={t.id}>
@@ -92,11 +91,11 @@ export default function Paiements() {
 
       {plansSoldeARegler.length > 0 && (
         <div className="rounded-r-lg border-l-4 border-error bg-error-container/20 p-4">
-          <p className="text-headline-sm text-error">{plansSoldeARegler.length} plan(s) dont le solde est à régler</p>
+          <p className="text-headline-sm text-error">{pluriel(plansSoldeARegler.length, 'plan')} dont le solde est à régler</p>
           <ul className="text-body-md mt-1 text-on-surface-variant">
             {plansSoldeARegler.map((p) => (
               <li key={p.id}>
-                {p.pelerin.prenom} {p.pelerin.nom} — reste {formatFCFA(p.montant_total - (p.tranches.reduce((s, t) => s + t.paiements.reduce((x, y) => x + y.montant_paye, 0), 0) + p.acomptes.reduce((s, a) => s + a.montant_paye, 0)))}, limite le {formatDate(p.date_limite_solde)}.
+                {p.pelerin.prenom} {p.pelerin.nom} — reste {formatFCFA(resteDu(p.montant_total, montantPayePlan(p)))}, limite le {formatDate(p.date_limite_solde)}.
               </li>
             ))}
           </ul>
@@ -118,10 +117,9 @@ export default function Paiements() {
             </thead>
             <tbody>
               {plans.map((p) => {
-                const paye = p.tranches.reduce((s, t) => s + t.paiements.reduce((x, y) => x + y.montant_paye, 0), 0)
-                  + p.acomptes.reduce((s, a) => s + a.montant_paye, 0)
-                const reste = p.montant_total - paye
-                const progression = p.montant_total > 0 ? Math.round((paye / p.montant_total) * 100) : 0
+                const paye = montantPayePlan(p)
+                const reste = resteDu(p.montant_total, paye)
+                const progression = progressionPaiement(p.montant_total, paye)
                 const retard = p.tranches.filter((t) => t.statut === 'en_retard').length
                 return (
                   <tr key={p.id} className="group border-t border-outline-variant transition-colors hover:bg-surface-container-low">
@@ -131,7 +129,7 @@ export default function Paiements() {
                       </Link>
                       <p className="text-label-md text-on-surface-variant">{p.pelerin.telephone}</p>
                     </td>
-                    <td className="px-4 py-4 text-data-mono">{formatFCFA(p.montant_total)} · {p.nombre_tranches} tranches</td>
+                    <td className="px-4 py-4 text-data-mono">{formatFCFA(p.montant_total)} · {pluriel(p.nombre_tranches, 'tranche')}</td>
                     <td className="px-4 py-4 font-medium text-vert">{formatFCFA(paye)}</td>
                     <td className={`px-4 py-4 font-medium ${reste > 0 ? 'text-error' : 'text-vert'}`}>{formatFCFA(reste)}</td>
                     <td className="px-4 py-4">
@@ -159,10 +157,9 @@ export default function Paiements() {
 
       <div className="space-y-4 md:hidden">
         {plans.map((p) => {
-          const paye = p.tranches.reduce((s, t) => s + t.paiements.reduce((x, y) => x + y.montant_paye, 0), 0)
-            + p.acomptes.reduce((s, a) => s + a.montant_paye, 0)
-          const reste = p.montant_total - paye
-          const progression = p.montant_total > 0 ? Math.round((paye / p.montant_total) * 100) : 0
+          const paye = montantPayePlan(p)
+          const reste = resteDu(p.montant_total, paye)
+          const progression = progressionPaiement(p.montant_total, paye)
           const retard = p.tranches.filter((t) => t.statut === 'en_retard').length
           return (
             <div key={p.id} className="rounded-xl border border-outline-variant bg-surface-container-lowest p-4 shadow-sm">
@@ -174,7 +171,7 @@ export default function Paiements() {
               </div>
               <p className="mt-0.5 text-body-md text-on-surface-variant">{p.pelerin.telephone}</p>
               <div className="mt-3 space-y-1 text-body-md text-on-surface-variant">
-                <p>{`Plan : ${formatFCFA(p.montant_total)} · ${p.nombre_tranches} tranches`}</p>
+                <p>{`Plan : ${formatFCFA(p.montant_total)} · ${pluriel(p.nombre_tranches, 'tranche')}`}</p>
                 <p className="text-vert">{`Payé : ${formatFCFA(paye)}`}</p>
                 <p className={reste > 0 ? 'font-medium text-error' : 'text-vert'}>{`Reste : ${formatFCFA(reste)}`}</p>
               </div>

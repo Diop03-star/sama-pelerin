@@ -84,7 +84,7 @@ describe('Paiements', () => {
   it('affiche le badge statut du plan et l’encart « solde à régler »', async () => {
     rendre()
     expect((await screen.findAllByText('En retard')).length).toBeGreaterThanOrEqual(1)
-    expect(screen.getByText('1 plan(s) dont le solde est à régler')).toBeInTheDocument()
+    expect(screen.getByText('1 plan dont le solde est à régler')).toBeInTheDocument()
   })
 
   it('les totaux incluent les acomptes', async () => {
@@ -96,7 +96,7 @@ describe('Paiements', () => {
 
   it('l’encart « solde à régler » inclut les plans à date limite passée même en statut en_cours', async () => {
     rendre([planAvecAcompte, planSansAcompte, planDateLimitePassee])
-    expect(await screen.findByText('2 plan(s) dont le solde est à régler')).toBeInTheDocument()
+    expect(await screen.findByText('2 plans dont le solde est à régler')).toBeInTheDocument()
     expect(screen.getByText('Moussa Diop — reste 600 000 FCFA, limite le 01/01/2026.')).toBeInTheDocument()
   })
 

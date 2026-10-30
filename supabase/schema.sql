@@ -290,13 +290,30 @@ begin
     v_verse := 0;
   end if;
   if v_verse >= v_prevu then v_statut := 'payee';
-  elsif v_verse > 0 then v_statut := 'partielle';
   elsif v_echeance < current_date then v_statut := 'en_retard';
+  elsif v_verse > 0 then v_statut := 'partielle';
   else v_statut := 'a_venir';
   end if;
   update public.tranches set statut = v_statut where id = v_id;
   return coalesce(new, old);
 end $$;
+
+-- Passe en retard les tranches et plans dont l'échéance est dépassée.
+-- Appelée chaque nuit par pg_cron (voir fin du fichier) ; renvoie le nombre de tranches basculées.
+create or replace function public.maj_statuts_retard()
+returns integer language plpgsql security definer set search_path = public as $$
+declare
+  v_tranches integer;
+begin
+  update public.tranches set statut = 'en_retard'
+    where statut in ('a_venir', 'partielle') and date_echeance < current_date;
+  get diagnostics v_tranches = row_count;
+  update public.plans_paiement set statut = 'en_retard'
+    where statut = 'en_cours' and date_limite_solde < current_date;
+  return v_tranches;
+end $$;
+
+revoke all on function public.maj_statuts_retard() from public, anon, authenticated;
 
 create or replace function public.trg_maj_statut_dossier()
 returns trigger language plpgsql security definer set search_path = public as $$
@@ -666,3 +683,8 @@ create policy logos_delete on storage.objects for delete
   using (bucket_id = 'logos_agences'
     and (storage.foldername(name))[1] = public.current_agence_id()::text
     and public.is_current_gerant());
+
+-- ---------- TÂCHES PLANIFIÉES ----------
+-- Statuts « en retard » recalculés chaque nuit à 00:05 UTC (00:05 à Dakar)
+create extension if not exists pg_cron;
+select cron.schedule('maj-statuts-retard', '5 0 * * *', $$select public.maj_statuts_retard()$$);

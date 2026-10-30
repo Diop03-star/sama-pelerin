@@ -27,6 +27,26 @@ export function statutDocumentParType(
     : 'manquant'
 }
 
+export interface PlanAvecPaiements {
+  montant_total: number
+  tranches: { paiements: { montant_paye: number }[] }[]
+  acomptes: { montant_paye: number }[]
+}
+
+export function montantPayePlan(plan: PlanAvecPaiements): number {
+  return plan.tranches.reduce((s, t) => s + t.paiements.reduce((x, p) => x + p.montant_paye, 0), 0)
+    + plan.acomptes.reduce((s, a) => s + a.montant_paye, 0)
+}
+
+// Un trop-perçu (ancien arrondi de tranches) ne doit jamais s'afficher comme un reste négatif.
+export function resteDu(montantTotal: number, paye: number): number {
+  return Math.max(0, montantTotal - paye)
+}
+
+export function progressionPaiement(montantTotal: number, paye: number): number {
+  return montantTotal > 0 ? Math.min(100, Math.round((paye / montantTotal) * 100)) : 0
+}
+
 function joursDansMois(annee: number, mois: number): number {
   return new Date(Date.UTC(annee, mois, 0)).getUTCDate()
 }

@@ -2,7 +2,10 @@ import { useState, type FormEvent } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '../../lib/supabase'
 import { useAgence } from '../../hooks/useAgence'
-import { genererEcheancier, proposerAcompte, proposerDateLimite, validerEcheancier, type TrancheDraft } from '../../lib/plan'
+import {
+  genererEcheancier, progressionPaiement, proposerAcompte, proposerDateLimite, resteDu, validerEcheancier,
+  type TrancheDraft,
+} from '../../lib/plan'
 import { LIBELLES_MODE, LIBELLES_TRANCHE, LIBELLES_STATUT_PLAN, TONE_TRANCHE, TONE_STATUT_PLAN, formatDate, formatFCFA } from '../../lib/format'
 import type { Paiement, PlanPaiement, Tranche, TypeVoyage } from '../../lib/types'
 import Card from '../ui/Card'
@@ -306,9 +309,9 @@ export default function PlanPaiementSection({ pelerinId, groupe }: { pelerinId: 
   const payeTranches = plan.tranches.reduce((s, t) => s + t.paiements.reduce((x, p) => x + p.montant_paye, 0), 0)
   const payeAcompte = plan.acomptes.reduce((s, p) => s + p.montant_paye, 0)
   const paye = payeTranches + payeAcompte
-  const reste = plan.montant_total - paye
+  const reste = resteDu(plan.montant_total, paye)
   const resteAcompte = Math.max(plan.montant_acompte - payeAcompte, 0)
-  const progression = plan.montant_total > 0 ? Math.round((paye / plan.montant_total) * 100) : 0
+  const progression = progressionPaiement(plan.montant_total, paye)
 
   function ouvrirEncaissement(tranche: Tranche & { paiements: Paiement[] }) {
     setMontantPaiement('')

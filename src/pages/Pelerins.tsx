@@ -5,7 +5,7 @@ import { supabase } from '../lib/supabase'
 import { useAgence } from '../hooks/useAgence'
 import { LIBELLES_DOSSIER, LIBELLES_TYPE_VOYAGE, TONE_DOSSIER, formatDate, formatFCFA } from '../lib/format'
 import type { Groupe, Pelerin } from '../lib/types'
-import { TYPES_DOCUMENT_REQUIS } from '../lib/plan'
+import { TYPES_DOCUMENT_REQUIS, resteDu } from '../lib/plan'
 import Icon from '../components/ui/Icon'
 import { Field, Input, Select } from '../components/ui/Field'
 import Button from '../components/ui/Button'
@@ -281,7 +281,7 @@ export default function Pelerins() {
         {pelerinsAffiches.map((p) => {
           const documentsValides = TYPES_DOCUMENT_REQUIS.filter((type) => (p.documents ?? []).some((d) => d.type_document === type && d.statut === 'valide')).length
           const progression = Math.round((documentsValides / TYPES_DOCUMENT_REQUIS.length) * 100)
-          const reste = p.plan_paiement ? p.plan_paiement.montant_total - montantPaye(p) : null
+          const reste = p.plan_paiement ? resteDu(p.plan_paiement.montant_total, montantPaye(p)) : null
           return <div key={p.id} className="rounded-xl border border-outline-variant bg-surface-container-lowest p-4 shadow-sm">
             <div className="flex items-start justify-between gap-3"><div><p className="font-semibold text-primary">{p.prenom} {p.nom}</p><p className="mt-0.5 flex items-center gap-1 text-body-md text-on-surface-variant"><Icon name="group" size={16} />{p.groupe?.nom ?? '—'}</p></div><Badge tone={TONE_DOSSIER[p.statut_dossier]}>{LIBELLES_DOSSIER[p.statut_dossier]}</Badge></div>
             <div className="mt-3 space-y-1 text-body-md text-on-surface-variant"><p className="flex items-center gap-2"><Icon name="call" size={16} />{p.telephone}</p><p className="flex items-center gap-2"><Icon name="calendar_month" size={16} />Inscrit le {new Date(p.date_inscription).toLocaleDateString('fr-FR')}</p></div>

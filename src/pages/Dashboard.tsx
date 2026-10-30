@@ -4,8 +4,9 @@ import { useQuery } from '@tanstack/react-query'
 import { supabase } from '../lib/supabase'
 import {
   LIBELLES_DOCUMENT, LIBELLES_RAPPEL, TONE_RAPPEL,
-  formatDate, formatFCFA, messageDocument, messageTranche, whatsappUrl,
+  formatDate, formatFCFA, messageDocument, messageTranche, pluriel, whatsappUrl,
 } from '../lib/format'
+import { montantPayePlan, progressionPaiement, resteDu, type PlanAvecPaiements } from '../lib/plan'
 import { debutPeriode, nomPeriode, type Periode } from '../lib/dates'
 import type { Pelerin, Tranche } from '../lib/types'
 import Badge from '../components/ui/Badge'
@@ -94,11 +95,14 @@ export default function Dashboard() {
 
   const [periode, setPeriode] = useState<Periode>('annee')
 
+  // Le reste et la progression portent sur tous les paiements, quelle que soit la période choisie
   const { data: plans = [] } = useQuery({
     queryKey: ['dashboard-attendu'],
     queryFn: async () => {
-      const { data } = await supabase.from('plans_paiement').select('montant_total')
-      return (data ?? []) as { montant_total: number }[]
+      const { data } = await supabase
+        .from('plans_paiement')
+        .select('montant_total, tranches(paiements(montant_paye)), acomptes:paiements!plan_paiement_id(montant_paye)')
+      return (data ?? []) as unknown as PlanAvecPaiements[]
     },
   })
 
@@ -117,15 +121,16 @@ export default function Dashboard() {
   const totalPelerins = pelerins.length
   const totalAttendu = plans.reduce((s, p) => s + p.montant_total, 0)
   const totalPaye = echeanciers.reduce((s, p) => s + p.montant_paye, 0)
-  const resteGlobal = totalAttendu - totalPaye
-  const progression = totalAttendu > 0 ? Math.round((totalPaye / totalAttendu) * 100) : 0
+  const resteGlobal = plans.reduce((s, p) => s + resteDu(p.montant_total, montantPayePlan(p)), 0)
+  const encaisseSurPlans = totalAttendu - resteGlobal
+  const progression = progressionPaiement(totalAttendu, encaisseSurPlans)
 
   return (
     <div className="space-y-8">
       <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
         <div>
           <h1 className="text-display-lg text-on-surface">Tableau de bord</h1>
-          <p className="text-body-lg mt-1 text-on-surface-variant">Vue d’ensemble de la saison Hajj 2026</p>
+          <p className="text-body-lg mt-1 text-on-surface-variant">Vue d’ensemble de vos pèlerins, dossiers et encaissements</p>
         </div>
         <div className="flex gap-3">
           <button
@@ -150,21 +155,21 @@ export default function Dashboard() {
         <AlertLink
           tone="rouge"
           icon="warning"
-          titre={`${dossiersIncomplets.length} Pèlerins`}
+          titre={pluriel(dossiersIncomplets.length, 'Pèlerin')}
           description="Dossiers incomplets à compléter"
           to="/liste-des-pelerins?statut=incomplet"
         />
         <AlertLink
           tone="gold"
           icon="schedule"
-          titre={`${tranchesRetard.length} Paiements`}
+          titre={pluriel(tranchesRetard.length, 'Paiement')}
           description="En retard sur l’échéancier"
           to="/paiements-echeanciers?statut=en_retard"
         />
         <AlertLink
           tone="rouge"
           icon="assignment_late"
-          titre={`${passeports} Document${passeports > 1 ? 's' : ''}`}
+          titre={pluriel(passeports, 'Document')}
           description="Passeport expirant bientôt"
           to="/gestion-des-documents?alerte=passeport"
         />
@@ -175,7 +180,7 @@ export default function Dashboard() {
       </div>
 
       <section className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        <StatCard label="Total Pèlerins" valeur={totalPelerins} icon="group" tendance={{ texte: `${valides} dossiers validés`, positif: true }} grande />
+        <StatCard label="Total Pèlerins" valeur={totalPelerins} icon="group" tendance={{ texte: pluriel(valides, 'dossier validé', 'dossiers validés'), positif: true }} grande />
         <StatCard
           label="Total encaissé"
           valeur={totalPaye}
@@ -199,7 +204,7 @@ export default function Dashboard() {
           </div>
           <ProgressBar valeur={progression} tone="gold" />
           <div className="mt-3 flex flex-wrap gap-6 text-body-md">
-            <p className="text-on-surface-variant">Encaissé : <span className="font-semibold text-vert">{formatFCFA(totalPaye)}</span></p>
+            <p className="text-on-surface-variant">Encaissé : <span className="font-semibold text-vert">{formatFCFA(encaisseSurPlans)}</span></p>
             <p className="text-on-surface-variant">Attendu : <span className="font-semibold text-on-surface">{formatFCFA(totalAttendu)}</span></p>
             <p className="text-on-surface-variant">Reste : <span className={`font-semibold ${resteGlobal > 0 ? 'text-error' : 'text-vert'}`}>{formatFCFA(resteGlobal)}</span></p>
           </div>

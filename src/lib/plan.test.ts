@@ -1,5 +1,8 @@
 import { describe, it, expect } from 'vitest'
 import {
+  montantPayePlan,
+  progressionPaiement,
+  resteDu,
   statutDossierDepuisDocuments,
   statutDocumentParType,
   proposerAcompte,
@@ -153,5 +156,26 @@ describe('validerEcheancier', () => {
   it('accepte un échéancier valide', () => {
     const tranches = genererEcheancier(1000000, 400000, 3, '2026-02-01', '2026-04-15')
     expect(validerEcheancier(1000000, 400000, tranches, '2026-04-15')).toBeNull()
+  })
+})
+describe('reste dû et progression', () => {
+  const plan = {
+    montant_total: 800000,
+    tranches: [{ paiements: [{ montant_paye: 266667 }, { montant_paye: 266667 }] }, { paiements: [{ montant_paye: 266667 }] }],
+    acomptes: [],
+  }
+
+  it('additionne tranches et acomptes', () => {
+    expect(montantPayePlan({ ...plan, acomptes: [{ montant_paye: 1000 }] })).toBe(801001)
+  })
+
+  it('n’affiche jamais un reste négatif en cas de trop-perçu', () => {
+    expect(resteDu(800000, montantPayePlan(plan))).toBe(0)
+    expect(resteDu(800000, 500000)).toBe(300000)
+  })
+
+  it('plafonne la progression à 100 %', () => {
+    expect(progressionPaiement(800000, 800001)).toBe(100)
+    expect(progressionPaiement(0, 0)).toBe(0)
   })
 })

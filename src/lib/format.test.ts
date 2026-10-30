@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import {
-  formatFCFA, formatDate, whatsappUrl,
+  formatFCFA, formatDate, pluriel, whatsappUrl,
   messageTranche, messageDocument,
   LIBELLES_DOCUMENT, TONE_TRANCHE,
   LIBELLES_STATUT_PLAN, TONE_STATUT_PLAN,
@@ -75,5 +75,12 @@ describe('libellés statut plan', () => {
       en_retard: 'rouge',
       solde: 'vert',
     })
+  })
+})
+describe('pluriel', () => {
+  it('garde le singulier pour 0 et 1, comme en français', () => {
+    expect(pluriel(0, 'Paiement')).toBe('0 Paiement')
+    expect(pluriel(1, 'dossier validé', 'dossiers validés')).toBe('1 dossier validé')
+    expect(pluriel(2, 'dossier validé', 'dossiers validés')).toBe('2 dossiers validés')
   })
 })
