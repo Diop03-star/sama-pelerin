@@ -29,14 +29,14 @@ const STYLES = {
 export default function AlertLink({ tone, titre, description, icon, to }: AlertLinkProps) {
   const s = STYLES[tone]
   return (
-    <Link to={to} className={`group relative block overflow-hidden rounded-r-lg border-l-4 p-4 transition-colors ${s.bande} ${s.fond}`}>
+    <Link to={to} className={`group relative block overflow-hidden rounded-r-lg border-l-4 p-3 transition-colors md:p-4 ${s.bande} ${s.fond}`}>
       <div className="flex items-start gap-3">
         <div className={`shrink-0 rounded-full p-2 ${s.icone}`}>
           <Icon name={icon} fill size={20} />
         </div>
         <div>
-          <p className={`text-headline-sm ${s.texte}`}>{titre}</p>
-          <p className="text-body-md mt-1 text-on-surface-variant">{description}</p>
+          <p className={`text-body-lg font-semibold md:text-headline-sm ${s.texte}`}>{titre}</p>
+          <p className="text-body-md mt-0.5 text-on-surface-variant md:mt-1">{description}</p>
         </div>
       </div>
       <Icon

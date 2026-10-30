@@ -11,6 +11,7 @@ import Button from '../components/ui/Button'
 import Badge from '../components/ui/Badge'
 import Modal from '../components/ui/Modal'
 import EmptyState from '../components/ui/EmptyState'
+import BoutonFiltres from '../components/ui/BoutonFiltres'
 
 interface GroupeAvecCompte extends Groupe {
   pelerins: { count: number }[]
@@ -31,6 +32,7 @@ export default function Groupes() {
   const [periodeFiltre, setPeriodeFiltre] = useState('')
   const [modeAffichage, setModeAffichage] = useState<'liste' | 'cartes'>('liste')
   const [page, setPage] = useState(1)
+  const [filtresOuverts, setFiltresOuverts] = useState(false)
 
   const { data: groupes = [] } = useQuery({
     queryKey: ['groupes'],
@@ -148,8 +150,8 @@ export default function Groupes() {
   }
 
   return (
-    <div className="space-y-7">
-      <div className="mb-8 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
+    <div className="space-y-6 md:space-y-7">
+      <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
         <div>
           <h1 className="text-display-lg text-primary">Liste des groupes</h1>
           <p className="text-body-lg mt-1 text-on-surface-variant">Gérez les départs, suivez le remplissage et organisez vos pèlerins.</p>
@@ -161,17 +163,20 @@ export default function Groupes() {
       </div>
 
       <section className="flex flex-col items-stretch justify-between gap-4 rounded-xl border border-outline-variant bg-surface-container-lowest p-4 shadow-sm lg:flex-row lg:items-center">
-        <div className="relative w-full lg:w-1/3">
-          <Icon name="search" size={20} className="absolute left-3 top-1/2 -translate-y-1/2 text-outline-variant" />
-          <Input
-            aria-label="Rechercher par nom de groupe"
-            placeholder="Rechercher par nom de groupe…"
-            value={recherche}
-            onChange={(e) => reinitialiserPage(() => setRecherche(e.target.value))}
-            className="w-full rounded-lg bg-surface-container-low pl-10"
-          />
+        <div className="flex w-full gap-2 lg:w-1/3">
+          <div className="relative flex-1">
+            <Icon name="search" size={20} className="absolute left-3 top-1/2 -translate-y-1/2 text-outline-variant" />
+            <Input
+              aria-label="Rechercher par nom de groupe"
+              placeholder="Rechercher par nom de groupe…"
+              value={recherche}
+              onChange={(e) => reinitialiserPage(() => setRecherche(e.target.value))}
+              className="w-full rounded-lg bg-surface-container-low pl-10"
+            />
+          </div>
+          <BoutonFiltres ouverts={filtresOuverts} actifs={[typeFiltre, statutFiltre, periodeFiltre].filter(Boolean).length} controle="filtres-groupes" onClick={() => setFiltresOuverts((o) => !o)} />
         </div>
-        <div className="flex w-full flex-wrap items-center gap-3 lg:w-auto">
+        <div id="filtres-groupes" className={`${filtresOuverts ? 'flex' : 'hidden'} w-full flex-wrap items-center gap-3 md:flex lg:w-auto`}>
           <Select aria-label="Filtrer par type" value={typeFiltre} onChange={(e) => reinitialiserPage(() => setTypeFiltre(e.target.value))} className="min-w-36">
             <option value="">Tous les types</option>
             <option value="hajj">Hajj</option>
@@ -192,7 +197,7 @@ export default function Groupes() {
               <option value="passe">Départs passés</option>
             </Select>
           </div>
-          <div className="ml-auto flex rounded-lg border border-outline-variant bg-surface-container-low p-1" aria-label="Mode d’affichage">
+          <div className="ml-auto hidden rounded-lg border border-outline-variant bg-surface-container-low p-1 md:flex" aria-label="Mode d’affichage">
             <button type="button" aria-label="Affichage en liste" aria-pressed={modeAffichage === 'liste'} onClick={() => setModeAffichage('liste')} className={`rounded-md p-2 ${modeAffichage === 'liste' ? 'bg-surface-container-lowest text-primary shadow-sm' : 'text-on-surface-variant'}`}>
               <Icon name="menu" size={20} />
             </button>
@@ -204,7 +209,7 @@ export default function Groupes() {
       </section>
 
       {modeAffichage === 'liste' ? (
-        <div className="overflow-hidden rounded-xl border border-outline-variant bg-surface-container-lowest shadow-sm">
+        <div className="md:overflow-hidden md:rounded-xl md:border md:border-outline-variant md:bg-surface-container-lowest md:shadow-sm">
           <div className="hidden overflow-x-auto md:block">
             <table className="w-full min-w-[780px] text-body-md">
               <thead>
@@ -262,15 +267,15 @@ export default function Groupes() {
               </nav>
             </div>
           )}
-          <div className="space-y-3 p-3 md:hidden">
+          <div className="space-y-3 md:hidden">
             {groupesAffiches.map((g) => {
               const inscrits = g.pelerins[0]?.count ?? 0
               const capacite = g.nb_places_max
               const complet = capacite > 0 && inscrits >= capacite
               const pourcentage = capacite > 0 ? Math.min(100, Math.round((inscrits / capacite) * 100)) : 0
-              return <article key={g.id} className="rounded-lg border border-outline-variant bg-surface p-4">
+              return <article key={g.id} className="rounded-xl border border-outline-variant bg-surface-container-lowest p-4 shadow-sm">
                 <div className="flex items-start justify-between gap-3">
-                  <div className="min-w-0"><Link to={`/liste-des-pelerins?groupe=${g.id}`} className="break-words font-semibold text-primary">{g.nom}</Link><p className="mt-0.5 text-sm text-on-surface-variant">{agence?.nom}</p></div>
+                  <div className="min-w-0"><Link to={`/liste-des-pelerins?groupe=${g.id}`} className="break-words font-semibold text-primary">{g.nom}</Link></div>
                   <Badge tone={g.type_voyage === 'hajj' ? 'ambre' : 'vert'}>{LIBELLES_TYPE_VOYAGE[g.type_voyage]}</Badge>
                 </div>
                 <div className="my-3 grid grid-cols-2 gap-3 text-sm"><div><p className="text-on-surface-variant">Départ</p><p className="flex items-center gap-1 font-medium"><Icon name="flight" size={16} />{formatDate(g.date_depart)}</p></div><div><p className="text-on-surface-variant">Retour</p><p className="flex items-center gap-1 font-medium"><Icon name="flight" size={16} className="rotate-180" />{formatDate(g.date_retour)}</p></div></div>
@@ -279,7 +284,7 @@ export default function Groupes() {
               </article>
             })}
             {groupesFiltres.length === 0 && <EmptyState message={groupes.length === 0 ? 'Aucun groupe. Créez votre premier groupe Hajj ou Omra.' : 'Aucun groupe ne correspond à ces filtres.'} />}
-            {groupesFiltres.length > 0 && <nav aria-label="Pagination des groupes" className="flex items-center justify-between rounded-lg border border-outline-variant bg-surface px-2 py-2"><button type="button" aria-label="Page précédente" disabled={page === 1} onClick={() => setPage((p) => Math.max(1, p - 1))} className="rounded-lg p-2 disabled:opacity-40"><Icon name="chevron_right" size={20} className="rotate-180" /></button><span className="text-sm text-on-surface-variant">Page {page} sur {nombrePages}</span><button type="button" aria-label="Page suivante" disabled={page === nombrePages} onClick={() => setPage((p) => Math.min(nombrePages, p + 1))} className="rounded-lg p-2 disabled:opacity-40"><Icon name="chevron_right" size={20} /></button></nav>}
+            {groupesFiltres.length > 0 && <nav aria-label="Pagination des groupes" className="flex items-center justify-between rounded-xl border border-outline-variant bg-surface-container-lowest px-2 py-2"><button type="button" aria-label="Page précédente" disabled={page === 1} onClick={() => setPage((p) => Math.max(1, p - 1))} className="rounded-lg p-2 disabled:opacity-40"><Icon name="chevron_right" size={20} className="rotate-180" /></button><span className="text-sm text-on-surface-variant">Page {page} sur {nombrePages}</span><button type="button" aria-label="Page suivante" disabled={page === nombrePages} onClick={() => setPage((p) => Math.min(nombrePages, p + 1))} className="rounded-lg p-2 disabled:opacity-40"><Icon name="chevron_right" size={20} /></button></nav>}
           </div>
         </div>
       ) : (

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { MemoryRouter } from 'react-router-dom'
 import Paiements from './Paiements'
@@ -89,9 +89,9 @@ describe('Paiements', () => {
 
   it('les totaux incluent les acomptes', async () => {
     rendre()
-    expect(await screen.findByText('1 500 000 FCFA')).toBeInTheDocument()
+    await waitFor(() => expect(screen.getByText('Total attendu').nextElementSibling?.textContent).toBe('1 500 000 FCFA'))
     expect(screen.getByText('Total encaissé').nextElementSibling?.textContent).toBe('500 000 FCFA')
-    expect(screen.getByText('1 000 000 FCFA')).toBeInTheDocument()
+    expect(screen.getByText('Reste global').nextElementSibling?.textContent).toBe('1 000 000 FCFA')
   })
 
   it('l’encart « solde à régler » inclut les plans à date limite passée même en statut en_cours', async () => {

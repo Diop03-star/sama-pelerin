@@ -99,7 +99,7 @@ export default function Documents() {
         </select>
       </div>
 
-      <section className="grid grid-cols-1 gap-4 md:grid-cols-3">
+      <section className="grid grid-cols-3 gap-3 md:gap-4">
         <StatCard label="Total Pèlerins" valeur={compteurs.total} icon="group" />
         <StatCard label="Dossiers validés" valeur={compteurs.valides} icon="check_circle" tone="vert" />
         <StatCard label="Dossiers incomplets" valeur={compteurs.incomplets} icon="warning" tone="error" />

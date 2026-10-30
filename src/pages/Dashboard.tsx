@@ -126,7 +126,7 @@ export default function Dashboard() {
   const progression = progressionPaiement(totalAttendu, encaisseSurPlans)
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6 md:space-y-8">
       <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
         <div>
           <h1 className="text-display-lg text-on-surface">Tableau de bord</h1>
@@ -150,7 +150,7 @@ export default function Dashboard() {
         </div>
       </div>
 
-      <section className="grid grid-cols-1 gap-4 md:grid-cols-3">
+      <section className="grid grid-cols-1 gap-3 md:grid-cols-3 md:gap-4">
         <h2 className="sr-only">Alertes à traiter</h2>
         <AlertLink
           tone="rouge"
@@ -179,7 +179,7 @@ export default function Dashboard() {
         <FiltrePeriode periode={periode} onChange={setPeriode} />
       </div>
 
-      <section className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+      <section className="grid grid-cols-2 gap-3 md:gap-6 lg:grid-cols-3">
         <StatCard label="Total Pèlerins" valeur={totalPelerins} icon="group" tendance={{ texte: pluriel(valides, 'dossier validé', 'dossiers validés'), positif: true }} grande />
         <StatCard
           label="Total encaissé"
@@ -190,7 +190,7 @@ export default function Dashboard() {
           monetaire
           tendance={{ texte: nomPeriode(periode), positif: true, suffixe: '' }}
         />
-        <StatCard label="Reste global" valeur={formatFCFA(resteGlobal)} icon="account_balance_wallet" tone={resteGlobal > 0 ? 'error' : 'vert'} grande />
+        <StatCard label="Reste global" valeur={resteGlobal} monetaire icon="account_balance_wallet" tone={resteGlobal > 0 ? 'error' : 'vert'} grande className="col-span-2 lg:col-span-1" />
       </section>
 
       <section className="grid grid-cols-1 gap-6 lg:grid-cols-3">

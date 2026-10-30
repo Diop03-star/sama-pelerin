@@ -163,3 +163,11 @@
     line-height: 2rem;
   }
 }
+
+/* Sur téléphone, les titres de page tiennent sur une ligne au lieu de deux */
+@media (max-width: 767px) {
+  :root {
+    --text-display-lg: 24px;
+    --text-display-lg--line-height: 32px;
+  }
+}

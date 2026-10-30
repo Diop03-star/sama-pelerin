@@ -12,6 +12,7 @@ import Button from '../components/ui/Button'
 import Badge from '../components/ui/Badge'
 import Modal from '../components/ui/Modal'
 import EmptyState from '../components/ui/EmptyState'
+import BoutonFiltres from '../components/ui/BoutonFiltres'
 
 interface PelerinAvecJointures extends Pelerin {
   groupe: Groupe
@@ -39,6 +40,7 @@ export default function Pelerins() {
   const [aSupprimer, setASupprimer] = useState<PelerinAvecJointures | null>(null)
   const [menuOuvert, setMenuOuvert] = useState<string | null>(null)
   const [page, setPage] = useState(1)
+  const [filtresOuverts, setFiltresOuverts] = useState(false)
 
   const { data: groupes = [] } = useQuery({
     queryKey: ['groupes-simple'],
@@ -190,11 +192,15 @@ export default function Pelerins() {
       <section className="flex flex-col items-end gap-4 rounded-xl border border-outline-variant bg-surface-container-lowest p-4 shadow-sm lg:flex-row">
         <div className="w-full flex-1">
           <label className="label mb-2 block" htmlFor="recherche-pelerin">Recherche rapide</label>
-          <div className="relative">
-            <Icon name="search" size={20} className="absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant" />
-            <Input id="recherche-pelerin" placeholder="Nom, téléphone, passeport…" value={recherche} onChange={(e) => { setRecherche(e.target.value); setPage(1) }} className="border-outline-variant bg-surface pl-10" />
+          <div className="flex gap-2">
+            <div className="relative flex-1">
+              <Icon name="search" size={20} className="absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant" />
+              <Input id="recherche-pelerin" placeholder="Nom, téléphone, passeport…" value={recherche} onChange={(e) => { setRecherche(e.target.value); setPage(1) }} className="border-outline-variant bg-surface pl-10" />
+            </div>
+            <BoutonFiltres ouverts={filtresOuverts} actifs={(statutFiltre ? 1 : 0) + (groupeFiltre ? 1 : 0)} controle="filtres-pelerins" onClick={() => setFiltresOuverts((o) => !o)} />
           </div>
         </div>
+        <div id="filtres-pelerins" className={`${filtresOuverts ? 'flex' : 'hidden'} w-full flex-col items-end gap-4 md:flex lg:w-auto lg:flex-row`}>
         <div className="w-full lg:w-48">
           <label className="label mb-2 block" htmlFor="filtre-statut-pelerin">Statut du dossier</label>
           <Select id="filtre-statut-pelerin" value={statutFiltre} onChange={(e) => modifierParametre('statut', e.target.value)} className="border-outline-variant bg-surface">
@@ -214,6 +220,7 @@ export default function Pelerins() {
           <Icon name="delete" size={18} />
           <span className="ml-2 lg:hidden">Réinitialiser</span>
         </button>
+        </div>
       </section>
 
       <div className="hidden overflow-hidden rounded-xl border border-outline-variant bg-surface-container-lowest shadow-sm md:block">

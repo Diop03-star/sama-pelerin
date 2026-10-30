@@ -73,8 +73,8 @@ export default function Topbar({ onOuvrirMenu }: TopbarProps) {
   }
 
   return (
-    <header className="sticky top-0 z-10 flex h-16 items-center justify-between border-b border-outline-variant bg-surface-container-lowest px-6 pt-barre-etat">
-      <div className="flex items-center gap-4">
+    <header className="sticky top-0 z-10 flex h-16 items-center justify-between gap-2 border-b border-outline-variant bg-surface-container-lowest px-3 pt-barre-etat md:px-6">
+      <div className="flex min-w-0 items-center gap-2 md:gap-4">
         <button
           type="button"
           aria-label="Ouvrir le menu"
@@ -83,7 +83,7 @@ export default function Topbar({ onOuvrirMenu }: TopbarProps) {
         >
           <Icon name="menu" size={20} />
         </button>
-        <h2 className="text-headline-sm font-bold text-primary">{agence?.nom ?? 'SamaPèlerin'}</h2>
+        <h2 title={agence?.nom} className="truncate text-body-lg font-bold text-primary md:text-headline-sm">{agence?.nom ?? 'SamaPèlerin'}</h2>
       </div>
 
       <div className="relative mx-6 hidden max-w-md flex-1 sm:block">
@@ -131,7 +131,7 @@ export default function Topbar({ onOuvrirMenu }: TopbarProps) {
         )}
       </div>
 
-      <div className="flex items-center gap-2">
+      <div className="flex shrink-0 items-center gap-1 md:gap-2">
         <NotifPanel />
         <Link
           to="/tutoriels"
@@ -140,7 +140,7 @@ export default function Topbar({ onOuvrirMenu }: TopbarProps) {
         >
           <Icon name="help_outline" size={20} />
         </Link>
-        <div className="ml-2 flex items-center gap-3 border-l border-outline-variant pl-4">
+        <div className="ml-1 flex items-center gap-3 border-l border-outline-variant pl-2 md:ml-2 md:pl-4">
           <div className="hidden text-right lg:block">
             <p className="text-label-md text-on-surface">{profil?.role === 'gerant' ? 'Gérant' : 'Agent'}</p>
             <p className="text-[10px] text-on-surface-variant">{agence?.nom}</p>

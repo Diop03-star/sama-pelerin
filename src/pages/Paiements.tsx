@@ -70,10 +70,10 @@ export default function Paiements() {
         </Button>
       </div>
 
-      <section className="grid grid-cols-1 gap-4 md:grid-cols-3">
-        <StatCard label="Total attendu" valeur={formatFCFA(totals.total)} icon="request_quote" />
-        <StatCard label="Total encaissé" valeur={formatFCFA(totals.paye)} icon="payments" tone="vert" />
-        <StatCard label="Reste global" valeur={formatFCFA(totals.reste)} icon="account_balance_wallet" tone={totals.reste > 0 ? 'error' : 'vert'} />
+      <section className="grid grid-cols-2 gap-3 md:grid-cols-3 md:gap-4">
+        <StatCard label="Total attendu" valeur={totals.total} monetaire icon="request_quote" className="col-span-2 md:col-span-1" />
+        <StatCard label="Total encaissé" valeur={totals.paye} monetaire icon="payments" tone="vert" />
+        <StatCard label="Reste global" valeur={totals.reste} monetaire icon="account_balance_wallet" tone={totals.reste > 0 ? 'error' : 'vert'} />
       </section>
 
       {enRetard.length > 0 && (
