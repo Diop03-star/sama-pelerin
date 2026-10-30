@@ -18,6 +18,7 @@ export default function Signup() {
     e.preventDefault()
     setEnCours(true)
     setErreur('')
+    setMessage('')
     const meta: Record<string, string> = { nom }
     if (inviteToken) meta.invite_token = inviteToken
     const { error } = await supabase.auth.signUp({
